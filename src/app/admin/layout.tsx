@@ -1,0 +1,54 @@
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import Link from "next/link"
+import { Package, ShoppingBag, LayoutDashboard } from "lucide-react"
+
+const navLinks = [
+  { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/admin/produtos", icon: Package, label: "Produtos" },
+  { href: "/admin/pedidos", icon: ShoppingBag, label: "Pedidos" },
+]
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth()
+  if (!session || session.user.role !== "ADMIN") redirect("/")
+
+  return (
+    <div className="min-h-screen flex" style={{ background: "var(--bg)" }}>
+      <style>{`
+        .admin-link {
+          color: var(--text-secondary);
+          transition: background 0.15s, color 0.15s;
+        }
+        .admin-link:hover {
+          background: var(--surface-2);
+          color: var(--text-primary);
+        }
+      `}</style>
+      <aside
+        className="w-56 flex-shrink-0 flex flex-col py-6 px-3 gap-1"
+        style={{ borderRight: "1px solid var(--border)", background: "var(--surface-1)" }}
+      >
+        <Link
+          href="/"
+          className="text-base font-bold px-3 mb-4"
+          style={{ color: "var(--text-primary)" }}
+        >
+          Arc<span style={{ color: "var(--accent)" }}>Store</span>
+          <span className="ml-2 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>Admin</span>
+        </Link>
+        {navLinks.map(({ href, icon: Icon, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className="admin-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium"
+          >
+            <Icon size={16} />
+            {label}
+          </Link>
+        ))}
+      </aside>
+      <main className="flex-1 overflow-auto p-8">{children}</main>
+    </div>
+  )
+}

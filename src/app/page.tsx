@@ -1,65 +1,173 @@
-import Image from "next/image";
+import Navbar from "@/components/navbar"
+import ProductCard from "@/components/product-card"
+import { prisma } from "@/lib/db"
+import type { Product } from "@prisma/client"
+import { Zap } from "lucide-react"
 
-export default function Home() {
+async function getProducts(category?: string) {
+  return prisma.product.findMany({
+    where: { active: true, ...(category ? { category } : {}) },
+    orderBy: { createdAt: "desc" },
+  })
+}
+
+async function getCategories() {
+  const result = await prisma.product.groupBy({
+    by: ["category"],
+    where: { active: true },
+  })
+  return result.map((r: { category: string }) => r.category)
+}
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ categoria?: string; busca?: string }>
+}) {
+  const params = await searchParams
+  const [products, categories] = await Promise.all([
+    getProducts(params.categoria),
+    getCategories(),
+  ])
+
+  const filtered: Product[] = params.busca
+    ? products.filter((p: Product) =>
+        p.name.toLowerCase().includes(params.busca!.toLowerCase())
+      )
+    : products
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+      <Navbar />
+
+      <main className="pt-14">
+        {/* Hero */}
+        <section className="relative overflow-hidden py-24 px-4 text-center">
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,113,227,0.12) 0%, transparent 70%)",
+            }}
+          />
+          <div className="relative max-w-3xl mx-auto">
+            <div
+              className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full mb-6"
+              style={{
+                background: "rgba(0,113,227,0.1)",
+                border: "1px solid rgba(0,113,227,0.3)",
+                color: "var(--accent)",
+              }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <Zap size={11} />
+              Entrega rápida após confirmação do PIX
+            </div>
+            <h1
+              className="text-5xl sm:text-6xl font-bold tracking-tight mb-4"
+              style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+              Itens de
+              <br />
+              <span style={{ color: "var(--accent)" }}>Arc Raiders</span>
+            </h1>
+            <p
+              className="text-lg max-w-xl mx-auto"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Os melhores itens in-game com segurança, preço justo e entrega garantida.
+            </p>
+          </div>
+        </section>
+
+        {/* Filtros */}
+        <section
+          className="sticky top-14 z-40 px-4 py-3"
+          style={{
+            background: "rgba(0,0,0,0.8)",
+            backdropFilter: "blur(20px)",
+            borderBottom: "1px solid var(--border)",
+          }}
+        >
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <a
+                href="/"
+                className="text-xs px-3 py-1.5 rounded-full font-medium transition-colors"
+                style={{
+                  background: !params.categoria ? "var(--accent)" : "var(--surface-2)",
+                  color: !params.categoria ? "#fff" : "var(--text-secondary)",
+                  border: "1px solid " + (!params.categoria ? "transparent" : "var(--border)"),
+                }}
+              >
+                Todos
+              </a>
+              {categories.map((cat: string) => (
+                <a
+                  key={cat}
+                  href={`/?categoria=${cat}`}
+                  className="text-xs px-3 py-1.5 rounded-full font-medium transition-colors"
+                  style={{
+                    background: params.categoria === cat ? "var(--accent)" : "var(--surface-2)",
+                    color: params.categoria === cat ? "#fff" : "var(--text-secondary)",
+                    border: "1px solid " + (params.categoria === cat ? "transparent" : "var(--border)"),
+                  }}
+                >
+                  {cat}
+                </a>
+              ))}
+            </div>
+            <form className="sm:ml-auto" action="/" method="get">
+              {params.categoria && (
+                <input type="hidden" name="categoria" value={params.categoria} />
+              )}
+              <input
+                name="busca"
+                defaultValue={params.busca}
+                placeholder="Buscar item..."
+                className="input-field text-sm"
+                style={{ width: "200px", padding: "0.375rem 0.75rem", borderRadius: "980px" }}
+              />
+            </form>
+          </div>
+        </section>
+
+        {/* Grade de produtos */}
+        <section className="max-w-6xl mx-auto px-4 py-12">
+          {filtered.length === 0 ? (
+            <div className="text-center py-24">
+              <p className="text-2xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+                Nenhum item encontrado
+              </p>
+              <p style={{ color: "var(--text-secondary)" }}>
+                Tente outro termo ou categoria.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filtered.map((product: Product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  slug={product.slug}
+                  price={Number(product.price)}
+                  image={product.image}
+                  category={product.category}
+                  rarity={product.rarity}
+                  stock={product.stock}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </main>
+
+      <footer
+        className="mt-auto py-8 text-center text-sm"
+        style={{ color: "var(--text-tertiary)", borderTop: "1px solid var(--border)" }}
+      >
+        © {new Date().getFullYear()} ArcStore · Todos os direitos reservados
+      </footer>
     </div>
-  );
+  )
 }
