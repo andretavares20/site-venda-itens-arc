@@ -9,8 +9,8 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: "ArcStore — Itens de Arc Raiders",
-  description: "Compre itens exclusivos de Arc Raiders com segurança e rapidez.",
+  title: "DropBay — Marketplace de itens Arc Raiders",
+  description: "Compre, venda e troque itens de Arc Raiders com segurança e rapidez.",
 }
 
 export default function RootLayout({

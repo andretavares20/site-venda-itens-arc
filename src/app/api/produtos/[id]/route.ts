@@ -13,7 +13,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params
   const body = await req.json()
   const product = await prisma.product.update({ where: { id }, data: body })
-  return NextResponse.json({ ...product, price: Number(product.price) })
+  return NextResponse.json({ ...product, suggestedPrice: Number(product.suggestedPrice) })
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

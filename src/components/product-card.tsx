@@ -48,9 +48,12 @@ type Props = {
   category: string
   rarity: string
   stock: number
+  listingItemId?: string
+  sellerId?: string
+  sellerName?: string
 }
 
-export default function ProductCard({ id, name, slug, price, image, rarity, stock }: Props) {
+export default function ProductCard({ id, name, slug, price, image, rarity, stock, listingItemId, sellerId, sellerName }: Props) {
   const add = useCart((s) => s.add)
   const [added, setAdded] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -61,7 +64,7 @@ export default function ProductCard({ id, name, slug, price, image, rarity, stoc
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault()
     if (stock === 0) return
-    add({ id, name, price, image, slug })
+    add({ id: listingItemId ?? id, name, price, image, slug })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
   }
@@ -142,6 +145,11 @@ export default function ProductCard({ id, name, slug, price, image, rarity, stoc
         >
           {name}
         </h3>
+        {sellerName && (
+          <p className="text-xs truncate" style={{ color: "var(--text-tertiary)" }}>
+            por {sellerName}
+          </p>
+        )}
 
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>

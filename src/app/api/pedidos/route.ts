@@ -3,18 +3,34 @@ import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { mpPayment } from "@/lib/mercadopago"
 
-type OrderItem = { productId: string; quantity: number; price: number }
+const COMMISSION_RATE = 0.10
+
+type CartItem = { listingItemId: string; quantity: number; price: number }
 
 export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
-  const where = session.user.role === "ADMIN" ? {} : { userId: session.user.id }
+  const where = session.user.role === "ADMIN" ? {} : { buyerId: session.user.id }
+
   const orders = await prisma.order.findMany({
     where,
-    include: { items: { include: { product: { select: { name: true } } } }, user: { select: { name: true, email: true } } },
+    include: {
+      buyer: { select: { name: true, email: true } },
+      items: {
+        include: {
+          listingItem: {
+            include: {
+              product: { select: { name: true, image: true } },
+              listing: { include: { seller: { select: { id: true, name: true, pixKey: true } } } },
+            },
+          },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   })
+
   return NextResponse.json(orders)
 }
 
@@ -22,18 +38,20 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Faça login para continuar" }, { status: 401 })
 
-  const { items, total }: { items: OrderItem[]; total: number } = await req.json()
+  const { items, total }: { items: CartItem[]; total: number } = await req.json()
 
   if (!items?.length) return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 })
 
-  // Cria pedido no banco
+  const commission = Math.round(total * COMMISSION_RATE * 100) / 100
+
   const order = await prisma.order.create({
     data: {
-      userId: session.user.id,
+      buyerId: session.user.id,
       total,
+      commission,
       items: {
         create: items.map((i) => ({
-          productId: i.productId,
+          listingItemId: i.listingItemId,
           quantity: i.quantity,
           price: i.price,
         })),
@@ -46,7 +64,7 @@ export async function POST(req: NextRequest) {
     const payment = await mpPayment.create({
       body: {
         transaction_amount: total,
-        description: `Pedido ArcStore #${order.id.slice(-8).toUpperCase()}`,
+        description: `Pedido DropBay #${order.id.slice(-8).toUpperCase()}`,
         payment_method_id: "pix",
         payer: {
           email: session.user.email,
@@ -74,7 +92,6 @@ export async function POST(req: NextRequest) {
       total,
     })
   } catch (err) {
-    // Cancela o pedido se o PIX falhar
     await prisma.order.update({ where: { id: order.id }, data: { status: "CANCELADO" } })
     console.error("Erro Mercado Pago:", err)
     return NextResponse.json({ error: "Erro ao gerar PIX. Tente novamente." }, { status: 500 })

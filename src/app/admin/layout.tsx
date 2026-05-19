@@ -1,12 +1,13 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Package, ShoppingBag, LayoutDashboard } from "lucide-react"
+import { Package, ShoppingBag, LayoutDashboard, Megaphone } from "lucide-react"
 
 const navLinks = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/admin/produtos", icon: Package, label: "Produtos" },
+  { href: "/admin/anuncios", icon: Megaphone, label: "Anúncios" },
   { href: "/admin/pedidos", icon: ShoppingBag, label: "Pedidos" },
+  { href: "/admin/produtos", icon: Package, label: "Catálogo" },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           className="text-base font-bold px-3 mb-4"
           style={{ color: "var(--text-primary)" }}
         >
-          Arc<span style={{ color: "var(--accent)" }}>Store</span>
+          Drop<span style={{ color: "var(--accent)" }}>Bay</span>
           <span className="ml-2 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>Admin</span>
         </Link>
         {navLinks.map(({ href, icon: Icon, label }) => (

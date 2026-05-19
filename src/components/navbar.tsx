@@ -31,10 +31,28 @@ export default function Navbar() {
             className="text-lg font-semibold tracking-tight"
             style={{ color: "var(--text-primary)" }}
           >
-            Arc<span style={{ color: "var(--accent)" }}>Store</span>
+            Drop<span style={{ color: "var(--accent)" }}>Bay</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
+            <Link
+              href="/anunciar"
+              className="text-sm transition-colors"
+              style={{ color: "var(--text-secondary)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+            >
+              Anunciar
+            </Link>
+            <Link
+              href="/trocas"
+              className="text-sm transition-colors"
+              style={{ color: "var(--text-secondary)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+            >
+              Trocas
+            </Link>
             <Link
               href="/"
               className="text-sm transition-colors"
