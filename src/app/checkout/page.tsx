@@ -92,12 +92,16 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((i) => ({ productId: i.id, quantity: i.quantity, price: i.price })),
+          items: items.map((i) => ({ listingItemId: i.id, quantity: i.quantity, price: i.price })),
           total,
         }),
       })
-      const data = await res.json()
+
+      const text = await res.text()
+      if (!text) throw new Error("Servidor não retornou resposta. Tente novamente.")
+      const data = JSON.parse(text)
       if (!res.ok) throw new Error(data.error || "Erro ao criar pedido")
+
       setPix(data)
       clear()
       startPolling(data.orderId)
