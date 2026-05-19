@@ -35,7 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           className="text-base font-bold px-3 mb-4"
           style={{ color: "var(--text-primary)" }}
         >
-          Arc<span style={{ color: "var(--accent)" }}>Store</span>
+          Drop<span style={{ color: "var(--accent)" }}>Bay</span>
           <span className="ml-2 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>Admin</span>
         </Link>
         {navLinks.map(({ href, icon: Icon, label }) => (

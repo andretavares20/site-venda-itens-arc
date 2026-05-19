@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     const payment = await mpPayment.create({
       body: {
         transaction_amount: total,
-        description: `Pedido ArcStore #${order.id.slice(-8).toUpperCase()}`,
+        description: `Pedido DropBay #${order.id.slice(-8).toUpperCase()}`,
         payment_method_id: "pix",
         payer: {
           email: session.user.email,

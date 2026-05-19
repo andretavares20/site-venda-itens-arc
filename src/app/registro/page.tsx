@@ -54,7 +54,7 @@ export default function RegistroPage() {
             className="text-2xl font-bold tracking-tight"
             style={{ color: "var(--text-primary)" }}
           >
-            Arc<span style={{ color: "var(--accent)" }}>Store</span>
+            Drop<span style={{ color: "var(--accent)" }}>Bay</span>
           </Link>
           <h1 className="mt-6 text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>
             Criar conta

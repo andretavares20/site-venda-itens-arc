@@ -141,7 +141,7 @@ export default async function Home({
 
       <footer className="mt-auto py-8 text-center text-sm"
         style={{ color: "var(--text-tertiary)", borderTop: "1px solid var(--border)" }}>
-        © {new Date().getFullYear()} ArcStore · Marketplace de itens Arc Raiders
+        © {new Date().getFullYear()} DropBay · Marketplace de itens Arc Raiders
       </footer>
     </div>
   )

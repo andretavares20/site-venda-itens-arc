@@ -1,4 +1,4 @@
-# ArcStore
+# DropBay
 
 Marketplace de itens in-game para Arc Raiders. Permite compra, venda e troca de itens entre jogadores com segurança e transparência.
 

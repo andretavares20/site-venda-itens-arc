@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react"
+import { Plus, Pencil, Trash2, X, Check, Search } from "lucide-react"
 import Image from "next/image"
 
 type Product = {
@@ -26,10 +26,22 @@ const rarityColor: Record<string, string> = {
 
 export default function AdminProdutos() {
   const [products, setProducts] = useState<Product[]>([])
+  const [search, setSearch] = useState("")
+  const [rarityFilter, setRarityFilter] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("")
   const [form, setForm] = useState(empty)
   const [editing, setEditing] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const filtered = products.filter((p) => {
+    const matchName = !search || p.name.toLowerCase().includes(search.toLowerCase())
+    const matchRarity = !rarityFilter || p.rarity === rarityFilter
+    const matchCategory = !categoryFilter || p.category === categoryFilter
+    return matchName && matchRarity && matchCategory
+  })
+
+  const categories = [...new Set(products.map((p) => p.category))].sort()
 
   useEffect(() => { load() }, [])
 
@@ -79,10 +91,57 @@ export default function AdminProdutos() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
           Catálogo de itens
+          <span className="ml-2 text-sm font-normal" style={{ color: "var(--text-tertiary)" }}>
+            {filtered.length}/{products.length}
+          </span>
         </h1>
         <button onClick={openNew} className="btn-primary text-sm">
           <Plus size={16} /> Novo item
         </button>
+      </div>
+
+      {/* Filtros */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <div className="flex items-center gap-2 flex-1 min-w-48 px-3 py-2 rounded-xl"
+          style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+          <Search size={14} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
+          <input
+            className="flex-1 bg-transparent outline-none text-sm"
+            style={{ color: "var(--text-primary)" }}
+            placeholder="Buscar por nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button onClick={() => setSearch("")} style={{ color: "var(--text-tertiary)" }}>
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        <select value={rarityFilter} onChange={(e) => setRarityFilter(e.target.value)}
+          className="text-sm px-3 py-2 rounded-xl"
+          style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: rarityFilter ? rarityColor[rarityFilter] : "var(--text-secondary)", outline: "none" }}>
+          <option value="">Todas raridades</option>
+          {["Common", "Uncommon", "Rare", "Epic", "Legendary"].map((r) => (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+
+        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}
+          className="text-sm px-3 py-2 rounded-xl"
+          style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-secondary)", outline: "none" }}>
+          <option value="">Todas categorias</option>
+          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+
+        {(search || rarityFilter || categoryFilter) && (
+          <button onClick={() => { setSearch(""); setRarityFilter(""); setCategoryFilter("") }}
+            className="text-sm px-3 py-2 rounded-xl"
+            style={{ color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+            Limpar filtros
+          </button>
+        )}
       </div>
 
       <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
@@ -95,7 +154,7 @@ export default function AdminProdutos() {
             </tr>
           </thead>
           <tbody>
-            {products.map((p, i) => (
+            {filtered.map((p, i) => (
               <tr key={p.id} style={{ background: i % 2 === 0 ? "var(--surface-1)" : "var(--bg)", borderBottom: "1px solid var(--border)" }}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -130,8 +189,10 @@ export default function AdminProdutos() {
             ))}
           </tbody>
         </table>
-        {products.length === 0 && (
-          <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>Nenhum item no catálogo</div>
+        {filtered.length === 0 && (
+          <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
+            {products.length === 0 ? "Nenhum item no catálogo" : "Nenhum item corresponde aos filtros"}
+          </div>
         )}
       </div>
 

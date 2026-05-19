@@ -31,7 +31,7 @@ export default function Navbar() {
             className="text-lg font-semibold tracking-tight"
             style={{ color: "var(--text-primary)" }}
           >
-            Arc<span style={{ color: "var(--accent)" }}>Store</span>
+            Drop<span style={{ color: "var(--accent)" }}>Bay</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
