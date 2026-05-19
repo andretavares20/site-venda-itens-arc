@@ -257,9 +257,16 @@ export default function AnunciarPage() {
           </div>
         )}
 
+        {hasPixKey === false && (
+          <p className="text-xs text-center" style={{ color: "var(--text-tertiary)" }}>
+            Cadastre sua chave PIX em{" "}
+            <a href="/minha-conta/perfil" style={{ color: "var(--accent)" }}>Meu perfil</a>{" "}
+            para poder anunciar.
+          </p>
+        )}
         <button
           onClick={handleSubmit}
-          disabled={!cart.length || submitting}
+          disabled={!cart.length || submitting || hasPixKey === false}
           className="btn-primary w-full"
         >
           {submitting ? (
