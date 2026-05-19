@@ -48,14 +48,25 @@ export default function AdminPedidos() {
 
   async function updateStatus(id: string, status: string) {
     setUpdating(status)
-    await fetch(`/api/pedidos/${id}`, {
+    const res = await fetch(`/api/pedidos/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     })
+    const data = await res.json()
     setUpdating(null)
     await load()
-    setSelected((prev) => prev ? { ...prev, status: status as Order["status"] } : null)
+    setSelected((prev) => prev ? {
+      ...prev,
+      status: status as Order["status"],
+      sellerPaid: data.sellerPaid ?? prev.sellerPaid,
+    } : null)
+
+    if (data.pixSent) {
+      alert(`✅ PIX enviado automaticamente ao vendedor!`)
+    } else if (data.pixError) {
+      alert(`⚠️ Item entregue, mas o PIX automático falhou:\n${data.pixError}\n\nPague o vendedor manualmente.`)
+    }
   }
 
   async function confirmSellerPaid(id: string) {
