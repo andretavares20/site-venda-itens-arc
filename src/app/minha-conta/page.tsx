@@ -96,6 +96,25 @@ export default function MinhaContaPage() {
           </button>
         </div>
 
+        {/* Atalhos */}
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          {[
+            { href: "/minha-conta/perfil", label: "Meu perfil", desc: "Dados e chave PIX" },
+            { href: "/minha-conta/anuncios", label: "Meus anúncios", desc: "Gerencie o que você vende" },
+            { href: "/anunciar", label: "Novo anúncio", desc: "Anuncie um item" },
+          ].map(({ href, label, desc }) => (
+            <Link key={href} href={href}
+              className="flex flex-col gap-1 p-4 rounded-2xl transition-all"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--border-hover)"}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border)"}
+            >
+              <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{label}</span>
+              <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{desc}</span>
+            </Link>
+          ))}
+        </div>
+
         {/* Título */}
         <div className="flex items-center gap-2 mb-5">
           <ShoppingBag size={18} style={{ color: "var(--text-secondary)" }} />

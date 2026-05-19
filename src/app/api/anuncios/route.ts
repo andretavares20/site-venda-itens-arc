@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/db"
+import { auth } from "@/lib/auth"
+
+export async function GET(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const mine = searchParams.get("mine")
+
+  const where = session.user.role === "ADMIN" && !mine
+    ? {}
+    : { sellerId: session.user.id }
+
+  const listings = await prisma.listing.findMany({
+    where,
+    include: {
+      seller: { select: { id: true, name: true, email: true } },
+      items: { include: { product: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  })
+
+  return NextResponse.json(listings)
+}
+
+export async function POST(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Faça login para anunciar" }, { status: 401 })
+
+  const { items } = await req.json()
+
+  if (!items?.length) {
+    return NextResponse.json({ error: "Adicione pelo menos um item" }, { status: 400 })
+  }
+
+  const listing = await prisma.listing.create({
+    data: {
+      sellerId: session.user.id,
+      items: {
+        create: items.map((i: { productId: string; quantity: number; price: number }) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          price: i.price,
+        })),
+      },
+    },
+    include: { items: { include: { product: true } } },
+  })
+
+  return NextResponse.json(listing)
+}

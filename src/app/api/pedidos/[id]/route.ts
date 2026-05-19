@@ -9,11 +9,23 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: { include: { product: true } } },
+    include: {
+      buyer: { select: { name: true, email: true } },
+      items: {
+        include: {
+          listingItem: {
+            include: {
+              product: true,
+              listing: { include: { seller: { select: { id: true, name: true, pixKey: true } } } },
+            },
+          },
+        },
+      },
+    },
   })
 
-  if (!order) return NextResponse.json({ error: "Pedido não encontrado" }, { status: 404 })
-  if (order.userId !== session.user.id && session.user.role !== "ADMIN") {
+  if (!order) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
+  if (order.buyerId !== session.user.id && session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 })
   }
 
@@ -27,7 +39,31 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const { id } = await params
-  const { status } = await req.json()
-  const order = await prisma.order.update({ where: { id }, data: { status } })
+  const { status, sellerPaid } = await req.json()
+
+  const order = await prisma.order.update({
+    where: { id },
+    data: {
+      ...(status && { status }),
+      ...(sellerPaid !== undefined && { sellerPaid }),
+    },
+  })
+
+  // Quando entregue, marca os ListingItems como vendidos
+  if (status === "ENTREGUE") {
+    const fullOrder = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    })
+    if (fullOrder) {
+      for (const item of fullOrder.items) {
+        await prisma.listingItem.update({
+          where: { id: item.listingItemId },
+          data: { status: "VENDIDO" },
+        })
+      }
+    }
+  }
+
   return NextResponse.json(order)
 }

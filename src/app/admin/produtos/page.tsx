@@ -9,15 +9,19 @@ type Product = {
   name: string
   slug: string
   description: string
-  price: number
+  suggestedPrice: number
   image: string
-  stock: number
   category: string
+  rarity: string
   active: boolean
 }
 
 const empty: Omit<Product, "id" | "active"> = {
-  name: "", slug: "", description: "", price: 0, image: "", stock: 0, category: "",
+  name: "", slug: "", description: "", suggestedPrice: 0, image: "", category: "", rarity: "Common",
+}
+
+const rarityColor: Record<string, string> = {
+  Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3", Epic: "#bf5af2", Legendary: "#ffd60a",
 }
 
 export default function AdminProdutos() {
@@ -42,7 +46,7 @@ export default function AdminProdutos() {
   }
 
   function openEdit(p: Product) {
-    setForm({ name: p.name, slug: p.slug, description: p.description, price: p.price, image: p.image, stock: p.stock, category: p.category })
+    setForm({ name: p.name, slug: p.slug, description: p.description, suggestedPrice: p.suggestedPrice, image: p.image, category: p.category, rarity: p.rarity })
     setEditing(p.id)
     setShowForm(true)
   }
@@ -74,67 +78,50 @@ export default function AdminProdutos() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-          Produtos
+          Catálogo de itens
         </h1>
         <button onClick={openNew} className="btn-primary text-sm">
-          <Plus size={16} /> Novo produto
+          <Plus size={16} /> Novo item
         </button>
       </div>
 
-      {/* Tabela */}
       <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
         <table className="w-full text-sm">
           <thead>
             <tr style={{ background: "var(--surface-1)", borderBottom: "1px solid var(--border)" }}>
-              {["Produto", "Categoria", "Preço", "Estoque", "Ações"].map((h) => (
-                <th key={h} className="text-left px-4 py-3 font-medium" style={{ color: "var(--text-secondary)" }}>
-                  {h}
-                </th>
+              {["Item", "Categoria", "Raridade", "Preço sugerido", "Ações"].map((h) => (
+                <th key={h} className="text-left px-4 py-3 font-medium" style={{ color: "var(--text-secondary)" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {products.map((p, i) => (
-              <tr
-                key={p.id}
-                style={{
-                  background: i % 2 === 0 ? "var(--surface-1)" : "var(--bg)",
-                  borderBottom: "1px solid var(--border)",
-                }}
-              >
+              <tr key={p.id} style={{ background: i % 2 === 0 ? "var(--surface-1)" : "var(--bg)", borderBottom: "1px solid var(--border)" }}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "var(--surface-2)" }}>
-                      {p.image && <Image src={p.image} alt={p.name} width={40} height={40} className="w-full h-full object-cover" />}
+                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
+                      {p.image && <Image src={p.image} alt={p.name} width={40} height={40} className="w-full h-full object-contain" />}
                     </div>
                     <span className="font-medium" style={{ color: "var(--text-primary)" }}>{p.name}</span>
                   </div>
                 </td>
                 <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{p.category}</td>
-                <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>R$ {p.price.toFixed(2)}</td>
                 <td className="px-4 py-3">
-                  <span
-                    className="px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{
-                      background: p.stock > 0 ? "rgba(48,209,88,0.1)" : "rgba(255,69,58,0.1)",
-                      color: p.stock > 0 ? "var(--success)" : "var(--error)",
-                    }}
-                  >
-                    {p.stock}
-                  </span>
+                  <span className="text-xs font-medium" style={{ color: rarityColor[p.rarity] ?? "#98989f" }}>{p.rarity}</span>
+                </td>
+                <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>
+                  R$ {Number(p.suggestedPrice).toFixed(2)}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg transition-colors" style={{ color: "var(--text-secondary)" }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface-2)"; e.currentTarget.style.color = "var(--text-primary)" }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)" }}
-                    >
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)" }}>
                       <Pencil size={14} />
                     </button>
                     <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg transition-colors" style={{ color: "var(--text-secondary)" }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,69,58,0.1)"; e.currentTarget.style.color = "var(--error)" }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)" }}
-                    >
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)" }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -144,36 +131,30 @@ export default function AdminProdutos() {
           </tbody>
         </table>
         {products.length === 0 && (
-          <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
-            Nenhum produto cadastrado
-          </div>
+          <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>Nenhum item no catálogo</div>
         )}
       </div>
 
-      {/* Modal de formulário */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
           <div className="w-full max-w-md rounded-2xl p-6 flex flex-col gap-4" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
             <div className="flex items-center justify-between">
               <h2 className="font-semibold" style={{ color: "var(--text-primary)" }}>
-                {editing ? "Editar produto" : "Novo produto"}
+                {editing ? "Editar item" : "Novo item"}
               </h2>
               <button onClick={() => setShowForm(false)} style={{ color: "var(--text-secondary)" }}><X size={18} /></button>
             </div>
 
             {[
-              { label: "Nome", key: "name", type: "text", onChangeFn: (v: string) => { setForm((f) => ({ ...f, name: v, slug: autoSlug(v) })) } },
+              { label: "Nome", key: "name", type: "text", onChangeFn: (v: string) => setForm((f) => ({ ...f, name: v, slug: autoSlug(v) })) },
               { label: "Slug (URL)", key: "slug", type: "text" },
               { label: "Imagem (URL)", key: "image", type: "url" },
               { label: "Categoria", key: "category", type: "text" },
-              { label: "Preço (R$)", key: "price", type: "number" },
-              { label: "Estoque", key: "stock", type: "number" },
+              { label: "Preço sugerido (R$)", key: "suggestedPrice", type: "number" },
             ].map(({ label, key, type, onChangeFn }) => (
               <div key={key} className="flex flex-col gap-1">
                 <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{label}</label>
-                <input
-                  type={type}
-                  className="input-field text-sm"
+                <input type={type} className="input-field text-sm"
                   value={String(form[key as keyof typeof form])}
                   onChange={(e) => onChangeFn ? onChangeFn(e.target.value) : setForm((f) => ({ ...f, [key]: type === "number" ? Number(e.target.value) : e.target.value }))}
                 />
@@ -181,13 +162,20 @@ export default function AdminProdutos() {
             ))}
 
             <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Raridade</label>
+              <select className="input-field text-sm" value={form.rarity}
+                onChange={(e) => setForm((f) => ({ ...f, rarity: e.target.value }))}>
+                {["Common", "Uncommon", "Rare", "Epic", "Legendary"].map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
               <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Descrição</label>
-              <textarea
-                className="input-field text-sm resize-none"
-                rows={3}
+              <textarea className="input-field text-sm resize-none" rows={3}
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              />
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
             </div>
 
             <div className="flex gap-3 mt-2">

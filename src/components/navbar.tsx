@@ -36,6 +36,15 @@ export default function Navbar() {
 
           <nav className="hidden md:flex items-center gap-8">
             <Link
+              href="/anunciar"
+              className="text-sm transition-colors"
+              style={{ color: "var(--text-secondary)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+            >
+              Anunciar
+            </Link>
+            <Link
               href="/"
               className="text-sm transition-colors"
               style={{ color: "var(--text-secondary)" }}
