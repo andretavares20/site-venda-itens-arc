@@ -12,7 +12,7 @@ type ListingItem = {
 }
 
 type Listing = {
-  id: string
+  id: string 
   status: string
   adminNotes: string | null
   createdAt: string
