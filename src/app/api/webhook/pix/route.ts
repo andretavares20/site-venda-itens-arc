@@ -53,6 +53,17 @@ export async function POST(req: NextRequest) {
   if (body.type === "payment" && body.data?.id) {
     const paymentId = String(body.data.id)
 
+    // Verifica o status real do pagamento na API do Mercado Pago
+    const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
+    })
+    const mpPayment = await mpRes.json()
+
+    // Só processa se o pagamento foi de fato aprovado
+    if (mpPayment.status !== "approved") {
+      return NextResponse.json({ ok: true })
+    }
+
     // Pagamento de pedido
     const order = await prisma.order.findFirst({ where: { paymentId } })
     if (order?.status === "PENDENTE") {
