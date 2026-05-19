@@ -22,10 +22,18 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
 
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: { include: { product: true } } },
+    include: {
+      items: {
+        include: {
+          listingItem: {
+            include: { product: true },
+          },
+        },
+      },
+    },
   })
 
-  if (!order || order.userId !== session.user.id) redirect("/")
+  if (!order || order.buyerId !== session.user.id) redirect("/")
 
   const status = statusConfig[order.status as StatusKey] ?? statusConfig.PENDENTE
   const Icon = status.icon
@@ -46,18 +54,17 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
         </div>
 
         <div className="flex flex-col gap-4">
-          <div
-            className="rounded-2xl p-5"
-            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
-          >
+          <div className="rounded-2xl p-5"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
             <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
               Itens
             </h2>
             {order.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between py-2" style={{ borderBottom: "1px solid var(--border)" }}>
+              <div key={item.id} className="flex items-center justify-between py-2"
+                style={{ borderBottom: "1px solid var(--border)" }}>
                 <div>
                   <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                    {item.product.name}
+                    {item.listingItem.product.name}
                   </p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                     x{item.quantity} · R$ {Number(item.price).toFixed(2)} cada
@@ -77,27 +84,21 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
           </div>
 
           {order.status === "PENDENTE" && order.pixCode && (
-            <div
-              className="rounded-2xl p-5 flex flex-col gap-3"
-              style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
-            >
+            <div className="rounded-2xl p-5 flex flex-col gap-3"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
               <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                 Código PIX
               </h2>
-              <p
-                className="text-xs font-mono break-all p-3 rounded-xl"
-                style={{ background: "var(--surface-2)", color: "var(--text-secondary)" }}
-              >
+              <p className="text-xs font-mono break-all p-3 rounded-xl"
+                style={{ background: "var(--surface-2)", color: "var(--text-secondary)" }}>
                 {order.pixCode}
               </p>
             </div>
           )}
 
-          <div className="flex items-center gap-3">
-            <Link href="/" className="btn-secondary flex-1 text-sm justify-center">
-              Continuar comprando
-            </Link>
-          </div>
+          <Link href="/" className="btn-secondary flex-1 text-sm justify-center">
+            Continuar comprando
+          </Link>
         </div>
       </main>
     </div>
