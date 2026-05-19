@@ -65,9 +65,44 @@ export async function POST(req: NextRequest) {
     }
 
     // Pagamento de pedido
-    const order = await prisma.order.findFirst({ where: { paymentId } })
+    const order = await prisma.order.findFirst({
+      where: { paymentId },
+      include: { items: true },
+    })
+
     if (order?.status === "PENDENTE") {
+      // Marca o pedido como PAGO
       await prisma.order.update({ where: { id: order.id }, data: { status: "PAGO" } })
+
+      // Marca cada ListingItem como VENDIDO (some da loja)
+      for (const item of order.items) {
+        await prisma.listingItem.update({
+          where: { id: item.listingItemId },
+          data: { status: "VENDIDO" },
+        })
+      }
+
+      // Verifica se todos os itens do anúncio foram vendidos
+      for (const item of order.items) {
+        const listingItem = await prisma.listingItem.findUnique({
+          where: { id: item.listingItemId },
+          select: { listingId: true },
+        })
+        if (!listingItem) continue
+
+        const allItems = await prisma.listingItem.findMany({
+          where: { listingId: listingItem.listingId },
+        })
+
+        const allSold = allItems.every((i) => i.status === "VENDIDO")
+        const someSold = allItems.some((i) => i.status === "VENDIDO")
+
+        await prisma.listing.update({
+          where: { id: listingItem.listingId },
+          data: { status: allSold ? "VENDIDO" : someSold ? "PARCIALMENTE_VENDIDO" : "DISPONIVEL" },
+        })
+      }
+
       return NextResponse.json({ ok: true })
     }
 
