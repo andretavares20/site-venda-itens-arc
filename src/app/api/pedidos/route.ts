@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
-import { mpPayment } from "@/lib/mercadopago"
+import { findOrCreateCustomer, createPixCharge } from "@/lib/asaas"
 
 const COMMISSION_RATE = 0.10
 
@@ -39,11 +39,21 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Faça login para continuar" }, { status: 401 })
 
   const { items, total }: { items: CartItem[]; total: number } = await req.json()
-
   if (!items?.length) return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 })
 
   const commission = Math.round(total * COMMISSION_RATE * 100) / 100
 
+  // Busca dados do comprador incluindo CPF
+  const buyer = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true, name: true, email: true, cpf: true, asaasId: true },
+  })
+
+  if (!buyer?.cpf) {
+    return NextResponse.json({ error: "CPF não cadastrado. Atualize seu perfil." }, { status: 400 })
+  }
+
+  // Cria pedido no banco
   const order = await prisma.order.create({
     data: {
       buyerId: session.user.id,
@@ -60,40 +70,48 @@ export async function POST(req: NextRequest) {
   })
 
   try {
-    const [firstName, ...rest] = (session.user.name ?? "Cliente").split(" ")
-    const payment = await mpPayment.create({
-      body: {
-        transaction_amount: total,
-        description: `Pedido DropBay #${order.id.slice(-8).toUpperCase()}`,
-        payment_method_id: "pix",
-        payer: {
-          email: session.user.email,
-          first_name: firstName,
-          last_name: rest.join(" ") || firstName,
-        },
-      },
+    // Cria ou recupera cliente no Asaas
+    const asaasCustomerId = await findOrCreateCustomer({
+      name: buyer.name,
+      email: buyer.email,
+      cpf: buyer.cpf,
     })
 
-    const txData = payment.point_of_interaction?.transaction_data
+    // Salva asaasId no usuário se ainda não tinha
+    if (!buyer.asaasId) {
+      await prisma.user.update({
+        where: { id: buyer.id },
+        data: { asaasId: asaasCustomerId },
+      })
+    }
+
+    // Gera cobrança PIX no Asaas
+    const pix = await createPixCharge({
+      customerId: asaasCustomerId,
+      amount: total,
+      description: `DropBay #${order.id.slice(-8).toUpperCase()}`,
+      externalReference: order.id,
+    })
+
+    // Salva dados do PIX no pedido
     await prisma.order.update({
       where: { id: order.id },
       data: {
-        paymentId: String(payment.id),
-        pixCode: txData?.qr_code ?? null,
-        pixQrCode: txData?.qr_code_base64 ?? null,
-        pixExpires: payment.date_of_expiration ? new Date(payment.date_of_expiration) : null,
+        paymentId: pix.paymentId,
+        pixCode: pix.pixCode,
+        pixQrCode: pix.pixQrCode,
       },
     })
 
     return NextResponse.json({
       orderId: order.id,
-      pixCode: txData?.qr_code ?? "",
-      pixQrCode: txData?.qr_code_base64 ?? "",
+      pixCode: pix.pixCode,
+      pixQrCode: pix.pixQrCode,
       total,
     })
   } catch (err) {
     await prisma.order.update({ where: { id: order.id }, data: { status: "CANCELADO" } })
-    console.error("Erro Mercado Pago:", err)
+    console.error("Erro Asaas:", err)
     return NextResponse.json({ error: "Erro ao gerar PIX. Tente novamente." }, { status: 500 })
   }
 }
