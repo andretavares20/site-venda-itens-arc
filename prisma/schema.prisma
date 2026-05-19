@@ -8,17 +8,19 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
+  id              String          @id @default(cuid())
   name            String
-  email           String    @unique
+  email           String          @unique
   password        String
-  role            Role      @default(USER)
+  role            Role            @default(USER)
   pixKey          String?
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime        @default(now())
   orders          Order[]
   listings        Listing[]
-  reviewsGiven    Review[]  @relation("ReviewGiver")
-  reviewsReceived Review[]  @relation("ReviewReceiver")
+  reviewsGiven    Review[]        @relation("ReviewGiver")
+  reviewsReceived Review[]        @relation("ReviewReceiver")
+  trades          Trade[]
+  proposals       TradeProposal[]
 }
 
 enum Role {
@@ -27,18 +29,21 @@ enum Role {
 }
 
 model Product {
-  id             String        @id @default(cuid())
-  name           String
-  slug           String        @unique
-  description    String
-  suggestedPrice Decimal       @db.Decimal(10, 2)
-  image          String
-  category       String
-  rarity         String        @default("Common")
-  active         Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  listingItems   ListingItem[]
+  id              String          @id @default(cuid())
+  name            String
+  slug            String          @unique
+  description     String
+  suggestedPrice  Decimal         @db.Decimal(10, 2)
+  image           String
+  category        String
+  rarity          String          @default("Common")
+  active          Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  listingItems    ListingItem[]
+  tradeOfferItems TradeOfferItem[]
+  tradeWantItems  TradeWantItem[]
+  proposalItems   ProposalItem[]
 }
 
 model Listing {
@@ -113,13 +118,91 @@ model OrderItem {
   price         Decimal     @db.Decimal(10, 2)
 }
 
+// ─── Sistema de Trocas ───────────────────────────────────────────
+
+model Trade {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id])
+  offerItems TradeOfferItem[]
+  wantItems  TradeWantItem[]  // vazio = aceita qualquer proposta
+  proposals  TradeProposal[]
+  status     TradeStatus     @default(ABERTA)
+  note       String?         // observação opcional do dono
+  expiresAt  DateTime?       // 24h após proposta aceita
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+enum TradeStatus {
+  ABERTA
+  AGUARDANDO_CONFIRMACAO
+  CONCLUIDA
+  CANCELADA
+  COM_RECLAMACAO
+}
+
+model TradeOfferItem {
+  id        String  @id @default(cuid())
+  tradeId   String
+  trade     Trade   @relation(fields: [tradeId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+}
+
+model TradeWantItem {
+  id        String  @id @default(cuid())
+  tradeId   String
+  trade     Trade   @relation(fields: [tradeId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+}
+
+model TradeProposal {
+  id                String         @id @default(cuid())
+  tradeId           String
+  trade             Trade          @relation(fields: [tradeId], references: [id])
+  proposerId        String
+  proposer          User           @relation(fields: [proposerId], references: [id])
+  offerItems        ProposalItem[]
+  status            ProposalStatus @default(PENDENTE)
+  ownerConfirmed    Boolean        @default(false)
+  proposerConfirmed Boolean        @default(false)
+  note              String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+enum ProposalStatus {
+  PENDENTE
+  ACEITA
+  RECUSADA
+  CANCELADA
+  CONCLUIDA
+  COM_RECLAMACAO
+}
+
+model ProposalItem {
+  id         String        @id @default(cuid())
+  proposalId String
+  proposal   TradeProposal @relation(fields: [proposalId], references: [id])
+  productId  String
+  product    Product       @relation(fields: [productId], references: [id])
+  quantity   Int           @default(1)
+}
+
+// ─── Avaliações ─────────────────────────────────────────────────
+
 model Review {
   id         String     @id @default(cuid())
   giverId    String
   giver      User       @relation("ReviewGiver", fields: [giverId], references: [id])
   receiverId String
   receiver   User       @relation("ReviewReceiver", fields: [receiverId], references: [id])
-  orderId    String
+  orderId    String?
+  tradeId    String?
   rating     Int
   comment    String?
   type       ReviewType
@@ -129,4 +212,5 @@ model Review {
 enum ReviewType {
   COMPRADOR_PARA_VENDEDOR
   VENDEDOR_PARA_COMPRADOR
+  TROCA
 }

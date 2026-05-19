@@ -101,6 +101,7 @@ export default function MinhaContaPage() {
           {[
             { href: "/minha-conta/perfil", label: "Meu perfil", desc: "Dados e chave PIX" },
             { href: "/minha-conta/anuncios", label: "Meus anúncios", desc: "Gerencie o que você vende" },
+            { href: "/minha-conta/trocas", label: "Minhas trocas", desc: "Trocas que você anunciou" },
             { href: "/anunciar", label: "Novo anúncio", desc: "Anuncie um item" },
           ].map(({ href, label, desc }) => (
             <Link key={href} href={href}

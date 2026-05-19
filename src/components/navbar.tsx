@@ -45,6 +45,15 @@ export default function Navbar() {
               Anunciar
             </Link>
             <Link
+              href="/trocas"
+              className="text-sm transition-colors"
+              style={{ color: "var(--text-secondary)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+            >
+              Trocas
+            </Link>
+            <Link
               href="/"
               className="text-sm transition-colors"
               style={{ color: "var(--text-secondary)" }}
