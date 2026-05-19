@@ -166,10 +166,12 @@ export default function AdminPedidos() {
                   <button
                     onClick={() => updateStatus(order.id, "ENTREGUE")}
                     disabled={updating === order.id}
-                    className="btn-primary w-full text-sm"
+                    className="text-xs px-4 py-1.5 rounded-full font-medium transition-colors"
+                    style={{ background: "var(--surface-2)", color: "var(--accent)", border: "1px solid rgba(0,113,227,0.3)" }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,113,227,0.1)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "var(--surface-2)"}
                   >
-                    <CheckCircle size={15} />
-                    {updating === order.id ? "Registrando..." : "Item entregue — liberar pagamento ao vendedor"}
+                    {updating === order.id ? "Registrando..." : "Marcar como entregue"}
                   </button>
                 </div>
               )}
