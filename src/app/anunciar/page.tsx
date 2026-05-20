@@ -24,6 +24,8 @@ type CartItem = {
   price: number
 }
 
+type PriceHistory = { price: number; date: string }
+
 const rarityColor: Record<string, string> = {
   Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3",
   Epic: "#bf5af2", Legendary: "#ffd60a",
@@ -40,6 +42,7 @@ export default function AnunciarPage() {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [hasPixKey, setHasPixKey] = useState<boolean | null>(null)
+  const [history, setHistory] = useState<Record<string, PriceHistory[]>>({})
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login")
@@ -64,7 +67,7 @@ export default function AnunciarPage() {
     return () => clearTimeout(t)
   }, [query])
 
-  function addItem(product: Product) {
+  async function addItem(product: Product) {
     setCart((prev) => {
       const exists = prev.find((i) => i.product.id === product.id)
       if (exists) return prev.map((i) => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
@@ -72,6 +75,13 @@ export default function AnunciarPage() {
     })
     setQuery("")
     setResults([])
+
+    // Busca histórico de preços se ainda não tiver
+    if (!history[product.id]) {
+      const res = await fetch(`/api/produtos/${product.id}/historico`)
+      const data = await res.json()
+      setHistory((h) => ({ ...h, [product.id]: data }))
+    }
   }
 
   function removeItem(id: string) {
@@ -220,7 +230,46 @@ export default function AnunciarPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{item.product.name}</p>
-                  <p className="text-xs" style={{ color: rarityColor[item.product.rarity] ?? "#98989f" }}>{item.product.rarity}</p>
+                  <p className="text-xs mb-1" style={{ color: rarityColor[item.product.rarity] ?? "#98989f" }}>{item.product.rarity}</p>
+                  {/* Mini gráfico de histórico */}
+                  {(() => {
+                    const h = history[item.product.id]
+                    if (!h) return null
+                    if (h.length === 0) return (
+                      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>Sem vendas anteriores</p>
+                    )
+                    const prices = h.map((v) => v.price)
+                    const min = Math.min(...prices)
+                    const max = Math.max(...prices)
+                    const range = max - min || 1
+                    const W = 120, H = 32
+                    const pts = prices.map((p, i) => {
+                      const x = (i / Math.max(prices.length - 1, 1)) * W
+                      const y = H - ((p - min) / range) * H
+                      return `${x},${y}`
+                    }).join(" ")
+                    const last = prices[prices.length - 1]
+                    return (
+                      <div className="flex items-end gap-2">
+                        <svg width={W} height={H} style={{ overflow: "visible" }}>
+                          <polyline points={pts} fill="none" stroke="var(--accent)" strokeWidth="1.5"
+                            strokeLinejoin="round" strokeLinecap="round" />
+                          {prices.map((p, i) => (
+                            <circle key={i} cx={(i / Math.max(prices.length - 1, 1)) * W}
+                              cy={H - ((p - min) / range) * H} r="2" fill="var(--accent)" />
+                          ))}
+                        </svg>
+                        <div className="text-right">
+                          <p className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>
+                            R$ {last.toFixed(2)}
+                          </p>
+                          <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                            última venda
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   {/* Quantidade */}
