@@ -41,6 +41,8 @@ export default function AdminPedidos() {
   const [copied, setCopied] = useState<"key" | "amount" | null>(null)
   const [payModal, setPayModal] = useState<PayModal | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const [qrCode, setQrCode] = useState<string | null>(null)
+  const [loadingQr, setLoadingQr] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -70,13 +72,28 @@ export default function AdminPedidos() {
     // Abre modal de pagamento imediatamente
     const info = getSellerInfo(order)
     if (info?.seller.pixKey) {
-      setPayModal({
+      const modal = {
         orderId: order.id,
         sellerName: info.seller.name,
         pixKey: info.seller.pixKey,
         amount: info.sellerAmount,
-      })
+      }
+      setPayModal(modal)
+      loadQrCode(modal)
     }
+  }
+
+  async function loadQrCode(modal: PayModal) {
+    setLoadingQr(true)
+    setQrCode(null)
+    const res = await fetch("/api/pix-qrcode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pixKey: modal.pixKey, amount: modal.amount, name: modal.sellerName }),
+    })
+    const data = await res.json()
+    setQrCode(data.qrCode)
+    setLoadingQr(false)
   }
 
   async function confirmPayment() {
@@ -89,6 +106,7 @@ export default function AdminPedidos() {
     })
     setConfirming(false)
     setPayModal(null)
+    setQrCode(null)
     setCopied(null)
     await load()
     setSelected((prev) => prev ? { ...prev, sellerPaid: true } : null)
@@ -366,37 +384,39 @@ export default function AdminPedidos() {
               </p>
             </div>
 
-            {/* Chave PIX com cópia */}
-            <div>
-              <p className="text-xs mb-1.5" style={{ color: "var(--text-tertiary)" }}>Chave PIX do vendedor</p>
-              <button
-                onClick={() => copy(payModal.pixKey, "key")}
-                className="w-full flex items-center justify-between p-4 rounded-2xl transition-all"
-                style={{ background: "var(--surface-2)", border: `2px solid ${copied === "key" ? "var(--success)" : "var(--border)"}` }}
-              >
-                <span className="text-sm font-medium truncate mr-3" style={{ color: "var(--text-primary)" }}>
-                  {payModal.pixKey}
-                </span>
-                <span className="flex items-center gap-1.5 text-xs font-medium flex-shrink-0"
-                  style={{ color: copied === "key" ? "var(--success)" : "var(--accent)" }}>
-                  {copied === "key" ? <><CheckCircle size={14} /> Copiado!</> : <><Copy size={14} /> Copiar</>}
-                </span>
-              </button>
+            {/* QR Code */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-3 rounded-2xl" style={{ background: "#fff" }}>
+                {loadingQr ? (
+                  <div className="w-[250px] h-[250px] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full border-2 animate-spin"
+                      style={{ borderColor: "#eee", borderTopColor: "#000" }} />
+                  </div>
+                ) : qrCode ? (
+                  <img src={qrCode} alt="QR Code PIX" width={250} height={250} />
+                ) : null}
+              </div>
+              <p className="text-xs text-center" style={{ color: "var(--text-secondary)" }}>
+                Abra o <strong>Mercado Pago</strong> → PIX → Escanear
+              </p>
             </div>
 
-            {/* Também copiar o valor */}
-            <button
-              onClick={() => copy(payModal.amount.toFixed(2), "amount")}
-              className="text-xs text-center transition-colors"
-              style={{ color: copied === "amount" ? "var(--success)" : "var(--text-tertiary)" }}>
-              {copied === "amount" ? "✓ Valor copiado!" : "Copiar valor também"}
-            </button>
-
-            {/* Instrução */}
-            <div className="text-xs text-center p-3 rounded-xl"
-              style={{ background: "var(--surface-2)", color: "var(--text-secondary)" }}>
-              Abra o app do <strong style={{ color: "var(--text-primary)" }}>Mercado Pago</strong> →
-              PIX → Enviar → cole a chave → confirme o valor
+            {/* Chave PIX com cópia (alternativa) */}
+            <div>
+              <p className="text-xs mb-1.5 text-center" style={{ color: "var(--text-tertiary)" }}>
+                Ou copie a chave PIX manualmente
+              </p>
+              <button onClick={() => copy(payModal.pixKey, "key")}
+                className="w-full flex items-center justify-between p-3 rounded-xl transition-all"
+                style={{ background: "var(--surface-2)", border: `1px solid ${copied === "key" ? "var(--success)" : "var(--border)"}` }}>
+                <span className="text-xs truncate mr-2" style={{ color: "var(--text-primary)" }}>
+                  {payModal.pixKey}
+                </span>
+                <span className="flex items-center gap-1 text-xs font-medium flex-shrink-0"
+                  style={{ color: copied === "key" ? "var(--success)" : "var(--accent)" }}>
+                  {copied === "key" ? <><CheckCircle size={12} /> Copiado</> : <><Copy size={12} /> Copiar</>}
+                </span>
+              </button>
             </div>
 
             {/* Botão confirmar */}
