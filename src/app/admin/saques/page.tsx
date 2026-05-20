@@ -138,7 +138,7 @@ export default function AdminSaquesPage() {
                         disabled={!!acting}
                         className="btn-primary flex-1 text-sm">
                         <CheckCircle size={14} />
-                        {acting === w.id + "pagar" ? "Processando..." : "Confirmar PIX enviado"}
+                        {acting === w.id + "pagar" ? "Processando..." : "Confirmar pagamento enviado"}
                       </button>
                       <button
                         onClick={() => handleAction(w.id, "cancelar")}

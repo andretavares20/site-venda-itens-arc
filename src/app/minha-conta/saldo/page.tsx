@@ -132,8 +132,7 @@ export default function SaldoPage() {
           </button>
 
           <p className="text-xs text-center" style={{ color: "var(--text-tertiary)" }}>
-            O valor será enviado para a chave PIX cadastrada em{" "}
-            <Link href="/minha-conta/perfil" style={{ color: "var(--accent)" }}>Meu perfil</Link>
+            Após solicitar, a administração entrará em contato para combinar o envio.
           </p>
         </div>
 
