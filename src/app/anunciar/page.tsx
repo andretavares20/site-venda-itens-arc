@@ -222,24 +222,54 @@ export default function AnunciarPage() {
                   <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{item.product.name}</p>
                   <p className="text-xs" style={{ color: rarityColor[item.product.rarity] ?? "#98989f" }}>{item.product.rarity}</p>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  {/* Quantidade */}
                   <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                     <button onClick={() => updateQty(item.product.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center text-sm" style={{ color: "var(--text-secondary)" }}>−</button>
                     <span className="w-7 text-center text-xs" style={{ color: "var(--text-primary)" }}>{item.quantity}</span>
                     <button onClick={() => updateQty(item.product.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-sm" style={{ color: "var(--text-secondary)" }}>+</button>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs" style={{ color: "var(--text-secondary)" }}>R$</span>
-                    <input type="number" min="0" step="0.01" className="input-field text-sm text-right"
-                      style={{ width: "80px", padding: "0.25rem 0.5rem" }}
-                      value={item.price}
-                      onChange={(e) => updatePrice(item.product.id, Number(e.target.value))}
-                    />
+
+                  {/* Preços estilo Steam */}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs w-24 text-right" style={{ color: "var(--text-secondary)" }}>Você recebe</span>
+                      <div className="flex items-center gap-1 px-2 py-1 rounded-lg"
+                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                        <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>R$</span>
+                        <input
+                          type="number" min="0" step="0.01"
+                          className="bg-transparent outline-none text-sm text-right font-semibold"
+                          style={{ width: "64px", color: "var(--success)" }}
+                          value={item.price}
+                          onChange={(e) => updatePrice(item.product.id, Number(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs w-24 text-right" style={{ color: "var(--text-tertiary)" }}>Comprador paga</span>
+                      <div className="flex items-center gap-1 px-2 py-1 rounded-lg"
+                        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                        <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>R$</span>
+                        <input
+                          type="number" min="0" step="0.01"
+                          className="bg-transparent outline-none text-sm text-right"
+                          style={{ width: "64px", color: "var(--text-secondary)" }}
+                          value={(item.price / 0.9).toFixed(2)}
+                          onChange={(e) => updatePrice(item.product.id, Number((Number(e.target.value) * 0.9).toFixed(2)))}
+                        />
+                      </div>
+                    </div>
+                    {item.product.suggestedPrice > 0 && (
+                      <p className="text-xs text-right" style={{ color: "var(--text-tertiary)" }}>
+                        Sugerido: R$ {Number(item.product.suggestedPrice).toFixed(2)}
+                      </p>
+                    )}
                   </div>
+
                   <button onClick={() => removeItem(item.product.id)} style={{ color: "var(--text-tertiary)" }}
                     onMouseEnter={(e) => e.currentTarget.style.color = "var(--error)"}
-                    onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-tertiary)"}
-                  >
+                    onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-tertiary)"}>
                     <Trash2 size={15} />
                   </button>
                 </div>
