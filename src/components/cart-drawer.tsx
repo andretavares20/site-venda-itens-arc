@@ -128,11 +128,16 @@ export default function CartDrawer({ open, onClose }: Props) {
                         </span>
                         <button
                           onClick={() => update(item.id, item.quantity + 1)}
+                          disabled={item.quantity >= item.stock}
                           className="w-7 h-7 flex items-center justify-center text-sm transition-colors"
-                          style={{ color: "var(--text-secondary)" }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "var(--surface-2)")
-                          }
+                          style={{
+                            color: item.quantity >= item.stock ? "var(--text-tertiary)" : "var(--text-secondary)",
+                            cursor: item.quantity >= item.stock ? "not-allowed" : "pointer",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (item.quantity < item.stock)
+                              e.currentTarget.style.background = "var(--surface-2)"
+                          }}
                           onMouseLeave={(e) =>
                             (e.currentTarget.style.background = "transparent")
                           }

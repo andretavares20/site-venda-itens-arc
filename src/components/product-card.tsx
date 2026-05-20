@@ -64,7 +64,7 @@ export default function ProductCard({ id, name, slug, price, image, rarity, stoc
   function handleAdd(e: React.MouseEvent) {
     e.preventDefault()
     if (stock === 0) return
-    add({ id: listingItemId ?? id, name, price, image, slug })
+    add({ id: listingItemId ?? id, name, price, image, slug, stock })
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
   }

@@ -60,6 +60,7 @@ export default function ProdutoPage() {
       price: listing.price,
       image: product.image,
       slug: product.slug,
+      stock: listing.quantity,
     })
     setAdded(listing.listingItemId)
     setTimeout(() => setAdded(null), 1500)

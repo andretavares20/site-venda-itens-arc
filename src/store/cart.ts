@@ -10,6 +10,7 @@ export type CartItem = {
   image: string
   slug: string
   quantity: number
+  stock: number
 }
 
 type CartStore = {
@@ -43,9 +44,11 @@ export const useCart = create<CartStore>()(
           return
         }
         set({
-          items: get().items.map((i) =>
-            i.id === id ? { ...i, quantity } : i
-          ),
+          items: get().items.map((i) => {
+            if (i.id !== id) return i
+            const capped = Math.min(quantity, i.stock)
+            return { ...i, quantity: capped }
+          }),
         })
       },
       clear: () => set({ items: [] }),
