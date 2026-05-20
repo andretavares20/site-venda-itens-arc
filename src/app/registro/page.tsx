@@ -47,9 +47,8 @@ export default function RegistroPage() {
       return
     }
 
-    await signIn("credentials", { email, password, redirect: false })
-    router.push("/")
-    router.refresh()
+    // Não faz login automático — usuário precisa verificar email primeiro
+    router.push("/registro/confirmacao")
   }
 
   return (

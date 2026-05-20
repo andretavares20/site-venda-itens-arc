@@ -14,9 +14,12 @@ model User {
   password        String
   cpf             String?         @unique
   role            Role            @default(USER)
-  pixKey          String?
-  asaasId         String?
-  createdAt       DateTime        @default(now())
+  pixKey               String?
+  asaasId              String?
+  emailVerified        DateTime?
+  verificationToken    String?     @unique
+  verificationExpires  DateTime?
+  createdAt            DateTime    @default(now())
   orders          Order[]
   listings        Listing[]
   reviewsGiven    Review[]        @relation("ReviewGiver")

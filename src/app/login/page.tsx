@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -13,6 +13,14 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState("")
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("verificado")) setSuccess("Email verificado com sucesso! Faça login.")
+    if (params.get("erro") === "token-invalido") setError("Link de verificação inválido.")
+    if (params.get("erro") === "token-expirado") setError("Link expirado. Crie uma nova conta.")
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -24,7 +32,9 @@ export default function LoginPage() {
       redirect: false,
     })
     setLoading(false)
-    if (res?.error) {
+    if (res?.error?.includes("EMAIL_NOT_VERIFIED")) {
+      setError("Confirme seu email antes de entrar. Verifique sua caixa de entrada.")
+    } else if (res?.error) {
       setError("Email ou senha incorretos.")
     } else {
       router.push("/")
@@ -59,6 +69,12 @@ export default function LoginPage() {
           className="flex flex-col gap-4 rounded-2xl p-6"
           style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
         >
+          {success && (
+            <div className="text-sm px-4 py-3 rounded-xl"
+              style={{ background: "rgba(48,209,88,0.1)", color: "var(--success)", border: "1px solid rgba(48,209,88,0.2)" }}>
+              {success}
+            </div>
+          )}
           {error && (
             <div
               className="text-sm px-4 py-3 rounded-xl"
