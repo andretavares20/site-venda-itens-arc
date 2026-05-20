@@ -1,7 +1,38 @@
 import Navbar from "@/components/navbar"
 import Link from "next/link"
+import { prisma } from "@/lib/db"
+import Carousel from "@/components/carousel"
+import Footer from "@/components/footer"
 
-export default function Home() {
+const GRID_CATEGORIES = [
+  { category: "Assault Rifle", title: "Assault Rifles",  sub: "As melhores armas do jogo.",       dark: true,  slug: "Temporal IV"  },
+  { category: "Pistol",        title: "Pistols",         sub: "Compactas, precisas e letais.",     dark: false, slug: "Venator IV" },
+  { category: "Modification",  title: "Modificações",    sub: "Eleve seu equipamento ao limite.",  dark: false, slug: "Cinético" },
+  { category: "Sniper Rifle",  title: "Sniper Rifles",   sub: "Alcance. Precisão. Domínio.",       dark: true,  slug: null },
+  { category: "Quick Use",     title: "Uso Rápido",      sub: "Itens essenciais para sobreviver.", dark: true,  slug: "Mosquetão" },
+  { category: "SMG",           title: "SMGs",            sub: "Cadência alta. Dano garantido.",    dark: false, slug: null },
+]
+
+async function getGridItems() {
+  const results = await Promise.all(
+    GRID_CATEGORIES.map(async (g) => {
+      const item = await prisma.product.findFirst({
+        where: {
+          active: true,
+          category: g.category,
+          ...(g.slug ? { name: { contains: g.slug, mode: "insensitive" } } : {}),
+        },
+        select: { image: true, slug: true },
+        orderBy: { rarity: "desc" },
+      })
+      return { ...g, image: item?.image ?? null }
+    })
+  )
+  return results
+}
+
+export default async function Home() {
+  const gridItems = await getGridItems()
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
@@ -147,10 +178,57 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="py-8 text-center text-sm"
-        style={{ color: "#6e6e73", borderTop: "1px solid #d2d2d7", background: "#f5f5f7" }}>
-        © {new Date().getFullYear()} DropBay · Marketplace de itens Arc Raiders
-      </footer>
+        {/* Grade 2x3 estilo Apple — fundo branco na página, cards pretos se destacam */}
+        <section style={{ background: "#FFFFFF", padding: "12px", paddingTop: "60px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+
+            {gridItems.map((card, i) => {
+              const dark = card.dark
+              const textColor = dark ? "#f5f5f7" : "#1d1d1f"
+              const subColor  = dark ? "rgba(255,255,255,0.5)" : "#6e6e73"
+              const bg        = dark ? "#000000" : "#F5F5F7"
+              const btnBg     = dark ? "#f5f5f7" : "#1d1d1f"
+              const btnColor  = dark ? "#000" : "#fff"
+              return (
+                <div key={i} className="relative overflow-hidden flex flex-col items-center justify-between text-center"
+                  style={{ background: bg, height: "580px", padding: "52px 32px 0" }}>
+
+                  {/* Texto */}
+                  <div>
+                    <h3 className="font-bold tracking-tight mb-3"
+                      style={{ color: textColor, fontSize: "clamp(1.8rem, 3vw, 2.6rem)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                      {card.title}
+                    </h3>
+                    <p className="mb-7 mx-auto" style={{ color: subColor, fontSize: "15px", lineHeight: 1.5, maxWidth: "260px" }}>
+                      {card.sub}
+                    </p>
+                    <Link href={`/loja?categoria=${encodeURIComponent(card.category)}`}
+                      className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                      style={{ background: btnBg, color: btnColor, padding: "0.5rem 1.5rem" }}>
+                      Ver itens
+                    </Link>
+                  </div>
+
+                  {/* Imagem */}
+                  {card.image && (
+                    <div className="flex items-end justify-center w-full" style={{ paddingTop: "0px", paddingBottom: "64px" }}>
+                      <img src={card.image} alt={card.title}
+                        className="object-contain"
+                        style={{ maxHeight: "260px", maxWidth: "300px" }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+
+          </div>
+        </section>
+
+        {/* Carrossel — ativado quando tivermos destaques */}
+        {/* <Carousel /> */}
+
+      <Footer />
     </div>
   )
 }
