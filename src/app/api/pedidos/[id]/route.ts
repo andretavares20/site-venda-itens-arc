@@ -57,7 +57,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           include: {
             listingItem: {
               include: {
-                listing: { include: { seller: { select: { name: true, pixKey: true } } } },
+                listing: { include: { seller: { select: { id: true, name: true, pixKey: true } } } },
               },
             },
           },
