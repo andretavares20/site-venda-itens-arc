@@ -68,18 +68,6 @@ useEffect(() => {
       .then((data) => { setListings(data); setLoading(false) })
   }, [status])
 
-  function startCancelPolling(listingId: string) {
-    stopPolling()
-    pollRef.current = setInterval(async () => {
-      const res = await fetch(`/api/anuncios/${listingId}`)
-      const data = await res.json()
-      if (data.status === "CANCELADO") {
-        stopPolling()
-        setPixData(null)
-        setListings((prev) => prev.map((l) => l.id === listingId ? { ...l, status: "CANCELADO" } : l))
-      }
-    }, 4000)
-  }
 
   async function handleCancel(id: string) {
     setConfirmId(null)
@@ -204,58 +192,6 @@ useEffect(() => {
           </div>
         )}
       </main>
-
-      {/* Modal PIX taxa de cancelamento */}
-      {pixData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }}>
-          <div className="w-full max-w-sm rounded-2xl p-6 flex flex-col items-center gap-5"
-            style={{ background: "rgba(30,30,32,0.97)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="flex flex-col items-center gap-2 text-center">
-              <AlertCircle size={32} style={{ color: "var(--warning)" }} />
-              <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                Taxa de cancelamento
-              </h2>
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                Pague a taxa de <strong style={{ color: "var(--text-primary)" }}>R$ {pixData.fee.toFixed(2)}</strong> para confirmar o cancelamento. Seu item será devolvido após confirmação do pagamento.
-              </p>
-            </div>
-
-            {pixData.pixQrCode && (
-              <div className="p-3 rounded-xl" style={{ background: "#fff" }}>
-                <Image src={`data:image/png;base64,${pixData.pixQrCode}`} alt="QR Code" width={160} height={160} />
-              </div>
-            )}
-
-            <div className="w-full flex items-center gap-2 p-3 rounded-xl"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-              <p className="flex-1 text-xs font-mono truncate" style={{ color: "var(--text-secondary)" }}>
-                {pixData.pixCode}
-              </p>
-              <button
-                onClick={() => navigator.clipboard.writeText(pixData.pixCode)}
-                className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg flex-shrink-0"
-                style={{ background: "var(--accent)", color: "#fff" }}
-              >
-                <Copy size={11} /> Copiar
-              </button>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 text-xs"
-              style={{ color: "var(--text-secondary)" }}>
-              <span className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ background: "var(--success)", boxShadow: "0 0 6px var(--success)", animation: "pulse 1.5s ease-in-out infinite" }} />
-              Aguardando confirmação do pagamento...
-            </div>
-
-            <button onClick={() => { setPixData(null); stopPolling() }} className="btn-secondary w-full text-sm">
-              Fechar e verificar depois
-            </button>
-
-            <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
-          </div>
-        </div>
-      )}
 
       {/* Modal Discord — cancelamento de item disponível */}
       <Dialog
