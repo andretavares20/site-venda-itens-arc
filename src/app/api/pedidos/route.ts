@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
 
   const { items, total }: { items: CartItem[]; total: number } = await req.json()
   if (!items?.length) return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 })
+  if (total < 5) return NextResponse.json({ error: "O valor mínimo por pedido é R$ 5,00." }, { status: 400 })
 
   const commission = Math.round(total * COMMISSION_RATE * 100) / 100
 

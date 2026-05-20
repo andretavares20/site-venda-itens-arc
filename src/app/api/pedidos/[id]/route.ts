@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
-import { sendPixToSeller } from "@/lib/asaas"
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -75,30 +74,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         })
       }
 
-      // PIX automático ao vendedor via Asaas
+      // Credita saldo ao vendedor
       const seller = fullOrder.items[0]?.listingItem?.listing?.seller
       const sellerAmount = Number(fullOrder.total) - Number(fullOrder.commission)
 
-      if (seller?.pixKey && sellerAmount > 0) {
-        try {
-          await sendPixToSeller({
-            pixKey: seller.pixKey,
-            amount: sellerAmount,
-            description: `DropBay - Venda #${id.slice(-8).toUpperCase()}`,
-            externalReference: id,
-          })
+      if (seller?.id && sellerAmount > 0) {
+        await prisma.user.update({
+          where: { id: seller.id },
+          data: { balance: { increment: sellerAmount } },
+        })
 
-          await prisma.order.update({
-            where: { id },
-            data: { sellerPaid: true },
-          })
+        await prisma.order.update({
+          where: { id },
+          data: { sellerPaid: true },
+        })
 
-          return NextResponse.json({ ...order, sellerPaid: true, pixSent: true })
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "Erro desconhecido"
-          console.error("PIX Asaas falhou:", msg)
-          return NextResponse.json({ ...order, pixSent: false, pixError: msg })
-        }
+        return NextResponse.json({ ...order, sellerPaid: true })
       }
     }
   }
