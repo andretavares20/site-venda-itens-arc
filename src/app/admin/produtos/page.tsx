@@ -158,8 +158,13 @@ export default function AdminProdutos() {
               <tr key={p.id} style={{ background: i % 2 === 0 ? "var(--surface-1)" : "var(--bg)", borderBottom: "1px solid var(--border)" }}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
-                      {p.image && <Image src={p.image} alt={p.name} width={40} height={40} className="w-full h-full object-contain" />}
+                    <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
+                      style={p.slug?.endsWith("_blueprint") ? {
+                        background: "#071428",
+                        backgroundImage: "linear-gradient(rgba(30,100,200,0.15) 1px,transparent 1px),linear-gradient(90deg,rgba(30,100,200,0.15) 1px,transparent 1px)",
+                        backgroundSize: "8px 8px",
+                      } : { background: "#0d0d0d" }}>
+                      {p.image && <Image src={p.image} alt={p.name} width={40} height={40} className="w-full h-full object-contain p-1" />}
                     </div>
                     <span className="font-medium" style={{ color: "var(--text-primary)" }}>{p.name}</span>
                   </div>
