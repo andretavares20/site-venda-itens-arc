@@ -330,7 +330,7 @@ export default function AnunciarPage() {
                 Taxa de 10% descontada no momento do pagamento
               </div>
               <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                Você recebe: R$ {cart.reduce((s, i) => s + i.price * i.quantity * 0.9, 0).toFixed(2)}
+                Você recebe: R$ {cart.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}
               </div>
             </div>
           </div>
