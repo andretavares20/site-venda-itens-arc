@@ -57,10 +57,7 @@ export default function MeusAnunciosPage() {
 
   useEffect(() => () => stopPolling(), [stopPolling])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function startCancelPolling(_listingId: string) { /* não usado — cancelamento via Discord */ }
-
-  useEffect(() => {
+useEffect(() => {
     if (status === "unauthenticated") router.push("/login")
   }, [status, router])
 
