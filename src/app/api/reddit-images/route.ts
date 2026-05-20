@@ -77,7 +77,7 @@ export async function GET() {
       // Ordena: imagens temáticas primeiro, depois por upvotes
       .sort((a, b) => (b!.score - a!.score) || (b!.redditScore - a!.redditScore))
       .slice(0, 10)
-      .map(({ src, title }) => ({ src, title }))
+      .map((item) => ({ src: item!.src, title: item!.title }))
 
     return NextResponse.json(images)
   } catch {
