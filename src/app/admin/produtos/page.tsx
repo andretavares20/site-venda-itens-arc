@@ -44,7 +44,7 @@ export default function AdminProdutos() {
   const [page, setPage] = useState(1)
   const [rarityOpen, setRarityOpen] = useState(false)
   const [categoryOpen, setCategoryOpen] = useState(false)
-  const PER_PAGE = 50
+  const PER_PAGE = 20
 
   // Fecha dropdowns ao clicar fora
   useEffect(() => {
