@@ -37,7 +37,12 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  await sendVerificationEmail(email, name, token)
+  try {
+    await sendVerificationEmail(email, name, token)
+  } catch (err) {
+    console.error("[Resend] Erro ao enviar email de verificação:", err)
+    // Não bloqueia o cadastro — usuário pode solicitar reenvio depois
+  }
 
   return NextResponse.json({ ok: true })
 }
