@@ -4,6 +4,14 @@ import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, X, Check, Search } from "lucide-react"
 import Image from "next/image"
 
+const rarityBorder: Record<string, string> = {
+  Common:    "rgba(152,152,159,0.4)",
+  Uncommon:  "rgba(48,209,88,0.5)",
+  Rare:      "rgba(0,113,227,0.6)",
+  Epic:      "rgba(191,90,242,0.65)",
+  Legendary: "rgba(255,214,10,0.7)",
+}
+
 type Product = {
   id: string
   name: string
@@ -163,7 +171,11 @@ export default function AdminProdutos() {
                         background: "#071428",
                         backgroundImage: "linear-gradient(rgba(30,100,200,0.15) 1px,transparent 1px),linear-gradient(90deg,rgba(30,100,200,0.15) 1px,transparent 1px)",
                         backgroundSize: "8px 8px",
-                      } : { background: "#0d0d0d" }}>
+                        border: `1px solid ${rarityBorder[p.rarity] ?? rarityBorder.Common}`,
+                      } : {
+                        background: "#0d0d0d",
+                        border: `1px solid ${rarityBorder[p.rarity] ?? rarityBorder.Common}`,
+                      }}>
                       {p.image && <Image src={p.image} alt={p.name} width={40} height={40} className="w-full h-full object-contain p-1" />}
                     </div>
                     <span className="font-medium" style={{ color: "var(--text-primary)" }}>{p.name}</span>
