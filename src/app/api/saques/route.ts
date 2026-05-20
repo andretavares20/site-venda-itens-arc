@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 
-const SAQUE_MINIMO = 5.00
+const SAQUE_MINIMO = 0.01
 
 export async function GET() {
   const session = await auth()

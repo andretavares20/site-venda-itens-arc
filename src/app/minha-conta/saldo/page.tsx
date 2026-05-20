@@ -21,7 +21,7 @@ const statusStyle = {
   CANCELADO: { label: "Cancelado",           color: "var(--error)",    bg: "rgba(255,69,58,0.1)",   icon: XCircle },
 }
 
-const SAQUE_MINIMO = 5.00
+const SAQUE_MINIMO = 0.01
 
 export default function SaldoPage() {
   const { data: session, status } = useSession()

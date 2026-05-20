@@ -1,9 +1,7 @@
 "use client"
 
 import { useCart, cartTotal } from "@/store/cart"
-import { X, Trash2, ShoppingBag, AlertCircle } from "lucide-react"
-
-const MINIMO_CHECKOUT = 5.00
+import { X, Trash2, ShoppingBag } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect } from "react"
@@ -177,26 +175,9 @@ export default function CartDrawer({ open, onClose }: Props) {
                 </span>
               </div>
 
-              {total < MINIMO_CHECKOUT && (
-                <div className="flex items-start gap-2 p-3 rounded-xl text-xs"
-                  style={{ background: "rgba(255,214,10,0.08)", color: "var(--warning)", border: "1px solid rgba(255,214,10,0.2)" }}>
-                  <AlertCircle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>
-                    Valor mínimo de <strong>R$ {MINIMO_CHECKOUT.toFixed(2)}</strong> para finalizar.
-                    Faltam <strong>R$ {(MINIMO_CHECKOUT - total).toFixed(2)}</strong>.
-                  </span>
-                </div>
-              )}
-
-              {total >= MINIMO_CHECKOUT ? (
-                <Link href="/checkout" onClick={onClose} className="btn-primary w-full">
-                  Finalizar compra
-                </Link>
-              ) : (
-                <button disabled className="btn-primary w-full" style={{ opacity: 0.4, cursor: "not-allowed" }}>
-                  Finalizar compra
-                </button>
-              )}
+              <Link href="/checkout" onClick={onClose} className="btn-primary w-full">
+                Finalizar compra
+              </Link>
             </div>
           </>
         )}
