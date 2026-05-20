@@ -74,16 +74,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         })
       }
 
-      // Credita saldo ao vendedor (sem marcar sellerPaid — admin confirma após pagar)
-      const seller = fullOrder.items[0]?.listingItem?.listing?.seller
-      const sellerAmount = Number(fullOrder.total) - Number(fullOrder.commission)
-
-      if (seller?.id && sellerAmount > 0) {
-        await prisma.user.update({
-          where: { id: seller.id },
-          data: { balance: { increment: sellerAmount } },
-        })
-      }
     }
   }
 

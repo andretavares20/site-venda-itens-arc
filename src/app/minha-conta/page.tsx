@@ -100,7 +100,6 @@ export default function MinhaContaPage() {
         <div className="grid grid-cols-2 gap-3 mb-8">
           {[
             { href: "/minha-conta/perfil", label: "Meu perfil", desc: "Dados e chave PIX" },
-            { href: "/minha-conta/saldo", label: "Meu saldo", desc: "Ver ganhos e solicitar saque" },
             { href: "/minha-conta/anuncios", label: "Meus anúncios", desc: "Gerencie o que você vende" },
             { href: "/minha-conta/trocas", label: "Minhas trocas", desc: "Trocas que você anunciou" },
             { href: "/anunciar", label: "Novo anúncio", desc: "Anuncie um item" },

@@ -16,7 +16,6 @@ model User {
   role            Role            @default(USER)
   pixKey          String?
   asaasId         String?
-  balance         Decimal         @default(0) @db.Decimal(10, 2)
   createdAt       DateTime        @default(now())
   orders          Order[]
   listings        Listing[]
@@ -24,7 +23,6 @@ model User {
   reviewsReceived Review[]        @relation("ReviewReceiver")
   trades          Trade[]
   proposals       TradeProposal[]
-  withdrawals     Withdrawal[]
 }
 
 enum Role {
@@ -120,25 +118,6 @@ model OrderItem {
   listingItem   ListingItem @relation(fields: [listingItemId], references: [id])
   quantity      Int
   price         Decimal     @db.Decimal(10, 2)
-}
-
-// ─── Saques ──────────────────────────────────────────────────────
-
-model Withdrawal {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id])
-  amount    Decimal          @db.Decimal(10, 2)
-  pixKey    String
-  status    WithdrawalStatus @default(PENDENTE)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-}
-
-enum WithdrawalStatus {
-  PENDENTE
-  PAGO
-  CANCELADO
 }
 
 // ─── Sistema de Trocas ───────────────────────────────────────────

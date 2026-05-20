@@ -4,7 +4,11 @@
       "WebFetch(domain:developers.openpix.com.br)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(rm \"c:/dev/site-venda-itens-arc/src/app/api/saques/route.ts\" \"c:/dev/site-venda-itens-arc/src/app/api/saques/[id]/route.ts\" \"c:/dev/site-venda-itens-arc/src/app/minha-conta/saldo/page.tsx\" \"c:/dev/site-venda-itens-arc/src/app/admin/saques/page.tsx\" && echo \"ok\")"
+    ],
+    "additionalDirectories": [
+      "c:\\dev\\site-venda-itens-arc\\src\\app\\api\\saques\\[id]"
     ]
   }
 }
