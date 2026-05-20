@@ -6,7 +6,7 @@ import { useEffect, useState, useRef, useCallback } from "react"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
 import Image from "next/image"
-import { Plus, Clock, CheckCircle, XCircle, ShoppingBag, Package, MessageCircle } from "lucide-react"
+import { Plus, Clock, CheckCircle, XCircle, ShoppingBag, Package, MessageCircle, AlertCircle } from "lucide-react"
 import Dialog from "@/components/dialog"
 
 type ListingItem = {
