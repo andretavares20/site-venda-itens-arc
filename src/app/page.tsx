@@ -1,48 +1,38 @@
 import Navbar from "@/components/navbar"
-import ProductCard from "@/components/product-card"
-import { prisma } from "@/lib/db"
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { prisma } from "@/lib/db"
+import Carousel from "@/components/carousel"
+import Footer from "@/components/footer"
 
-async function getListingItems(category?: string, busca?: string) {
-  return prisma.listingItem.findMany({
-    where: {
-      status: "DISPONIVEL",
-      listing: { status: "DISPONIVEL" },
-      product: {
-        active: true,
-        ...(category ? { category } : {}),
-        ...(busca ? { name: { contains: busca, mode: "insensitive" } } : {}),
-      },
-    },
-    include: {
-      product: true,
-      listing: { include: { seller: { select: { id: true, name: true } } } },
-    },
-    orderBy: { createdAt: "desc" },
-  })
+const GRID_CATEGORIES = [
+  { category: "Assault Rifle", title: "Assault Rifles",  sub: "As melhores armas do jogo.",       dark: true,  slug: "Temporal IV"  },
+  { category: "Pistol",        title: "Pistols",         sub: "Compactas, precisas e letais.",     dark: false, slug: "Venator IV" },
+  { category: "Modification",  title: "Modificações",    sub: "Eleve seu equipamento ao limite.",  dark: false, slug: "Cinético" },
+  { category: "Sniper Rifle",  title: "Sniper Rifles",   sub: "Alcance. Precisão. Domínio.",       dark: true,  slug: null },
+  { category: "Quick Use",     title: "Uso Rápido",      sub: "Itens essenciais para sobreviver.", dark: true,  slug: "Mosquetão" },
+  { category: "SMG",           title: "SMGs",            sub: "Cadência alta. Dano garantido.",    dark: false, slug: null },
+]
+
+async function getGridItems() {
+  const results = await Promise.all(
+    GRID_CATEGORIES.map(async (g) => {
+      const item = await prisma.product.findFirst({
+        where: {
+          active: true,
+          category: g.category,
+          ...(g.slug ? { name: { contains: g.slug, mode: "insensitive" } } : {}),
+        },
+        select: { image: true, slug: true },
+        orderBy: { rarity: "desc" },
+      })
+      return { ...g, image: item?.image ?? null }
+    })
+  )
+  return results
 }
 
-async function getCategories() {
-  const result = await prisma.product.groupBy({
-    by: ["category"],
-    where: { active: true },
-  })
-  return result.map((r: { category: string }) => r.category).sort()
-}
-
-
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ categoria?: string; busca?: string }>
-}) {
-  const params = await searchParams
-  const [listingItems, categories] = await Promise.all([
-    getListingItems(params.categoria, params.busca),
-    getCategories(),
-  ])
-
+export default async function Home() {
+  const gridItems = await getGridItems()
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
@@ -50,99 +40,195 @@ export default async function Home({
       <main className="pt-14">
         {/* Hero */}
         <section className="relative overflow-hidden text-center" style={{ borderBottom: "1px solid var(--border)" }}>
-          <div className="absolute inset-0 pointer-events-none" style={{
-            background: "radial-gradient(ellipse 100% 80% at 50% -10%, rgba(0,113,227,0.08) 0%, transparent 70%)",
-          }} />
-          <div className="relative pt-20 pb-10 px-4">
-            <p className="text-sm font-semibold mb-3 tracking-wide uppercase" style={{ color: "var(--accent)", letterSpacing: "0.08em" }}>
-              Marketplace de itens
+          <div className="relative pt-20 pb-6 px-4">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "var(--text-secondary)", letterSpacing: "0.12em" }}>
+              Marketplace de itens · Arc Raiders
             </p>
             <h1 className="font-bold tracking-tight mb-4"
-              style={{ color: "var(--text-primary)", fontSize: "clamp(2.5rem, 6vw, 4.5rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-              Arc Raiders.
+              style={{ color: "var(--text-primary)", fontSize: "clamp(3rem, 7vw, 5.5rem)", letterSpacing: "-0.04em", lineHeight: 1.0 }}>
+              DropBay.
             </h1>
-            <p className="text-xl mb-8 mx-auto" style={{ color: "var(--text-secondary)", maxWidth: "480px", lineHeight: 1.5 }}>
-              Compre e venda itens in-game com segurança. Taxa de apenas 10%.
+            <p className="mb-8 mx-auto"
+              style={{ color: "var(--text-secondary)", maxWidth: "400px", lineHeight: 1.6, fontSize: "17px" }}>
+              Compre, venda e troque itens in-game com segurança.
             </p>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <a href="#catalogo" className="btn-primary" style={{ padding: "0.625rem 1.5rem" }}>
+            <div className="flex items-center justify-center gap-4 flex-wrap">
+              <Link href="/loja"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "var(--accent)", color: "#fff", padding: "0.6rem 1.75rem" }}>
                 Ver itens
-              </a>
-              <Link href="/anunciar" className="btn-secondary" style={{ padding: "0.625rem 1.5rem" }}>
-                <Plus size={16} /> Anunciar item
+              </Link>
+              <Link href="/anunciar"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "transparent", color: "var(--accent)", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,113,227,0.5)" }}>
+                Anunciar item
               </Link>
             </div>
           </div>
 
-        </section>
-
-        {/* Filtros */}
-        <section id="catalogo" className="sticky top-14 z-40 px-4 py-3"
-          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)" }}>
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <a href="/" className="text-xs px-3 py-1.5 rounded-full font-medium"
-                style={{ background: !params.categoria ? "var(--accent)" : "var(--surface-2)", color: !params.categoria ? "#fff" : "var(--text-secondary)" }}>
-                Todos
-              </a>
-              {categories.map((cat: string) => (
-                <a key={cat} href={`/?categoria=${cat}`}
-                  className="text-xs px-3 py-1.5 rounded-full font-medium"
-                  style={{ background: params.categoria === cat ? "var(--accent)" : "var(--surface-2)", color: params.categoria === cat ? "#fff" : "var(--text-secondary)" }}>
-                  {cat}
-                </a>
-              ))}
+          {/* Imagem hero */}
+          <div className="relative mx-auto" style={{ maxWidth: "900px" }}>
+            <div style={{ maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)" }}>
+              <img src="/hero.jpg" alt="Arc Raiders" className="w-full object-cover object-top" style={{ maxHeight: "520px" }} />
             </div>
-            <form className="sm:ml-auto" action="/" method="get">
-              {params.categoria && <input type="hidden" name="categoria" value={params.categoria} />}
-              <input name="busca" defaultValue={params.busca} placeholder="Buscar item..."
-                className="input-field text-sm"
-                style={{ width: "200px", padding: "0.375rem 0.75rem", borderRadius: "980px" }} />
-            </form>
           </div>
         </section>
 
-        {/* Grade */}
-        <section className="max-w-6xl mx-auto px-4 py-12">
-          {listingItems.length === 0 ? (
-            <div className="text-center py-24">
-              <p className="text-2xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
-                Nenhum item disponível
-              </p>
-              <p className="mb-6" style={{ color: "var(--text-secondary)" }}>
-                Seja o primeiro a anunciar!
-              </p>
-              <Link href="/anunciar" className="btn-primary">
-                <Plus size={16} /> Criar anúncio
+        {/* Seção 2 — Épicos e Lendários (fundo branco, letra preta) */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
+          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+              Os mais raros
+            </p>
+            <h2 className="font-bold tracking-tight mb-3"
+              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Épicos e Lendários.
+            </h2>
+            <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "360px", fontSize: "17px", lineHeight: 1.6 }}>
+              Os itens mais raros de Arc Raiders, verificados e prontos para entrega.
+            </p>
+            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+              <Link href="/loja?raridade=Legendary"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
+                Ver lendários
+              </Link>
+              <Link href="/loja?raridade=Epic"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
+                Ver épicos
               </Link>
             </div>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
-              {listingItems.map((li) => (
-                <ProductCard
-                  key={li.id}
-                  id={li.id}
-                  name={li.product.name}
-                  slug={li.product.slug}
-                  price={Number(li.price)}
-                  image={li.product.image}
-                  category={li.product.category}
-                  rarity={li.product.rarity}
-                  stock={li.quantity}
-                  sellerId={li.listing.seller.id}
-                  sellerName={li.listing.seller.name}
-                  listingItemId={li.id}
-                />
-              ))}
+          </div>
+          <div className="mx-auto" style={{ maxWidth: "900px" }}>
+            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
+              <img src="/epicos.png" alt="Épicos e Lendários" className="w-full object-contain" style={{ maxHeight: "480px" }} />
             </div>
-          )}
+          </div>
+        </section>
+
+        {/* Seção 3 — Trocas (fundo preto, letra branca) */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
+          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+              Gratuito
+            </p>
+            <h2 className="font-bold tracking-tight mb-3"
+              style={{ color: "#f5f5f7", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Trocas diretas.
+            </h2>
+            <p className="mb-8 mx-auto" style={{ color: "rgba(255,255,255,0.5)", maxWidth: "380px", fontSize: "17px", lineHeight: 1.6 }}>
+              Troque itens diretamente com outros jogadores. Sem taxas, sem intermediários.
+            </p>
+            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+              <Link href="/trocas"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "#f5f5f7", color: "#000", padding: "0.6rem 1.75rem" }}>
+                Ver trocas
+              </Link>
+              <Link href="/trocas/nova"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "transparent", color: "#f5f5f7", padding: "0.6rem 1.75rem", border: "1px solid rgba(255,255,255,0.25)" }}>
+                Criar troca
+              </Link>
+            </div>
+          </div>
+          <div className="mx-auto" style={{ maxWidth: "900px" }}>
+            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
+              <img src="/trocas.jpg" alt="Trocas diretas" className="w-full object-cover" style={{ maxHeight: "480px", objectPosition: "top center" }} />
+            </div>
+          </div>
+        </section>
+
+        {/* Seção 4 — Venda seus itens (fundo branco, letra preta) */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
+          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+              Para vendedores
+            </p>
+            <h2 className="font-bold tracking-tight mb-3"
+              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Venda seus itens.
+            </h2>
+            <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
+              Anuncie seus itens com segurança. Taxa de apenas 10% sobre cada venda concluída.
+            </p>
+            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+              <Link href="/anunciar"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
+                Começar a vender
+              </Link>
+              <Link href="/minha-conta/anuncios"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
+                Meus anúncios
+              </Link>
+            </div>
+          </div>
+          <div className="mx-auto" style={{ maxWidth: "900px" }}>
+            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
+              <img src="/venda.png" alt="Venda seus itens" className="w-full object-cover" style={{ maxHeight: "480px", objectPosition: "top center" }} />
+            </div>
+          </div>
         </section>
       </main>
 
-      <footer className="mt-auto py-8 text-center text-sm"
-        style={{ color: "var(--text-tertiary)", borderTop: "1px solid var(--border)" }}>
-        © {new Date().getFullYear()} DropBay · Marketplace de itens Arc Raiders
-      </footer>
+        {/* Grade 2x3 estilo Apple — fundo branco na página, cards pretos se destacam */}
+        <section style={{ background: "#FFFFFF", padding: "12px", paddingTop: "60px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+
+            {gridItems.map((card, i) => {
+              const dark = card.dark
+              const textColor = dark ? "#f5f5f7" : "#1d1d1f"
+              const subColor  = dark ? "rgba(255,255,255,0.5)" : "#6e6e73"
+              const bg        = dark ? "#000000" : "#F5F5F7"
+              const btnBg     = dark ? "#f5f5f7" : "#1d1d1f"
+              const btnColor  = dark ? "#000" : "#fff"
+              return (
+                <div key={i} className="relative overflow-hidden flex flex-col items-center justify-between text-center"
+                  style={{ background: bg, height: "580px", padding: "52px 32px 0" }}>
+
+                  {/* Texto */}
+                  <div>
+                    <h3 className="font-bold tracking-tight mb-3"
+                      style={{ color: textColor, fontSize: "clamp(1.8rem, 3vw, 2.6rem)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                      {card.title}
+                    </h3>
+                    <p className="mb-7 mx-auto" style={{ color: subColor, fontSize: "15px", lineHeight: 1.5, maxWidth: "260px" }}>
+                      {card.sub}
+                    </p>
+                    <Link href={`/loja?categoria=${encodeURIComponent(card.category)}`}
+                      className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                      style={{ background: btnBg, color: btnColor, padding: "0.5rem 1.5rem" }}>
+                      Ver itens
+                    </Link>
+                  </div>
+
+                  {/* Imagem */}
+                  {card.image && (
+                    <div className="flex items-end justify-center w-full" style={{ paddingTop: "0px", paddingBottom: "64px" }}>
+                      <img src={card.image} alt={card.title}
+                        className="object-contain"
+                        style={{ maxHeight: "260px", maxWidth: "300px" }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+
+          </div>
+        </section>
+
+        {/* Carrossel — ativado quando tivermos destaques */}
+        {/* <Carousel /> */}
+
+      <Footer />
     </div>
   )
 }

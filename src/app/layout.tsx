@@ -23,6 +23,7 @@ export default function RootLayout({
       <body
         className="min-h-full flex flex-col antialiased"
         style={{ background: "var(--bg)", color: "var(--text-primary)" }}
+        suppressHydrationWarning
       >
         <Providers>{children}</Providers>
       </body>
