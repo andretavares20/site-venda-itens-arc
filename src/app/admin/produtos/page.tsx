@@ -41,6 +41,8 @@ export default function AdminProdutos() {
   const [editing, setEditing] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const PER_PAGE = 50
 
   const filtered = products.filter((p) => {
     const matchName = !search || p.name.toLowerCase().includes(search.toLowerCase())
@@ -49,7 +51,12 @@ export default function AdminProdutos() {
     return matchName && matchRarity && matchCategory
   })
 
+  const totalPages = Math.ceil(filtered.length / PER_PAGE)
+  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
   const categories = [...new Set(products.map((p) => p.category))].sort()
+
+  // Volta para página 1 quando filtros mudam
+  const resetPage = () => setPage(1)
 
   useEffect(() => { load() }, [])
 
@@ -118,7 +125,7 @@ export default function AdminProdutos() {
             style={{ color: "var(--text-primary)" }}
             placeholder="Buscar por nome..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); resetPage() }}
           />
           {search && (
             <button onClick={() => setSearch("")} style={{ color: "var(--text-tertiary)" }}>
@@ -127,7 +134,7 @@ export default function AdminProdutos() {
           )}
         </div>
 
-        <select value={rarityFilter} onChange={(e) => setRarityFilter(e.target.value)}
+        <select value={rarityFilter} onChange={(e) => { setRarityFilter(e.target.value); resetPage() }}
           className="text-sm px-3 py-2 rounded-xl"
           style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: rarityFilter ? rarityColor[rarityFilter] : "var(--text-secondary)", outline: "none" }}>
           <option value="">Todas raridades</option>
@@ -136,7 +143,7 @@ export default function AdminProdutos() {
           ))}
         </select>
 
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}
+        <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); resetPage() }}
           className="text-sm px-3 py-2 rounded-xl"
           style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-secondary)", outline: "none" }}>
           <option value="">Todas categorias</option>
@@ -162,7 +169,7 @@ export default function AdminProdutos() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p, i) => (
+            {paginated.map((p, i) => (
               <tr key={p.id} style={{ background: i % 2 === 0 ? "var(--surface-1)" : "var(--bg)", borderBottom: "1px solid var(--border)" }}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -211,6 +218,61 @@ export default function AdminProdutos() {
             {products.length === 0 ? "Nenhum item no catálogo" : "Nenhum item corresponde aos filtros"}
           </div>
         )}
+      </div>
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+            {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} de {filtered.length} itens
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(1)} disabled={page === 1}
+              className="px-2 py-1 rounded-lg text-xs transition-colors"
+              style={{ color: page === 1 ? "var(--text-tertiary)" : "var(--text-secondary)", background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+              «
+            </button>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+              className="px-3 py-1 rounded-lg text-xs transition-colors"
+              style={{ color: page === 1 ? "var(--text-tertiary)" : "var(--text-secondary)", background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+              ‹ Anterior
+            </button>
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const start = Math.max(1, Math.min(page - 2, totalPages - 4))
+              const p = start + i
+              return (
+                <button key={p} onClick={() => setPage(p)}
+                  className="w-8 h-7 rounded-lg text-xs font-medium transition-colors"
+                  style={{
+                    background: page === p ? "var(--accent)" : "var(--surface-1)",
+                    color: page === p ? "#fff" : "var(--text-secondary)",
+                    border: `1px solid ${page === p ? "transparent" : "var(--border)"}`,
+                  }}>
+                  {p}
+                </button>
+              )
+            })}
+
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+              className="px-3 py-1 rounded-lg text-xs transition-colors"
+              style={{ color: page === totalPages ? "var(--text-tertiary)" : "var(--text-secondary)", background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+              Próxima ›
+            </button>
+            <button
+              onClick={() => setPage(totalPages)} disabled={page === totalPages}
+              className="px-2 py-1 rounded-lg text-xs transition-colors"
+              style={{ color: page === totalPages ? "var(--text-tertiary)" : "var(--text-secondary)", background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+              »
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "none" }}>
       </div>
 
       {showForm && (
