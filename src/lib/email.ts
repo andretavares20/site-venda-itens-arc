@@ -6,7 +6,7 @@ const FROM = "DropBay <noreply@dropbay.com.br>"
 const BASE_URL = process.env.NEXT_PUBLIC_URL ?? "https://www.dropbay.com.br"
 
 export async function sendVerificationEmail(to: string, name: string, token: string) {
-  const link = `${BASE_URL}/verificar-email?token=${token}`
+  const link = `${BASE_URL}/api/verificar-email?token=${token}`
 
   await resend.emails.send({
     from: FROM,
