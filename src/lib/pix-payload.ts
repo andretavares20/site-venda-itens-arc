@@ -36,7 +36,7 @@ export function generatePixPayload(params: {
 
   const payload =
     "000201" +                             // Payload format indicator
-    "010212" +                             // Point of initiation (uma única vez)
+    "010211" +                             // Point of initiation (estático com chave PIX)
     merchantAccount +                      // Merchant account info
     "52040000" +                           // Merchant category code
     "5303986" +                            // Currency BRL
