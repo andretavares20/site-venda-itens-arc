@@ -41,12 +41,12 @@ export default function Navbar() {
     e.preventDefault()
     if (!query.trim()) return
     closeSearch()
-    router.push(`/?busca=${encodeURIComponent(query.trim())}`)
+    router.push(`/loja?busca=${encodeURIComponent(query.trim())}`)
   }
 
   function goCategory(cat: string) {
     closeSearch()
-    router.push(`/?categoria=${encodeURIComponent(cat)}#catalogo`)
+    router.push(`/loja?categoria=${encodeURIComponent(cat)}`)
   }
 
   return (
@@ -127,7 +127,7 @@ export default function Navbar() {
               onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
               Trocas
             </Link>
-            <Link href="/" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
+            <Link href="/loja" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
               onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
               onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
               Loja

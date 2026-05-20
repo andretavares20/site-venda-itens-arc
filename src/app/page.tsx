@@ -1,56 +1,21 @@
 import Navbar from "@/components/navbar"
-import ProductCard from "@/components/product-card"
-import { prisma } from "@/lib/db"
 import Link from "next/link"
-import { Plus } from "lucide-react"
 
-async function getListingItems(category?: string, busca?: string) {
-  return prisma.listingItem.findMany({
-    where: {
-      status: "DISPONIVEL",
-      listing: { status: "DISPONIVEL" },
-      product: {
-        active: true,
-        ...(category ? { category } : {}),
-        ...(busca ? { name: { contains: busca, mode: "insensitive" } } : {}),
-      },
-    },
-    include: {
-      product: true,
-      listing: { include: { seller: { select: { id: true, name: true } } } },
-    },
-    orderBy: { createdAt: "desc" },
-  })
-}
-
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ categoria?: string; busca?: string }>
-}) {
-  const params = await searchParams
-  const listingItems = await getListingItems(params.categoria, params.busca)
-
+export default function Home() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
 
       <main className="pt-14">
-        {/* Hero — estilo Apple */}
+        {/* Hero */}
         <section className="relative overflow-hidden text-center" style={{ borderBottom: "1px solid var(--border)" }}>
-          {/* Texto */}
           <div className="relative pt-20 pb-6 px-4">
-            <p className="text-sm font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "var(--text-secondary)", letterSpacing: "0.12em", fontSize: "11px" }}>
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "var(--text-secondary)", letterSpacing: "0.12em" }}>
               Marketplace de itens · Arc Raiders
             </p>
             <h1 className="font-bold tracking-tight mb-4"
-              style={{
-                color: "var(--text-primary)",
-                fontSize: "clamp(3rem, 7vw, 5.5rem)",
-                letterSpacing: "-0.04em",
-                lineHeight: 1.0,
-              }}>
+              style={{ color: "var(--text-primary)", fontSize: "clamp(3rem, 7vw, 5.5rem)", letterSpacing: "-0.04em", lineHeight: 1.0 }}>
               DropBay.
             </h1>
             <p className="mb-8 mx-auto"
@@ -58,83 +23,132 @@ export default async function Home({
               Compre, venda e troque itens in-game com segurança.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              <a href="#catalogo"
-                className="inline-flex items-center justify-center rounded-full font-medium text-sm transition-all"
-                style={{
-                  background: "var(--accent)",
-                  color: "#fff",
-                  padding: "0.6rem 1.75rem",
-                }}>
+              <Link href="/loja"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "var(--accent)", color: "#fff", padding: "0.6rem 1.75rem" }}>
                 Ver itens
-              </a>
+              </Link>
               <Link href="/anunciar"
-                className="inline-flex items-center justify-center rounded-full font-medium text-sm transition-all"
-                style={{
-                  background: "transparent",
-                  color: "var(--accent)",
-                  padding: "0.6rem 1.75rem",
-                  border: "1px solid rgba(0,113,227,0.5)",
-                }}>
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "transparent", color: "var(--accent)", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,113,227,0.5)" }}>
                 Anunciar item
               </Link>
             </div>
           </div>
 
-          {/* Imagem hero — como Apple com os iPhones */}
+          {/* Imagem hero */}
           <div className="relative mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{
-              maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
-            }}>
-              <img
-                src="/hero.jpg"
-                alt="Arc Raiders"
-                className="w-full object-cover object-top"
-                style={{ maxHeight: "520px", objectPosition: "top center" }}
-              />
+            <div style={{ maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)" }}>
+              <img src="/hero.jpg" alt="Arc Raiders" className="w-full object-cover object-top" style={{ maxHeight: "520px" }} />
             </div>
           </div>
         </section>
 
-        {/* Grade */}
-        <section id="catalogo" className="max-w-6xl mx-auto px-4 py-12">
-          {listingItems.length === 0 ? (
-            <div className="text-center py-24">
-              <p className="text-2xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
-                Nenhum item disponível
-              </p>
-              <p className="mb-6" style={{ color: "var(--text-secondary)" }}>
-                Seja o primeiro a anunciar!
-              </p>
-              <Link href="/anunciar" className="btn-primary">
-                <Plus size={16} /> Criar anúncio
+        {/* Seção 2 — Épicos e Lendários (fundo branco, letra preta) */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
+          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+              Os mais raros
+            </p>
+            <h2 className="font-bold tracking-tight mb-3"
+              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Épicos e Lendários.
+            </h2>
+            <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "360px", fontSize: "17px", lineHeight: 1.6 }}>
+              Os itens mais raros de Arc Raiders, verificados e prontos para entrega.
+            </p>
+            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+              <Link href="/loja?raridade=Legendary"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
+                Ver lendários
+              </Link>
+              <Link href="/loja?raridade=Epic"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
+                Ver épicos
               </Link>
             </div>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
-              {listingItems.map((li) => (
-                <ProductCard
-                  key={li.id}
-                  id={li.id}
-                  name={li.product.name}
-                  slug={li.product.slug}
-                  price={Number(li.price)}
-                  image={li.product.image}
-                  category={li.product.category}
-                  rarity={li.product.rarity}
-                  stock={li.quantity}
-                  sellerId={li.listing.seller.id}
-                  sellerName={li.listing.seller.name}
-                  listingItemId={li.id}
-                />
-              ))}
+          </div>
+          <div className="mx-auto" style={{ maxWidth: "900px" }}>
+            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
+              <img src="/epicos.png" alt="Épicos e Lendários" className="w-full object-contain" style={{ maxHeight: "480px" }} />
             </div>
-          )}
+          </div>
+        </section>
+
+        {/* Seção 3 — Trocas (fundo preto, letra branca) */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
+          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+              Gratuito
+            </p>
+            <h2 className="font-bold tracking-tight mb-3"
+              style={{ color: "#f5f5f7", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Trocas diretas.
+            </h2>
+            <p className="mb-8 mx-auto" style={{ color: "rgba(255,255,255,0.5)", maxWidth: "380px", fontSize: "17px", lineHeight: 1.6 }}>
+              Troque itens diretamente com outros jogadores. Sem taxas, sem intermediários.
+            </p>
+            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+              <Link href="/trocas"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "#f5f5f7", color: "#000", padding: "0.6rem 1.75rem" }}>
+                Ver trocas
+              </Link>
+              <Link href="/trocas/nova"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "transparent", color: "#f5f5f7", padding: "0.6rem 1.75rem", border: "1px solid rgba(255,255,255,0.25)" }}>
+                Criar troca
+              </Link>
+            </div>
+          </div>
+          <div className="mx-auto" style={{ maxWidth: "900px" }}>
+            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
+              <img src="/trocas.jpg" alt="Trocas diretas" className="w-full object-cover" style={{ maxHeight: "480px", objectPosition: "top center" }} />
+            </div>
+          </div>
+        </section>
+
+        {/* Seção 4 — Venda seus itens (fundo branco, letra preta) */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
+          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+              Para vendedores
+            </p>
+            <h2 className="font-bold tracking-tight mb-3"
+              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Venda seus itens.
+            </h2>
+            <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
+              Anuncie seus itens com segurança. Taxa de apenas 10% sobre cada venda concluída.
+            </p>
+            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+              <Link href="/anunciar"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
+                Começar a vender
+              </Link>
+              <Link href="/minha-conta/anuncios"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
+                Meus anúncios
+              </Link>
+            </div>
+          </div>
+          <div className="mx-auto" style={{ maxWidth: "900px" }}>
+            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
+              <img src="/venda.png" alt="Venda seus itens" className="w-full object-cover" style={{ maxHeight: "480px", objectPosition: "top center" }} />
+            </div>
+          </div>
         </section>
       </main>
 
-      <footer className="mt-auto py-8 text-center text-sm"
-        style={{ color: "var(--text-tertiary)", borderTop: "1px solid var(--border)" }}>
+      <footer className="py-8 text-center text-sm"
+        style={{ color: "#6e6e73", borderTop: "1px solid #d2d2d7", background: "#f5f5f7" }}>
         © {new Date().getFullYear()} DropBay · Marketplace de itens Arc Raiders
       </footer>
     </div>
