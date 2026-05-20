@@ -6,7 +6,7 @@ import { useEffect, useState, useRef, useCallback } from "react"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
 import Image from "next/image"
-import { Plus, Clock, CheckCircle, XCircle, ShoppingBag, Package, Copy, AlertCircle } from "lucide-react"
+import { Plus, Clock, CheckCircle, XCircle, ShoppingBag, Package, MessageCircle } from "lucide-react"
 import Dialog from "@/components/dialog"
 
 type ListingItem = {
@@ -45,7 +45,7 @@ export default function MeusAnunciosPage() {
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
-  const [pixData, setPixData] = useState<{ listingId: string; fee: number; pixCode: string; pixQrCode: string } | null>(null)
+  const [showDiscord, setShowDiscord] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const confirmListing = confirmId ? listings.find((l) => l.id === confirmId) : null
@@ -56,6 +56,9 @@ export default function MeusAnunciosPage() {
   }, [])
 
   useEffect(() => () => stopPolling(), [stopPolling])
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function startCancelPolling(_listingId: string) { /* não usado — cancelamento via Discord */ }
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login")
@@ -88,12 +91,11 @@ export default function MeusAnunciosPage() {
     const data = await res.json()
     setCancelling(null)
 
-    if (data.free) {
+    if (data.type === "imediato") {
       setListings((prev) => prev.map((l) => l.id === id ? { ...l, status: "CANCELADO" } : l))
-    } else if (data.pixCode) {
+    } else if (data.type === "discord") {
       setListings((prev) => prev.map((l) => l.id === id ? { ...l, status: "CANCELAMENTO_SOLICITADO" } : l))
-      setPixData({ listingId: id, fee: data.fee, pixCode: data.pixCode, pixQrCode: data.pixQrCode })
-      startCancelPolling(id)
+      setShowDiscord(true)
     }
   }
 
@@ -258,13 +260,33 @@ export default function MeusAnunciosPage() {
         </div>
       )}
 
+      {/* Modal Discord — cancelamento de item disponível */}
+      <Dialog
+        open={showDiscord}
+        title="Cancelamento solicitado"
+        message="Seu item está com a administração. Entre em contato no Discord para combinarmos a devolução."
+        onClose={() => setShowDiscord(false)}
+        actions={[
+          {
+            label: "Abrir Discord",
+            variant: "default",
+            onClick: () => { window.open("https://discord.gg/W6PMjDwa", "_blank"); setShowDiscord(false) },
+          },
+          {
+            label: "Fechar",
+            variant: "cancel",
+            onClick: () => setShowDiscord(false),
+          },
+        ]}
+      />
+
       <Dialog
         open={!!confirmId}
         title="Cancelar anúncio?"
         message={
           hasFee
-            ? "Como o item já está disponível na loja, a taxa de 10% sobre o valor anunciado será cobrada via PIX."
-            : "Como o item ainda não foi entregue à administração, o cancelamento é gratuito."
+            ? "Como o item está disponível na loja, o cancelamento será solicitado e você deve entrar em contato no Discord para devolvermos o item."
+            : "Como o item ainda não foi entregue à administração, o cancelamento é gratuito e imediato."
         }
         onClose={() => setConfirmId(null)}
         actions={[

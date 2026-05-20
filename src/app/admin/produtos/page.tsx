@@ -44,13 +44,22 @@ export default function AdminProdutos() {
   const [page, setPage] = useState(1)
   const [rarityOpen, setRarityOpen] = useState(false)
   const [categoryOpen, setCategoryOpen] = useState(false)
+  const rarityRef = useRef<HTMLDivElement>(null)
+  const categoryRef = useRef<HTMLDivElement>(null)
   const PER_PAGE = 20
 
-  // Fecha dropdowns ao clicar fora
+  // Fecha dropdowns apenas ao clicar FORA deles
   useEffect(() => {
-    function close() { setRarityOpen(false); setCategoryOpen(false) }
-    document.addEventListener("mousedown", close)
-    return () => document.removeEventListener("mousedown", close)
+    function handleClick(e: MouseEvent) {
+      if (rarityRef.current && !rarityRef.current.contains(e.target as Node)) {
+        setRarityOpen(false)
+      }
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
+        setCategoryOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
   const filtered = products.filter((p) => {
@@ -144,7 +153,7 @@ export default function AdminProdutos() {
         </div>
 
         {/* Filtro raridade customizado */}
-        <div className="relative">
+        <div className="relative" ref={rarityRef}>
           <button
             onClick={() => setRarityOpen((v) => !v)}
             className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl min-w-36"
@@ -154,7 +163,8 @@ export default function AdminProdutos() {
           </button>
           {rarityOpen && (
             <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-36"
-              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+>
               {["", "Common", "Uncommon", "Rare", "Epic", "Legendary"].map((r) => (
                 <button key={r} onClick={() => { setRarityFilter(r); resetPage(); setRarityOpen(false) }}
                   className="w-full text-left px-4 py-2 text-sm transition-colors"
@@ -172,7 +182,7 @@ export default function AdminProdutos() {
         </div>
 
         {/* Filtro categoria customizado */}
-        <div className="relative">
+        <div className="relative" ref={categoryRef}>
           <button
             onClick={() => setCategoryOpen((v) => !v)}
             className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl min-w-40"
@@ -182,7 +192,8 @@ export default function AdminProdutos() {
           </button>
           {categoryOpen && (
             <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-40 max-h-64 overflow-y-auto"
-              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+>
               {["", ...categories].map((c) => (
                 <button key={c} onClick={() => { setCategoryFilter(c); resetPage(); setCategoryOpen(false) }}
                   className="w-full text-left px-4 py-2 text-sm transition-colors"
