@@ -5,7 +5,7 @@ import { mpPayment } from "@/lib/mercadopago"
 
 const COMMISSION_RATE = 0.10
 
-type CartItem = { listingItemId: string; quantity: number; price: number }
+type CartItem = { stockId: string; quantity: number; price: number }
 
 export async function GET() {
   const session = await auth()
@@ -19,10 +19,10 @@ export async function GET() {
       buyer: { select: { name: true, email: true } },
       items: {
         include: {
-          listingItem: {
+          stock: {
             include: {
               product: { select: { name: true, image: true } },
-              listing: { include: { seller: { select: { id: true, name: true, pixKey: true } } } },
+              seller: { select: { id: true, name: true, pixKey: true } },
             },
           },
         },
@@ -39,10 +39,17 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Faça login para continuar" }, { status: 401 })
 
   const { items, total }: { items: CartItem[]; total: number } = await req.json()
-
   if (!items?.length) return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 })
 
   const commission = Math.round(total * COMMISSION_RATE * 100) / 100
+
+  // Valida que todos os itens do estoque têm quantidade suficiente
+  for (const item of items) {
+    const stock = await prisma.stock.findUnique({ where: { id: item.stockId } })
+    if (!stock || !stock.active || stock.quantity < item.quantity) {
+      return NextResponse.json({ error: "Item sem estoque suficiente" }, { status: 400 })
+    }
+  }
 
   const order = await prisma.order.create({
     data: {
@@ -51,13 +58,29 @@ export async function POST(req: NextRequest) {
       commission,
       items: {
         create: items.map((i) => ({
-          listingItemId: i.listingItemId,
+          stockId: i.stockId,
           quantity: i.quantity,
           price: i.price,
         })),
       },
     },
   })
+
+  // Reserva estoque (decrementa imediatamente ao criar pedido)
+  for (const item of items) {
+    await prisma.stock.update({
+      where: { id: item.stockId },
+      data: {
+        quantity: { decrement: item.quantity },
+        active: { set: true },
+      },
+    })
+    // Desativa se zerou
+    const updated = await prisma.stock.findUnique({ where: { id: item.stockId } })
+    if (updated && updated.quantity <= 0) {
+      await prisma.stock.update({ where: { id: item.stockId }, data: { active: false } })
+    }
+  }
 
   try {
     const buyer = await prisma.user.findUnique({
@@ -97,6 +120,13 @@ export async function POST(req: NextRequest) {
       total,
     })
   } catch (err) {
+    // Reverte estoque se falhar o PIX
+    for (const item of items) {
+      await prisma.stock.update({
+        where: { id: item.stockId },
+        data: { quantity: { increment: item.quantity }, active: true },
+      })
+    }
     await prisma.order.update({ where: { id: order.id }, data: { status: "CANCELADO" } })
     console.error("Erro Mercado Pago:", err)
     return NextResponse.json({ error: "Erro ao gerar PIX. Tente novamente." }, { status: 500 })

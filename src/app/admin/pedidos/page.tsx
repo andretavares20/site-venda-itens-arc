@@ -7,7 +7,7 @@ type Seller = { id: string; name: string; pixKey: string | null }
 type OrderItem = {
   quantity: number
   price: number
-  listingItem: { product: { name: string }; listing: { seller: Seller } }
+  stock: { product: { name: string }; seller: Seller }
 }
 type Order = {
   id: string
@@ -53,7 +53,7 @@ export default function AdminPedidos() {
   }
 
   function getSellerInfo(order: Order) {
-    const seller = order.items[0]?.listingItem?.listing?.seller
+    const seller = order.items[0]?.stock?.seller
     if (!seller) return null
     return { seller, sellerAmount: Number(order.total) - Number(order.commission) }
   }
@@ -274,7 +274,7 @@ export default function AdminPedidos() {
                   <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{selected.buyer.email}</p>
                 </div>
                 {(() => {
-                  const seller = selected.items[0]?.listingItem?.listing?.seller
+                  const seller = selected.items[0]?.stock?.seller
                   return seller ? (
                     <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem" }}>
                       <p className="text-xs mb-0.5" style={{ color: "var(--text-tertiary)" }}>Vendedor</p>
@@ -292,7 +292,7 @@ export default function AdminPedidos() {
                     <div key={i} className="flex items-center justify-between text-sm"
                       style={{ borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>
                       <span style={{ color: "var(--text-primary)" }}>
-                        {item.listingItem?.product?.name ?? "Item"}{" "}
+                        {item.stock?.product?.name ?? "Item"}{" "}
                         <span style={{ color: "var(--text-tertiary)" }}>x{item.quantity}</span>
                       </span>
                       <span style={{ color: "var(--text-primary)" }}>R$ {(Number(item.price) * item.quantity).toFixed(2)}</span>
