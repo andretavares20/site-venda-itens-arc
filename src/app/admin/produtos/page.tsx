@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Plus, Pencil, Trash2, X, Check, Search } from "lucide-react"
 import Image from "next/image"
 
@@ -42,7 +42,16 @@ export default function AdminProdutos() {
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
+  const [rarityOpen, setRarityOpen] = useState(false)
+  const [categoryOpen, setCategoryOpen] = useState(false)
   const PER_PAGE = 50
+
+  // Fecha dropdowns ao clicar fora
+  useEffect(() => {
+    function close() { setRarityOpen(false); setCategoryOpen(false) }
+    document.addEventListener("mousedown", close)
+    return () => document.removeEventListener("mousedown", close)
+  }, [])
 
   const filtered = products.filter((p) => {
     const matchName = !search || p.name.toLowerCase().includes(search.toLowerCase())
@@ -134,21 +143,61 @@ export default function AdminProdutos() {
           )}
         </div>
 
-        <select value={rarityFilter} onChange={(e) => { setRarityFilter(e.target.value); resetPage() }}
-          className="text-sm px-3 py-2 rounded-xl"
-          style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: rarityFilter ? rarityColor[rarityFilter] : "var(--text-secondary)", outline: "none" }}>
-          <option value="">Todas raridades</option>
-          {["Common", "Uncommon", "Rare", "Epic", "Legendary"].map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
+        {/* Filtro raridade customizado */}
+        <div className="relative">
+          <button
+            onClick={() => setRarityOpen((v) => !v)}
+            className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl min-w-36"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: rarityFilter ? rarityColor[rarityFilter] : "var(--text-secondary)" }}>
+            <span className="flex-1 text-left">{rarityFilter || "Todas raridades"}</span>
+            <span style={{ color: "var(--text-tertiary)" }}>▾</span>
+          </button>
+          {rarityOpen && (
+            <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-36"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+              {["", "Common", "Uncommon", "Rare", "Epic", "Legendary"].map((r) => (
+                <button key={r} onClick={() => { setRarityFilter(r); resetPage(); setRarityOpen(false) }}
+                  className="w-full text-left px-4 py-2 text-sm transition-colors"
+                  style={{
+                    color: r ? rarityColor[r] : "var(--text-secondary)",
+                    background: rarityFilter === r ? "var(--surface-2)" : "transparent",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-2)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = rarityFilter === r ? "var(--surface-2)" : "transparent"}>
+                  {r || "Todas raridades"}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-        <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); resetPage() }}
-          className="text-sm px-3 py-2 rounded-xl"
-          style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-secondary)", outline: "none" }}>
-          <option value="">Todas categorias</option>
-          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        {/* Filtro categoria customizado */}
+        <div className="relative">
+          <button
+            onClick={() => setCategoryOpen((v) => !v)}
+            className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl min-w-40"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+            <span className="flex-1 text-left">{categoryFilter || "Todas categorias"}</span>
+            <span style={{ color: "var(--text-tertiary)" }}>▾</span>
+          </button>
+          {categoryOpen && (
+            <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-40 max-h-64 overflow-y-auto"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+              {["", ...categories].map((c) => (
+                <button key={c} onClick={() => { setCategoryFilter(c); resetPage(); setCategoryOpen(false) }}
+                  className="w-full text-left px-4 py-2 text-sm transition-colors"
+                  style={{
+                    color: "var(--text-secondary)",
+                    background: categoryFilter === c ? "var(--surface-2)" : "transparent",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-2)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = categoryFilter === c ? "var(--surface-2)" : "transparent"}>
+                  {c || "Todas categorias"}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {(search || rarityFilter || categoryFilter) && (
           <button onClick={() => { setSearch(""); setRarityFilter(""); setCategoryFilter("") }}
