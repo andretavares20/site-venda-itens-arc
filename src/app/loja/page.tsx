@@ -159,7 +159,7 @@ export default async function LojaPage({
                   id={s.stockId}
                   name={s.product.name}
                   slug={s.product.slug}
-                  price={s.avgPrice}
+                  price={s.minPrice}
                   image={s.product.image}
                   category={s.product.category}
                   rarity={s.product.rarity}
