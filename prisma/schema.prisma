@@ -118,8 +118,8 @@ model OrderItem {
   id        String  @id @default(cuid())
   orderId   String
   order     Order   @relation(fields: [orderId], references: [id])
-  stockId   String
-  stock     Stock   @relation(fields: [stockId], references: [id])
+  stockId   String?
+  stock     Stock?  @relation(fields: [stockId], references: [id])
   quantity  Int
   price     Decimal @db.Decimal(10, 2)
 }

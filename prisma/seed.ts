@@ -52,7 +52,7 @@ async function main() {
   for (const item of filtered) {
     const priceRange = rarityPrice[item.rarity] ?? rarityPrice.Common
     const desc = rarityDescription[item.rarity] ?? rarityDescription.Common
-    const suggestedPrice = randomPrice(priceRange[0], priceRange[1])
+    const suggestedPrice = 0.10
 
     try {
       await prisma.product.upsert({
