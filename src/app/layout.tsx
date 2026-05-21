@@ -3,6 +3,7 @@ import { Geist } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
 import TopLoader from "@/components/top-loader"
+import { Analytics } from "@vercel/analytics/react"
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({
       >
         <TopLoader />
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   )
