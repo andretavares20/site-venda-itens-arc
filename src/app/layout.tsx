@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/components/providers"
+import TopLoader from "@/components/top-loader"
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +26,7 @@ export default function RootLayout({
         style={{ background: "var(--bg)", color: "var(--text-primary)" }}
         suppressHydrationWarning
       >
+        <TopLoader />
         <Providers>{children}</Providers>
       </body>
     </html>
