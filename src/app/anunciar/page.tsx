@@ -275,7 +275,17 @@ export default function AnunciarPage() {
                   {/* Quantidade */}
                   <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                     <button onClick={() => updateQty(item.product.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center text-sm" style={{ color: "var(--text-secondary)" }}>−</button>
-                    <span className="w-7 text-center text-xs" style={{ color: "var(--text-primary)" }}>{item.quantity}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      className="bg-transparent outline-none text-center text-xs font-medium"
+                      style={{ width: "36px", color: "var(--text-primary)" }}
+                      value={item.quantity}
+                      onChange={e => {
+                        const val = parseInt(e.target.value)
+                        if (!isNaN(val) && val > 0) updateQty(item.product.id, val)
+                      }}
+                    />
                     <button onClick={() => updateQty(item.product.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-sm" style={{ color: "var(--text-secondary)" }}>+</button>
                   </div>
 
