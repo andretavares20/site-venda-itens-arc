@@ -42,6 +42,7 @@ export default function AnunciarPage() {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [hasPixKey, setHasPixKey] = useState<boolean | null>(null)
+  const [rawQty, setRawQty] = useState<Record<string, string>>({})
   const [history, setHistory] = useState<Record<string, PriceHistory[]>>({})
 
   useEffect(() => {
@@ -276,15 +277,24 @@ export default function AnunciarPage() {
                   <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                     <button onClick={() => updateQty(item.product.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center text-sm" style={{ color: "var(--text-secondary)" }}>−</button>
                     <input
-                      type="number"
-                      min="1"
+                      type="text"
+                      inputMode="numeric"
                       className="bg-transparent outline-none text-center text-xs font-medium"
                       style={{ width: "36px", color: "var(--text-primary)" }}
-                      value={item.quantity}
+                      value={rawQty[item.product.id] ?? String(item.quantity)}
                       onChange={e => {
-                        const val = parseInt(e.target.value)
+                        const raw = e.target.value.replace(/\D/g, "")
+                        setRawQty(r => ({ ...r, [item.product.id]: raw }))
+                        const val = parseInt(raw)
                         if (!isNaN(val) && val > 0) updateQty(item.product.id, val)
                       }}
+                      onBlur={e => {
+                        const val = parseInt(e.target.value)
+                        if (isNaN(val) || val <= 0) {
+                          setRawQty(r => ({ ...r, [item.product.id]: String(item.quantity) }))
+                        }
+                      }}
+                      onFocus={e => e.target.select()}
                     />
                     <button onClick={() => updateQty(item.product.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-sm" style={{ color: "var(--text-secondary)" }}>+</button>
                   </div>
