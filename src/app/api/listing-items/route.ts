@@ -7,25 +7,25 @@ export async function GET(req: NextRequest) {
 
   if (!slug) return NextResponse.json([], { status: 400 })
 
-  const items = await prisma.listingItem.findMany({
+  const items = await prisma.stock.findMany({
     where: {
-      status: "DISPONIVEL",
-      listing: { status: "DISPONIVEL" },
+      active: true,
+      quantity: { gt: 0 },
       product: { slug },
     },
     include: {
-      listing: { include: { seller: { select: { id: true, name: true } } } },
+      seller: { select: { id: true, name: true } },
     },
     orderBy: { price: "asc" },
   })
 
   return NextResponse.json(
-    items.map((i) => ({
-      id: i.listing.id,
-      listingItemId: i.id,
-      price: Number(i.price),
-      quantity: i.quantity,
-      seller: i.listing.seller,
+    items.map((s) => ({
+      id: s.id,
+      listingItemId: s.id,
+      price: Number(s.price),
+      quantity: s.quantity,
+      seller: s.seller,
     }))
   )
 }
