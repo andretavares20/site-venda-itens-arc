@@ -138,15 +138,15 @@ export default function ProductCard({ id, name, slug, price, image, rarity, stoc
       </div>
 
       {/* Info */}
-      <div className="flex flex-col gap-2 p-3">
+      <div className="flex flex-col p-3" style={{ minHeight: "64px" }}>
         <h3
           className="font-medium text-xs leading-snug line-clamp-2"
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--text-primary)", minHeight: "2.75em" }}
         >
           {name}
         </h3>
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 mt-2">
           <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
             R$ {price.toFixed(2)}
           </span>

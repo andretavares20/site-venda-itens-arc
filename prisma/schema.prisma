@@ -58,6 +58,7 @@ model Listing {
   sellerId   String
   seller     User          @relation(fields: [sellerId], references: [id])
   items      ListingItem[]
+  stocks     Stock[]
   status     ListingStatus @default(PENDENTE_ENTREGA)
   adminNotes String?
   createdAt  DateTime      @default(now())
@@ -133,6 +134,7 @@ model Stock {
   sellerId   String
   seller     User        @relation(fields: [sellerId], references: [id])
   listingId  String?
+  listing    Listing?    @relation(fields: [listingId], references: [id])
   quantity   Int         @default(0)
   price      Decimal     @db.Decimal(10, 2)
   active     Boolean     @default(true)
