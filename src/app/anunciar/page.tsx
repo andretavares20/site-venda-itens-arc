@@ -276,15 +276,18 @@ export default function AnunciarPage() {
                   <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                     <button onClick={() => updateQty(item.product.id, item.quantity - 1)} className="w-7 h-7 flex items-center justify-center text-sm" style={{ color: "var(--text-secondary)" }}>−</button>
                     <input
-                      type="number"
-                      min="1"
+                      type="text"
+                      inputMode="numeric"
                       className="bg-transparent outline-none text-center text-xs font-medium"
                       style={{ width: "36px", color: "var(--text-primary)" }}
                       value={item.quantity}
                       onChange={e => {
-                        const val = parseInt(e.target.value)
-                        if (!isNaN(val) && val > 0) updateQty(item.product.id, val)
+                        const raw = e.target.value.replace(/\D/g, "")
+                        const val = parseInt(raw)
+                        if (raw === "" || isNaN(val)) return
+                        if (val > 0) updateQty(item.product.id, val)
                       }}
+                      onFocus={e => e.target.select()}
                     />
                     <button onClick={() => updateQty(item.product.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center text-sm" style={{ color: "var(--text-secondary)" }}>+</button>
                   </div>
