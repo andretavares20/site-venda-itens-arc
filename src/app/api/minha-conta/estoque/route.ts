@@ -12,15 +12,24 @@ export async function GET() {
       product: {
         select: { name: true, image: true, rarity: true, category: true, slug: true },
       },
-      listing: {
-        select: { status: true },
-      },
     },
     orderBy: { createdAt: "desc" },
   })
 
+  // Busca status dos listings separadamente
+  const listingIds = items.map(i => i.listingId).filter(Boolean) as string[]
+  const listings = listingIds.length > 0
+    ? await prisma.listing.findMany({
+        where: { id: { in: listingIds } },
+        select: { id: true, status: true },
+      })
+    : []
+
+  const listingMap = Object.fromEntries(listings.map(l => [l.id, l]))
+
   return NextResponse.json(items.map(i => ({
     ...i,
     price: Number(i.price),
+    listing: i.listingId ? listingMap[i.listingId] ?? null : null,
   })))
 }
