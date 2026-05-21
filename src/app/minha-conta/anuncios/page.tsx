@@ -30,7 +30,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   DISPONIVEL:               { label: "Disponível na loja",       color: "var(--success)",  bg: "rgba(48,209,88,0.1)",    icon: CheckCircle },
   PARCIALMENTE_VENDIDO:     { label: "Parcialmente vendido",     color: "var(--accent)",   bg: "rgba(0,113,227,0.1)",    icon: ShoppingBag },
   VENDIDO:                  { label: "Vendido",                  color: "var(--success)",  bg: "rgba(48,209,88,0.1)",    icon: CheckCircle },
-  CANCELAMENTO_SOLICITADO:  { label: "Cancelamento — taxa pendente", color: "var(--warning)", bg: "rgba(255,214,10,0.1)", icon: AlertCircle },
+  CANCELAMENTO_SOLICITADO:  { label: "Cancelamento — aguardando ADM", color: "var(--warning)", bg: "rgba(255,214,10,0.1)", icon: AlertCircle },
   CANCELADO:                { label: "Cancelado",                color: "var(--error)",    bg: "rgba(255,69,58,0.1)",    icon: XCircle },
 }
 

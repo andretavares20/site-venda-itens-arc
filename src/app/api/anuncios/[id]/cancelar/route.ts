@@ -25,6 +25,11 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   // Item já está com a administração — precisa contato via Discord para devolução
   if (listing.status === "DISPONIVEL") {
     await prisma.listing.update({ where: { id }, data: { status: "CANCELAMENTO_SOLICITADO" } })
+    // Desativa o stock para sair da loja (mas mantém no banco para admin ver)
+    await prisma.stock.updateMany({
+      where: { listingId: id },
+      data: { active: false },
+    })
     return NextResponse.json({ type: "discord" })
   }
 

@@ -29,6 +29,7 @@ const statusLabel: Record<string, string> = {
   DISPONIVEL: "Disponível",
   PARCIALMENTE_VENDIDO: "Parcialmente vendido",
   VENDIDO: "Vendido",
+  CANCELAMENTO_SOLICITADO: "Cancelamento — aguardando devolução",
   CANCELADO: "Cancelado",
 }
 
@@ -66,7 +67,7 @@ export default function AdminAnunciosPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Anúncios</h1>
         <div className="flex items-center gap-2">
-          {["PENDENTE_ENTREGA", "DISPONIVEL", "VENDIDO", "CANCELADO", "TODOS"].map((s) => (
+          {["PENDENTE_ENTREGA", "DISPONIVEL", "CANCELAMENTO_SOLICITADO", "VENDIDO", "CANCELADO", "TODOS"].map((s) => (
             <button key={s} onClick={() => setFilter(s)}
               className="text-xs px-3 py-1.5 rounded-full font-medium transition-colors"
               style={{
@@ -133,6 +134,28 @@ export default function AdminAnunciosPage() {
                   </span>
                 </div>
               ))}
+
+              {/* Ações — cancelamento solicitado: botão de devolução */}
+              {listing.status === "CANCELAMENTO_SOLICITADO" && (
+                <div className="px-5 py-3 flex items-center gap-3" style={{ background: "rgba(255,214,10,0.05)", borderTop: "1px solid var(--border)" }}>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium" style={{ color: "var(--warning)" }}>
+                      Vendedor solicitou cancelamento via Discord
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+                      Após devolver o item in-game, clique no botão ao lado.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => updateStatus(listing.id, "CANCELADO")}
+                    disabled={updating === listing.id}
+                    className="btn-primary text-sm flex-shrink-0"
+                    style={{ background: "var(--success)" }}
+                  >
+                    {updating === listing.id ? "Processando..." : "✓ Item devolvido"}
+                  </button>
+                </div>
+              )}
 
               {/* Ações admin */}
               {listing.status === "PENDENTE_ENTREGA" && (
