@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Navbar from "@/components/navbar"
 import { Search, Plus, Trash2, CheckCircle, Info, AlertCircle } from "lucide-react"
 import Image from "next/image"
@@ -43,6 +43,17 @@ export default function AnunciarPage() {
   const [done, setDone] = useState(false)
   const [hasPixKey, setHasPixKey] = useState<boolean | null>(null)
   const [rawQty, setRawQty] = useState<Record<string, string>>({})
+  const searchRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setResults([])
+      }
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
   const [history, setHistory] = useState<Record<string, PriceHistory[]>>({})
 
   useEffect(() => {
@@ -175,7 +186,7 @@ export default function AnunciarPage() {
         {/* Busca de itens */}
         <div className="rounded-2xl p-5 mb-6" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
           <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Adicionar itens</h2>
-          <div className="relative">
+          <div className="relative" ref={searchRef}>
             <div className="flex items-center gap-2 input-field" style={{ padding: "0.625rem 0.875rem" }}>
               <Search size={15} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
               <input
