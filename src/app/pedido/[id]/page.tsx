@@ -62,7 +62,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
                 style={{ borderBottom: "1px solid var(--border)" }}>
                 <div>
                   <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                    {item.stock.product.name}
+                    {item.stock?.product?.name ?? "Item"}
                   </p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                     x{item.quantity} · R$ {Number(item.price).toFixed(2)} cada
