@@ -282,7 +282,7 @@ export default function AnunciarPage() {
                   {/* Preços estilo Steam */}
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs w-24 text-right" style={{ color: "var(--text-secondary)" }}>Comprador paga</span>
+                      <span className="text-xs w-24 text-right" style={{ color: "var(--text-secondary)" }}>Por unidade</span>
                       <div className="flex items-center gap-1 px-2 py-1 rounded-lg"
                         style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
                         <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>R$</span>
@@ -296,7 +296,7 @@ export default function AnunciarPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs w-24 text-right" style={{ color: "var(--text-tertiary)" }}>Você recebe</span>
+                      <span className="text-xs w-24 text-right" style={{ color: "var(--text-tertiary)" }}>Você recebe/un.</span>
                       <div className="flex items-center gap-1 px-2 py-1 rounded-lg"
                         style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
                         <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>R$</span>
@@ -329,8 +329,13 @@ export default function AnunciarPage() {
                 <Info size={12} />
                 Taxa de 10% descontada no momento do pagamento
               </div>
-              <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                Você recebe: R$ {cart.reduce((s, i) => s + i.price * i.quantity * 0.9, 0).toFixed(2)}
+              <div className="text-right">
+                <p className="text-xs mb-0.5" style={{ color: "var(--text-tertiary)" }}>
+                  Se vender tudo ({cart.reduce((s, i) => s + i.quantity, 0)} unid.)
+                </p>
+                <p className="text-sm font-semibold" style={{ color: "var(--success)" }}>
+                  Você recebe: R$ {cart.reduce((s, i) => s + i.price * i.quantity * 0.9, 0).toFixed(2)}
+                </p>
               </div>
             </div>
           </div>
