@@ -145,11 +145,6 @@ export default function ProductCard({ id, name, slug, price, image, rarity, stoc
         >
           {name}
         </h3>
-        {sellerName && (
-          <p className="text-xs truncate" style={{ color: "var(--text-tertiary)" }}>
-            por {sellerName}
-          </p>
-        )}
 
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>

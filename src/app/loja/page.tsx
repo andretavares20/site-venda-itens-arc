@@ -3,9 +3,10 @@ import ProductCard from "@/components/product-card"
 import { prisma } from "@/lib/db"
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import Footer from "@/components/footer"
 
 async function getStockItems(category?: string, busca?: string, rarity?: string) {
-  return prisma.stock.findMany({
+  const stocks = await prisma.stock.findMany({
     where: {
       active: true,
       quantity: { gt: 0 },
@@ -16,12 +17,39 @@ async function getStockItems(category?: string, busca?: string, rarity?: string)
         ...(busca ? { name: { contains: busca, mode: "insensitive" } } : {}),
       },
     },
-    include: {
-      product: true,
-      seller: { select: { id: true, name: true } },
-    },
-    orderBy: { createdAt: "desc" },
+    include: { product: true },
+    orderBy: { price: "asc" },
   })
+
+  // Agrupa por produto — um card por produto único
+  const grouped = new Map<string, {
+    stockId: string
+    product: typeof stocks[0]["product"]
+    totalQty: number
+    prices: number[]
+  }>()
+
+  for (const stock of stocks) {
+    if (!grouped.has(stock.productId)) {
+      grouped.set(stock.productId, {
+        stockId: stock.id, // stockId do mais barato (já ordenado por price asc)
+        product: stock.product,
+        totalQty: 0,
+        prices: [],
+      })
+    }
+    const g = grouped.get(stock.productId)!
+    g.totalQty += stock.quantity
+    g.prices.push(Number(stock.price))
+  }
+
+  return Array.from(grouped.values()).map(g => ({
+    stockId: g.stockId,
+    product: g.product,
+    quantity: g.totalQty,
+    avgPrice: g.prices.reduce((a, b) => a + b, 0) / g.prices.length,
+    minPrice: Math.min(...g.prices),
+  }))
 }
 
 const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
@@ -127,29 +155,23 @@ export default async function LojaPage({
             <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
               {stockItems.map((s) => (
                 <ProductCard
-                  key={s.id}
-                  id={s.id}
+                  key={s.stockId}
+                  id={s.stockId}
                   name={s.product.name}
                   slug={s.product.slug}
-                  price={Number(s.price)}
+                  price={s.avgPrice}
                   image={s.product.image}
                   category={s.product.category}
                   rarity={s.product.rarity}
                   stock={s.quantity}
-                  sellerId={s.seller.id}
-                  sellerName={s.seller.name}
-                  listingItemId={s.id}
+                  listingItemId={s.stockId}
                 />
               ))}
             </div>
           )}
         </section>
       </main>
-
-      <footer className="py-8 text-center text-sm"
-        style={{ color: "var(--text-tertiary)", borderTop: "1px solid var(--border)" }}>
-        © {new Date().getFullYear()} DropBay · Marketplace de itens Arc Raiders
-      </footer>
+      <Footer />
     </div>
   )
 }
