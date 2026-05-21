@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import Link from "next/link"
 import { Plus } from "lucide-react"
 import Footer from "@/components/footer"
+import LojaFiltros from "./loja-filtros"
 
 async function getStockItems(category?: string, busca?: string, rarity?: string) {
   const stocks = await prisma.stock.findMany({
@@ -52,12 +53,6 @@ async function getStockItems(category?: string, busca?: string, rarity?: string)
   }))
 }
 
-const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
-const RARITY_COLOR: Record<string, string> = {
-  Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3",
-  Epic: "#bf5af2", Legendary: "#ffd60a",
-}
-
 async function getCategories() {
   const result = await prisma.product.groupBy({
     by: ["category"],
@@ -76,8 +71,6 @@ export default async function LojaPage({
     getStockItems(params.categoria, params.busca, params.raridade),
     getCategories(),
   ])
-
-  const hasFilter = params.categoria || params.busca || params.raridade
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -102,35 +95,12 @@ export default async function LojaPage({
             </div>
 
             {/* Filtros */}
-            <div className="flex flex-wrap gap-2">
-              <a href="/loja"
-                className="text-xs px-3 py-1.5 rounded-full font-medium"
-                style={{ background: !hasFilter ? "var(--accent)" : "var(--surface-2)", color: !hasFilter ? "#fff" : "var(--text-secondary)" }}>
-                Todos
-              </a>
-              {RARITIES.map(r => (
-                <a key={r} href={`/loja?raridade=${r}`}
-                  className="text-xs px-3 py-1.5 rounded-full font-medium"
-                  style={{
-                    background: params.raridade === r ? `${RARITY_COLOR[r]}22` : "var(--surface-2)",
-                    color: params.raridade === r ? RARITY_COLOR[r] : "var(--text-secondary)",
-                    border: `1px solid ${params.raridade === r ? `${RARITY_COLOR[r]}44` : "transparent"}`,
-                  }}>
-                  {r}
-                </a>
-              ))}
-              <div className="w-px mx-1" style={{ background: "var(--border)" }} />
-              {categories.map((cat: string) => (
-                <a key={cat} href={`/loja?categoria=${cat}`}
-                  className="text-xs px-3 py-1.5 rounded-full font-medium"
-                  style={{
-                    background: params.categoria === cat ? "var(--accent)" : "var(--surface-2)",
-                    color: params.categoria === cat ? "#fff" : "var(--text-secondary)",
-                  }}>
-                  {cat}
-                </a>
-              ))}
-            </div>
+            <LojaFiltros
+              categories={categories}
+              initialRarity={params.raridade}
+              initialCategory={params.categoria}
+              initialBusca={params.busca}
+            />
           </div>
         </div>
 
