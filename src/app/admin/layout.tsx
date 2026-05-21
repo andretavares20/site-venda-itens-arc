@@ -1,11 +1,12 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Package, ShoppingBag, LayoutDashboard, Megaphone } from "lucide-react"
+import { Package, ShoppingBag, LayoutDashboard, Megaphone, Archive } from "lucide-react"
 
 const navLinks = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/anuncios", icon: Megaphone, label: "Anúncios" },
+  { href: "/admin/estoque", icon: Archive, label: "Estoque" },
   { href: "/admin/pedidos", icon: ShoppingBag, label: "Pedidos" },
   { href: "/admin/produtos", icon: Package, label: "Catálogo" },
 ]

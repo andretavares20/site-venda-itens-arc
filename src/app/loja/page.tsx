@@ -4,11 +4,11 @@ import { prisma } from "@/lib/db"
 import Link from "next/link"
 import { Plus } from "lucide-react"
 
-async function getListingItems(category?: string, busca?: string, rarity?: string) {
-  return prisma.listingItem.findMany({
+async function getStockItems(category?: string, busca?: string, rarity?: string) {
+  return prisma.stock.findMany({
     where: {
-      status: "DISPONIVEL",
-      listing: { status: "DISPONIVEL" },
+      active: true,
+      quantity: { gt: 0 },
       product: {
         active: true,
         ...(category ? { category } : {}),
@@ -18,10 +18,16 @@ async function getListingItems(category?: string, busca?: string, rarity?: strin
     },
     include: {
       product: true,
-      listing: { include: { seller: { select: { id: true, name: true } } } },
+      seller: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: "desc" },
   })
+}
+
+const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
+const RARITY_COLOR: Record<string, string> = {
+  Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3",
+  Epic: "#bf5af2", Legendary: "#ffd60a",
 }
 
 async function getCategories() {
@@ -32,20 +38,14 @@ async function getCategories() {
   return result.map((r: { category: string }) => r.category).sort()
 }
 
-const RARITIES = ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
-const RARITY_COLOR: Record<string, string> = {
-  Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3",
-  Epic: "#bf5af2", Legendary: "#ffd60a",
-}
-
 export default async function LojaPage({
   searchParams,
 }: {
   searchParams: Promise<{ categoria?: string; busca?: string; raridade?: string }>
 }) {
   const params = await searchParams
-  const [listingItems, categories] = await Promise.all([
-    getListingItems(params.categoria, params.busca, params.raridade),
+  const [stockItems, categories] = await Promise.all([
+    getStockItems(params.categoria, params.busca, params.raridade),
     getCategories(),
   ])
 
@@ -56,16 +56,16 @@ export default async function LojaPage({
       <Navbar />
       <main className="pt-14">
 
-        {/* Header da loja */}
+        {/* Header */}
         <div className="border-b" style={{ borderColor: "var(--border)", background: "var(--surface-1)" }}>
           <div className="max-w-6xl mx-auto px-4 py-6">
             <div className="flex items-end justify-between mb-4">
               <div>
                 <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-                  {params.busca ? `"${params.busca}"` : params.categoria || params.raridade || "Todos os itens"}
+                  {params.busca ? `"${params.busca}"` : params.categoria || (params.raridade ? `Itens ${params.raridade}` : "Todos os itens")}
                 </h1>
                 <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                  {listingItems.length} {listingItems.length === 1 ? "item disponível" : "itens disponíveis"}
+                  {stockItems.length} {stockItems.length === 1 ? "item disponível" : "itens disponíveis"}
                 </p>
               </div>
               <Link href="/anunciar" className="btn-primary text-sm">
@@ -76,18 +76,13 @@ export default async function LojaPage({
             {/* Filtros */}
             <div className="flex flex-wrap gap-2">
               <a href="/loja"
-                className="text-xs px-3 py-1.5 rounded-full font-medium transition-colors"
-                style={{
-                  background: !hasFilter ? "var(--accent)" : "var(--surface-2)",
-                  color: !hasFilter ? "#fff" : "var(--text-secondary)",
-                }}>
+                className="text-xs px-3 py-1.5 rounded-full font-medium"
+                style={{ background: !hasFilter ? "var(--accent)" : "var(--surface-2)", color: !hasFilter ? "#fff" : "var(--text-secondary)" }}>
                 Todos
               </a>
-
-              {/* Raridades */}
               {RARITIES.map(r => (
                 <a key={r} href={`/loja?raridade=${r}`}
-                  className="text-xs px-3 py-1.5 rounded-full font-medium transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-full font-medium"
                   style={{
                     background: params.raridade === r ? `${RARITY_COLOR[r]}22` : "var(--surface-2)",
                     color: params.raridade === r ? RARITY_COLOR[r] : "var(--text-secondary)",
@@ -96,13 +91,10 @@ export default async function LojaPage({
                   {r}
                 </a>
               ))}
-
               <div className="w-px mx-1" style={{ background: "var(--border)" }} />
-
-              {/* Categorias */}
-              {categories.map(cat => (
+              {categories.map((cat: string) => (
                 <a key={cat} href={`/loja?categoria=${cat}`}
-                  className="text-xs px-3 py-1.5 rounded-full font-medium transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-full font-medium"
                   style={{
                     background: params.categoria === cat ? "var(--accent)" : "var(--surface-2)",
                     color: params.categoria === cat ? "#fff" : "var(--text-secondary)",
@@ -116,7 +108,7 @@ export default async function LojaPage({
 
         {/* Grid */}
         <section className="max-w-6xl mx-auto px-4 py-10">
-          {listingItems.length === 0 ? (
+          {stockItems.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-2xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
                 Nenhum item encontrado
@@ -133,20 +125,20 @@ export default async function LojaPage({
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
-              {listingItems.map((li) => (
+              {stockItems.map((s) => (
                 <ProductCard
-                  key={li.id}
-                  id={li.id}
-                  name={li.product.name}
-                  slug={li.product.slug}
-                  price={Number(li.price)}
-                  image={li.product.image}
-                  category={li.product.category}
-                  rarity={li.product.rarity}
-                  stock={li.quantity}
-                  sellerId={li.listing.seller.id}
-                  sellerName={li.listing.seller.name}
-                  listingItemId={li.id}
+                  key={s.id}
+                  id={s.id}
+                  name={s.product.name}
+                  slug={s.product.slug}
+                  price={Number(s.price)}
+                  image={s.product.image}
+                  category={s.product.category}
+                  rarity={s.product.rarity}
+                  stock={s.quantity}
+                  sellerId={s.seller.id}
+                  sellerName={s.seller.name}
+                  listingItemId={s.id}
                 />
               ))}
             </div>

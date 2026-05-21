@@ -22,6 +22,7 @@ model User {
   createdAt            DateTime    @default(now())
   orders          Order[]
   listings        Listing[]
+  stocks          Stock[]
   reviewsGiven    Review[]        @relation("ReviewGiver")
   reviewsReceived Review[]        @relation("ReviewReceiver")
   trades          Trade[]
@@ -46,6 +47,7 @@ model Product {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   listingItems    ListingItem[]
+  stocks          Stock[]
   tradeOfferItems TradeOfferItem[]
   tradeWantItems  TradeWantItem[]
   proposalItems   ProposalItem[]
@@ -80,7 +82,6 @@ model ListingItem {
   quantity   Int
   price      Decimal           @db.Decimal(10, 2)
   status     ListingItemStatus @default(DISPONIVEL)
-  orderItems OrderItem[]
   createdAt  DateTime          @default(now())
 }
 
@@ -114,13 +115,32 @@ enum OrderStatus {
 }
 
 model OrderItem {
-  id            String      @id @default(cuid())
-  orderId       String
-  order         Order       @relation(fields: [orderId], references: [id])
-  listingItemId String
-  listingItem   ListingItem @relation(fields: [listingItemId], references: [id])
-  quantity      Int
-  price         Decimal     @db.Decimal(10, 2)
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  stockId   String
+  stock     Stock   @relation(fields: [stockId], references: [id])
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+}
+
+// ─── Estoque ─────────────────────────────────────────────────────
+
+model Stock {
+  id         String      @id @default(cuid())
+  productId  String
+  product    Product     @relation(fields: [productId], references: [id])
+  sellerId   String
+  seller     User        @relation(fields: [sellerId], references: [id])
+  listingId  String?
+  quantity   Int         @default(0)
+  price      Decimal     @db.Decimal(10, 2)
+  active     Boolean     @default(true)
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([productId, sellerId])
 }
 
 // ─── Sistema de Trocas ───────────────────────────────────────────

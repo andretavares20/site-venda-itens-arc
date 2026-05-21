@@ -13,10 +13,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       buyer: { select: { name: true, email: true } },
       items: {
         include: {
-          listingItem: {
+          stock: {
             include: {
               product: true,
-              listing: { include: { seller: { select: { id: true, name: true, pixKey: true } } } },
+              seller: { select: { id: true, name: true, pixKey: true } },
             },
           },
         },
@@ -48,34 +48,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       ...(sellerPaid !== undefined && { sellerPaid }),
     },
   })
-
-  if (status === "ENTREGUE") {
-    const fullOrder = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        items: {
-          include: {
-            listingItem: {
-              include: {
-                listing: { include: { seller: { select: { id: true, name: true, pixKey: true } } } },
-              },
-            },
-          },
-        },
-      },
-    })
-
-    if (fullOrder) {
-      // Marca ListingItems como vendidos
-      for (const item of fullOrder.items) {
-        await prisma.listingItem.update({
-          where: { id: item.listingItemId },
-          data: { status: "VENDIDO" },
-        })
-      }
-
-    }
-  }
 
   return NextResponse.json(order)
 }

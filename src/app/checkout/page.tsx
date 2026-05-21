@@ -92,7 +92,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((i) => ({ listingItemId: i.id, quantity: i.quantity, price: i.price })),
+          items: items.map((i) => ({ stockId: i.id, quantity: i.quantity, price: i.price })),
           total,
         }),
       })

@@ -14,7 +14,7 @@ type OrderItem = {
   id: string
   quantity: number
   price: number
-  listingItem: { product: { name: string } }
+  stock: { product: { name: string } }
 }
 
 type Order = {
@@ -197,7 +197,7 @@ export default function MinhaContaPage() {
                       </span>
                     </div>
                     <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
-                      {order.items.map((i) => `${i.listingItem?.product?.name ?? "Item"} x${i.quantity}`).join(" · ")}
+                      {order.items.map((i) => `${i.stock?.product?.name ?? "Item"} x${i.quantity}`).join(" · ")}
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
                       {new Date(order.createdAt).toLocaleDateString("pt-BR", {

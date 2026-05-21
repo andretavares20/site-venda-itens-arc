@@ -25,9 +25,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
     include: {
       items: {
         include: {
-          listingItem: {
-            include: { product: true },
-          },
+          stock: { include: { product: true } },
         },
       },
     },
@@ -64,7 +62,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
                 style={{ borderBottom: "1px solid var(--border)" }}>
                 <div>
                   <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                    {item.listingItem.product.name}
+                    {item.stock.product.name}
                   </p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                     x{item.quantity} · R$ {Number(item.price).toFixed(2)} cada
@@ -96,7 +94,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
             </div>
           )}
 
-          <Link href="/" className="btn-secondary flex-1 text-sm justify-center">
+          <Link href="/loja" className="btn-secondary flex-1 text-sm justify-center">
             Continuar comprando
           </Link>
         </div>
