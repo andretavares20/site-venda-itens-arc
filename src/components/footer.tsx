@@ -7,9 +7,7 @@ const COLUMNS = [
       { label: "Loja", href: "/loja" },
       { label: "Trocas", href: "/trocas" },
       { label: "Anunciar item", href: "/anunciar" },
-      { label: "Épicos e Lendários", href: "/loja?raridade=Legendary" },
-      { label: "Assault Rifles", href: "/loja?categoria=Assault Rifle" },
-      { label: "Modificações", href: "/loja?categoria=Modification" },
+      { label: "Programa de Parceiros", href: "/parceiros" },
     ],
   },
   {
@@ -19,28 +17,15 @@ const COLUMNS = [
       { label: "Meus anúncios", href: "/minha-conta/anuncios" },
       { label: "Minhas trocas", href: "/minha-conta/trocas" },
       { label: "Meu perfil", href: "/minha-conta/perfil" },
-      { label: "Entrar", href: "/login" },
-      { label: "Criar conta", href: "/registro" },
-    ],
-  },
-  {
-    title: "Marketplace",
-    links: [
-      { label: "Como funciona", href: "/" },
-      { label: "Programa de Parceiros", href: "/parceiros" },
-      { label: "Anunciar e vender", href: "/anunciar" },
-      { label: "Taxa de serviço (10%)", href: "/" },
-      { label: "Sistema de trocas", href: "/trocas" },
-      { label: "Segurança", href: "/" },
     ],
   },
   {
     title: "Arc Raiders",
     links: [
-      { label: "Sobre o jogo", href: "/" },
-      { label: "Raridades de itens", href: "/loja" },
       { label: "Itens Épicos", href: "/loja?raridade=Epic" },
       { label: "Itens Lendários", href: "/loja?raridade=Legendary" },
+      { label: "Assault Rifles", href: "/loja?categoria=Assault Rifle" },
+      { label: "Modificações", href: "/loja?categoria=Modification" },
       { label: "Blueprints", href: "/loja?categoria=Blueprint" },
     ],
   },
@@ -57,9 +42,9 @@ export default function Footer() {
       `}</style>
 
       {/* Colunas */}
-      <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-2 sm:grid-cols-4 gap-8">
+      <div className="max-w-5xl mx-auto px-6 py-10 flex flex-wrap justify-center gap-24">
         {COLUMNS.map((col) => (
-          <div key={col.title}>
+          <div key={col.title} style={{ minWidth: "120px" }}>
             <p className="font-semibold mb-3" style={{ color: "#1d1d1f", fontSize: "12px" }}>
               {col.title}
             </p>
