@@ -349,7 +349,7 @@ export default function CheckoutPage() {
           Finalizar compra
         </h1>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 items-start">
           <div className="rounded-2xl p-5 flex flex-col gap-4" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
             <h2 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>Resumo</h2>
             {items.map((item) => (
