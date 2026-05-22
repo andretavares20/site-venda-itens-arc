@@ -12,6 +12,11 @@ export async function POST(req: NextRequest) {
   const rider = await prisma.user.findUnique({ where: { id: riderId }, select: { tier: true } })
   if (rider?.tier !== "ELITE_RIDER") return NextResponse.json({ error: "Usuário não é Elite Rider" }, { status: 400 })
 
+  const discount = Number(discountPercent ?? 0)
+  const commission = Number(commissionPercent ?? 5)
+  if (discount > 5) return NextResponse.json({ error: "Desconto máximo é 5%" }, { status: 400 })
+  if (commission > 5) return NextResponse.json({ error: "Comissão máxima é 5%" }, { status: 400 })
+
   // Upsert: se já tem cupom, atualiza
   const coupon = await prisma.coupon.upsert({
     where: { riderId },

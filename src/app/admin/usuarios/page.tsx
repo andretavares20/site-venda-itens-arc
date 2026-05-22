@@ -251,14 +251,14 @@ export default function AdminUsuarios() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs mb-1 block" style={{ color: "var(--text-tertiary)" }}>Desconto comprador (%)</label>
-                        <input type="number" min="0" max="10" value={couponForm.discountPercent}
+                        <input type="number" min="0" max="5" value={couponForm.discountPercent}
                           onChange={(e) => setCouponForm((f) => ({ ...f, discountPercent: e.target.value }))}
                           className="w-full px-3 py-2 rounded-xl text-sm outline-none"
                           style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
                       </div>
                       <div>
                         <label className="text-xs mb-1 block" style={{ color: "var(--text-tertiary)" }}>Comissão rider (%)</label>
-                        <input type="number" min="0" max="10" value={couponForm.commissionPercent}
+                        <input type="number" min="0" max="5" value={couponForm.commissionPercent}
                           onChange={(e) => setCouponForm((f) => ({ ...f, commissionPercent: e.target.value }))}
                           className="w-full px-3 py-2 rounded-xl text-sm outline-none"
                           style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
