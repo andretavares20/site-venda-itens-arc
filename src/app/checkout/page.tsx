@@ -399,8 +399,10 @@ export default function CheckoutPage() {
                   style={{ background: "var(--surface-2)", border: `1px solid ${coupon ? "var(--success)" : couponError ? "var(--error)" : "var(--border)"}`, color: "var(--text-primary)" }}
                 />
                 <button onClick={checkCoupon} disabled={checkingCoupon || !couponCode.trim()}
-                  className="flex-shrink-0 px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5"
-                  style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+                  className="flex-shrink-0 px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 transition-all"
+                  style={{ background: "var(--accent)", border: "1px solid transparent", color: "#fff", opacity: (!couponCode.trim() || checkingCoupon) ? 0.4 : 1 }}
+                  onMouseEnter={e => { if (couponCode.trim() && !checkingCoupon) e.currentTarget.style.opacity = "0.85" }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = (!couponCode.trim() || checkingCoupon) ? "0.4" : "1" }}>
                   {checkingCoupon ? <Loader2 size={13} className="animate-spin" /> : <Tag size={13} />}
                   Aplicar
                 </button>
