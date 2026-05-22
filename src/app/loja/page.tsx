@@ -44,13 +44,21 @@ async function getStockItems(category?: string, busca?: string, rarity?: string)
     g.prices.push(Number(stock.price))
   }
 
-  return Array.from(grouped.values()).map(g => ({
-    stockId: g.stockId,
-    product: g.product,
-    quantity: g.totalQty,
-    avgPrice: g.prices.reduce((a, b) => a + b, 0) / g.prices.length,
-    minPrice: Math.min(...g.prices),
-  }))
+  const RARITY_ORDER: Record<string, number> = {
+    Legendary: 0, Epic: 1, Rare: 2, Uncommon: 3, Common: 4,
+  }
+
+  return Array.from(grouped.values())
+    .map(g => ({
+      stockId: g.stockId,
+      product: g.product,
+      quantity: g.totalQty,
+      avgPrice: g.prices.reduce((a, b) => a + b, 0) / g.prices.length,
+      minPrice: Math.min(...g.prices),
+    }))
+    .sort((a, b) =>
+      (RARITY_ORDER[a.product.rarity] ?? 5) - (RARITY_ORDER[b.product.rarity] ?? 5)
+    )
 }
 
 async function getCategories() {
