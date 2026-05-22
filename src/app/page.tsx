@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
 import Carousel from "@/components/carousel"
+import HeroVideo from "@/components/hero-video"
 import Footer from "@/components/footer"
 
 const GRID_CATEGORIES = [
@@ -67,12 +68,8 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Imagem hero */}
-          <div className="relative mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)" }}>
-              <img src="/hero.jpg" alt="Arc Raiders" className="w-full object-cover object-top" style={{ maxHeight: "520px" }} />
-            </div>
-          </div>
+          {/* Vídeo hero */}
+          <HeroVideo />
         </section>
 
         {/* Seção 2 — Épicos e Lendários (fundo branco, letra preta) */}
