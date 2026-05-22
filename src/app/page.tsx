@@ -39,8 +39,17 @@ export default async function Home() {
 
       <main className="pt-14">
         {/* Hero */}
-        <section className="relative overflow-hidden text-center" style={{ borderBottom: "1px solid var(--border)" }}>
-          <div className="relative pt-20 pb-6 px-4">
+        <section className="relative overflow-hidden text-center" style={{ borderBottom: "1px solid var(--border)", minHeight: "520px" }}>
+          <img src="/trocas.jpg" alt="" aria-hidden="true"
+            style={{
+              position: "absolute", top: 0, right: 0,
+              width: "55%", height: "100%",
+              objectFit: "cover", objectPosition: "center top",
+              filter: "grayscale(100%)", opacity: 0.35, pointerEvents: "none",
+              maskImage: "linear-gradient(to right, transparent 0%, black 35%, black 70%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 35%, black 70%, transparent 100%)",
+            }} />
+          <div className="relative pt-20 pb-20 px-4">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "var(--text-secondary)", letterSpacing: "0.12em" }}>
               Marketplace de itens · Arc Raiders
@@ -66,18 +75,19 @@ export default async function Home() {
               </Link>
             </div>
           </div>
-
-          {/* Imagem hero */}
-          <div className="relative mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)" }}>
-              <img src="/hero.jpg" alt="Arc Raiders" className="w-full object-cover object-top" style={{ maxHeight: "520px" }} />
-            </div>
-          </div>
         </section>
 
         {/* Seção 2 — Épicos e Lendários (fundo branco, letra preta) */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
-          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7", minHeight: "460px" }}>
+          <img src="/epicos.png" alt="" aria-hidden="true"
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", objectPosition: "center top",
+              filter: "grayscale(100%)", opacity: 0.12, pointerEvents: "none",
+              maskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 65%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 65%, transparent 100%)",
+            }} />
+          <div className="relative max-w-4xl mx-auto px-4 py-20">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
               Os mais raros
@@ -89,7 +99,7 @@ export default async function Home() {
             <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "360px", fontSize: "17px", lineHeight: 1.6 }}>
               Os itens mais raros de Arc Raiders, verificados e prontos para entrega.
             </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+            <div className="flex items-center justify-center gap-4 flex-wrap">
               <Link href="/loja?raridade=Legendary"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
                 style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
@@ -102,16 +112,19 @@ export default async function Home() {
               </Link>
             </div>
           </div>
-          <div className="mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
-              <img src="/epicos.png" alt="Épicos e Lendários" className="w-full object-contain" style={{ maxHeight: "480px" }} />
-            </div>
-          </div>
         </section>
 
         {/* Seção 3 — Trocas (fundo preto, letra branca) */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
-          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+        <section className="relative overflow-hidden text-center" style={{ background: "#000", minHeight: "460px" }}>
+          <img src="/hero.jpg" alt="" aria-hidden="true"
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", objectPosition: "center top",
+              filter: "grayscale(100%)", opacity: 0.3, pointerEvents: "none",
+              maskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 65%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 65%, transparent 100%)",
+            }} />
+          <div className="relative max-w-4xl mx-auto px-4 py-20">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
               Gratuito
@@ -123,7 +136,7 @@ export default async function Home() {
             <p className="mb-8 mx-auto" style={{ color: "rgba(255,255,255,0.5)", maxWidth: "380px", fontSize: "17px", lineHeight: 1.6 }}>
               Troque itens diretamente com outros jogadores. Sem taxas, sem intermediários.
             </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+            <div className="flex items-center justify-center gap-4 flex-wrap">
               <Link href="/trocas"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
                 style={{ background: "#f5f5f7", color: "#000", padding: "0.6rem 1.75rem" }}>
@@ -136,16 +149,19 @@ export default async function Home() {
               </Link>
             </div>
           </div>
-          <div className="mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
-              <img src="/trocas.jpg" alt="Trocas diretas" className="w-full object-cover" style={{ maxHeight: "480px", objectPosition: "top center" }} />
-            </div>
-          </div>
         </section>
 
         {/* Seção 4 — Venda seus itens (fundo branco, letra preta) */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
-          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
+        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7", minHeight: "460px" }}>
+          <img src="/venda.png" alt="" aria-hidden="true"
+            style={{
+              position: "absolute", inset: 0, width: "100%", height: "100%",
+              objectFit: "cover", objectPosition: "center top",
+              filter: "grayscale(100%)", opacity: 0.12, pointerEvents: "none",
+              maskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 65%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 30%, black 65%, transparent 100%)",
+            }} />
+          <div className="relative max-w-4xl mx-auto px-4 py-20">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
               Para vendedores
@@ -157,7 +173,7 @@ export default async function Home() {
             <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
               Anuncie seus itens com segurança. Taxa de apenas 10% sobre cada venda concluída.
             </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
+            <div className="flex items-center justify-center gap-4 flex-wrap">
               <Link href="/anunciar"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
                 style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
@@ -168,11 +184,6 @@ export default async function Home() {
                 style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
                 Meus anúncios
               </Link>
-            </div>
-          </div>
-          <div className="mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
-              <img src="/venda.png" alt="Venda seus itens" className="w-full object-cover" style={{ maxHeight: "480px", objectPosition: "top center" }} />
             </div>
           </div>
         </section>
@@ -191,7 +202,7 @@ export default async function Home() {
               const btnColor  = dark ? "#000" : "#fff"
               return (
                 <div key={i} className="relative overflow-hidden flex flex-col items-center justify-between text-center"
-                  style={{ background: bg, height: "580px", padding: "52px 32px 0" }}>
+                  style={{ background: bg, height: "400px", padding: "36px 28px 0" }}>
 
                   {/* Texto */}
                   <div>
@@ -214,7 +225,7 @@ export default async function Home() {
                     <div className="flex items-end justify-center w-full" style={{ paddingTop: "0px", paddingBottom: "64px" }}>
                       <img src={card.image} alt={card.title}
                         className="object-contain"
-                        style={{ maxHeight: "260px", maxWidth: "300px" }}
+                        style={{ maxHeight: "180px", maxWidth: "220px" }}
                       />
                     </div>
                   )}
