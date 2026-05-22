@@ -23,6 +23,7 @@ export default function AdminUsuarios() {
   const [updatingTier, setUpdatingTier] = useState(false)
   const [couponForm, setCouponForm] = useState({ code: "", discountPercent: "0", commissionPercent: "5" })
   const [savingCoupon, setSavingCoupon] = useState(false)
+  const [couponError, setCouponError] = useState("")
   const [tierDropOpen, setTierDropOpen] = useState(false)
   const tierRef = useRef<HTMLDivElement>(null)
 
@@ -73,8 +74,9 @@ export default function AdminUsuarios() {
 
   async function saveCoupon() {
     if (!selected) return
+    setCouponError("")
     setSavingCoupon(true)
-    await fetch("/api/admin/cupons", {
+    const res = await fetch("/api/admin/cupons", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -85,6 +87,11 @@ export default function AdminUsuarios() {
       }),
     })
     setSavingCoupon(false)
+    if (!res.ok) {
+      const data = await res.json()
+      setCouponError(data.error || "Erro ao salvar cupom")
+      return
+    }
     await load()
   }
 
@@ -257,8 +264,8 @@ export default function AdminUsuarios() {
                           style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
                       </div>
                       <div>
-                        <label className="text-xs mb-1 block" style={{ color: "var(--text-tertiary)" }}>Comissão rider (%)</label>
-                        <input type="number" min="0" max="5" value={couponForm.commissionPercent}
+                        <label className="text-xs mb-1 block" style={{ color: "var(--text-tertiary)" }}>Comissão rider (% máx 2,5)</label>
+                        <input type="number" min="0" max="2.5" step="0.5" value={couponForm.commissionPercent}
                           onChange={(e) => setCouponForm((f) => ({ ...f, commissionPercent: e.target.value }))}
                           className="w-full px-3 py-2 rounded-xl text-sm outline-none"
                           style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
@@ -270,6 +277,9 @@ export default function AdminUsuarios() {
                       <Plus size={14} />
                       {savingCoupon ? "Salvando..." : selected.coupon ? "Atualizar cupom" : "Criar cupom"}
                     </button>
+                    {couponError && (
+                      <p className="text-xs text-center" style={{ color: "var(--error)" }}>{couponError}</p>
+                    )}
                   </div>
                 </div>
               )}

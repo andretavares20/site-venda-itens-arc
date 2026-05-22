@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const discount = Number(discountPercent ?? 0)
   const commission = Number(commissionPercent ?? 5)
   if (discount > 5) return NextResponse.json({ error: "Desconto máximo é 5%" }, { status: 400 })
-  if (commission > 5) return NextResponse.json({ error: "Comissão máxima é 5%" }, { status: 400 })
+  if (commission > 2.5) return NextResponse.json({ error: "Comissão máxima é 2,5%" }, { status: 400 })
 
   // Upsert: se já tem cupom, atualiza
   const coupon = await prisma.coupon.upsert({
