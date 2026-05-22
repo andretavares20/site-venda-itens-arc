@@ -50,10 +50,12 @@ function statusInfo(item: StockItem) {
 }
 
 export default function MeuEstoquePage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const [items, setItems] = useState<StockItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [filterRarity, setFilterRarity] = useState("")
+  const [filterStatus, setFilterStatus] = useState("")
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login")
@@ -72,6 +74,17 @@ export default function MeuEstoquePage() {
   const totalValor = items.filter(i => i.active).reduce((s, i) => s + i.price * i.quantity, 0)
   const disponiveis = items.filter(i => i.active && i.quantity > 0 && i.listing?.status !== "CANCELAMENTO_SOLICITADO").length
 
+  const rarities = [...new Set(items.map(i => i.product.rarity))]
+
+  const filtered = items.filter(i => {
+    const matchRarity = !filterRarity || i.product.rarity === filterRarity
+    const matchStatus = !filterStatus ||
+      (filterStatus === "disponivel" && i.active && i.quantity > 0 && i.listing?.status !== "CANCELAMENTO_SOLICITADO") ||
+      (filterStatus === "cancelamento" && i.listing?.status === "CANCELAMENTO_SOLICITADO") ||
+      (filterStatus === "esgotado" && (!i.active || i.quantity === 0))
+    return matchRarity && matchStatus
+  })
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
@@ -88,6 +101,42 @@ export default function MeuEstoquePage() {
           <Link href="/anunciar" className="btn-primary text-sm">
             + Anunciar
           </Link>
+        </div>
+
+        {/* Filtros */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button onClick={() => { setFilterRarity(""); setFilterStatus("") }}
+            className="text-xs px-3 py-1.5 rounded-full font-medium"
+            style={{ background: !filterRarity && !filterStatus ? "var(--accent)" : "var(--surface-2)", color: !filterRarity && !filterStatus ? "#fff" : "var(--text-secondary)" }}>
+            Todos
+          </button>
+          {[
+            { key: "disponivel", label: "Disponível", color: "var(--success)" },
+            { key: "cancelamento", label: "Cancelamento pendente", color: "var(--warning)" },
+            { key: "esgotado", label: "Esgotado", color: "var(--error)" },
+          ].map(s => (
+            <button key={s.key} onClick={() => setFilterStatus(filterStatus === s.key ? "" : s.key)}
+              className="text-xs px-3 py-1.5 rounded-full font-medium"
+              style={{
+                background: filterStatus === s.key ? `${s.color}22` : "var(--surface-2)",
+                color: filterStatus === s.key ? s.color : "var(--text-secondary)",
+                border: `1px solid ${filterStatus === s.key ? `${s.color}44` : "transparent"}`,
+              }}>
+              {s.label}
+            </button>
+          ))}
+          <div className="w-px mx-1" style={{ background: "var(--border)" }} />
+          {rarities.map(r => (
+            <button key={r} onClick={() => setFilterRarity(filterRarity === r ? "" : r)}
+              className="text-xs px-3 py-1.5 rounded-full font-medium"
+              style={{
+                background: filterRarity === r ? `${rarityColor[r] ?? "#98989f"}22` : "var(--surface-2)",
+                color: filterRarity === r ? rarityColor[r] ?? "#98989f" : "var(--text-secondary)",
+                border: `1px solid ${filterRarity === r ? `${rarityColor[r] ?? "#98989f"}44` : "transparent"}`,
+              }}>
+              {r}
+            </button>
+          ))}
         </div>
 
         {/* Resumo */}
@@ -121,7 +170,7 @@ export default function MeuEstoquePage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {items.map(item => {
+            {filtered.map(item => {
               const s = statusInfo(item)
               return (
                 <div key={item.id} className="rounded-2xl overflow-hidden flex flex-col"
