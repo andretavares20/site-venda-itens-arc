@@ -27,6 +27,7 @@ const COLUMNS = [
     title: "Marketplace",
     links: [
       { label: "Como funciona", href: "/" },
+      { label: "Programa de Parceiros", href: "/parceiros" },
       { label: "Anunciar e vender", href: "/anunciar" },
       { label: "Taxa de serviço (10%)", href: "/" },
       { label: "Sistema de trocas", href: "/trocas" },
