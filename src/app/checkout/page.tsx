@@ -444,7 +444,7 @@ export default function CheckoutPage() {
                 {error}
               </div>
             )}
-            <button onClick={handlePagar} disabled={loading} className="btn-primary w-full mt-auto">
+            <button onClick={handlePagar} disabled={loading} className="btn-primary w-full">
               {loading ? (
                 <span className="flex items-center gap-2">
                   <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
