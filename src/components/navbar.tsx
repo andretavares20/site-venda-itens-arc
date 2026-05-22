@@ -7,6 +7,7 @@ import { useCart, cartCount } from "@/store/cart"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import CartDrawer from "./cart-drawer"
+import { DISCORD_URL } from "@/lib/constants"
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -132,6 +133,11 @@ export default function Navbar() {
               onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
               Loja
             </Link>
+            <Link href="/parceiros"
+              className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+              style={{ background: "#f5f5f7", color: "#000", padding: "0.375rem 1rem" }}>
+              Quero ser parceiro
+            </Link>
             {session?.user.role === "ADMIN" && (
               <Link href="/admin" className="text-sm flex items-center gap-1 transition-colors" style={{ color: "var(--text-secondary)" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
@@ -152,7 +158,7 @@ export default function Navbar() {
             </button>
 
             {/* Discord */}
-            <a href="https://discord.gg/W6PMjDwa" target="_blank" rel="noopener noreferrer"
+            <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
               className="hidden md:flex items-center justify-center w-9 h-9 rounded-full transition-colors"
               style={{ color: "var(--text-secondary)" }}
               onMouseEnter={e => { e.currentTarget.style.background = "var(--surface-2)"; e.currentTarget.style.color = "#5865F2" }}
@@ -217,6 +223,7 @@ export default function Navbar() {
             <Link href="/" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Loja</Link>
             <Link href="/anunciar" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Anunciar</Link>
             <Link href="/trocas" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Trocas</Link>
+            <Link href="/parceiros" className="py-2 text-sm font-medium" style={{ color: "var(--accent)" }} onClick={() => setMenuOpen(false)}>Quero ser parceiro</Link>
             <button onClick={() => { setMenuOpen(false); setSearchOpen(true) }}
               className="py-2 text-sm text-left flex items-center gap-2"
               style={{ color: "var(--text-secondary)", background: "none", border: "none", cursor: "pointer" }}>

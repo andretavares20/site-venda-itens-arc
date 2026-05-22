@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
 import Carousel from "@/components/carousel"
+import HeroVideo from "@/components/hero-video"
 import Footer from "@/components/footer"
 
 const GRID_CATEGORIES = [
@@ -67,12 +68,8 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Imagem hero */}
-          <div className="relative mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)" }}>
-              <img src="/hero.jpg" alt="Arc Raiders" className="w-full object-cover object-top" style={{ maxHeight: "520px" }} />
-            </div>
-          </div>
+          {/* Vídeo hero */}
+          <HeroVideo />
         </section>
 
         {/* Seção 2 — Épicos e Lendários (fundo branco, letra preta) */}
@@ -191,7 +188,7 @@ export default async function Home() {
               const btnColor  = dark ? "#000" : "#fff"
               return (
                 <div key={i} className="relative overflow-hidden flex flex-col items-center justify-between text-center"
-                  style={{ background: bg, height: "580px", padding: "52px 32px 0" }}>
+                  style={{ background: bg, height: "420px", padding: "32px 24px 32px" }}>
 
                   {/* Texto */}
                   <div>
@@ -199,25 +196,27 @@ export default async function Home() {
                       style={{ color: textColor, fontSize: "clamp(1.8rem, 3vw, 2.6rem)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
                       {card.title}
                     </h3>
-                    <p className="mb-7 mx-auto" style={{ color: subColor, fontSize: "15px", lineHeight: 1.5, maxWidth: "260px" }}>
+                    <p className="mx-auto" style={{ color: subColor, fontSize: "15px", lineHeight: 1.5, maxWidth: "260px" }}>
                       {card.sub}
                     </p>
-                    <Link href={`/loja?categoria=${encodeURIComponent(card.category)}`}
-                      className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                      style={{ background: btnBg, color: btnColor, padding: "0.5rem 1.5rem" }}>
-                      Ver itens
-                    </Link>
                   </div>
 
                   {/* Imagem */}
                   {card.image && (
-                    <div className="flex items-end justify-center w-full" style={{ paddingTop: "0px", paddingBottom: "64px" }}>
+                    <div className="flex items-center justify-center w-full">
                       <img src={card.image} alt={card.title}
                         className="object-contain"
-                        style={{ maxHeight: "260px", maxWidth: "300px" }}
+                        style={{ maxHeight: "160px", maxWidth: "180px" }}
                       />
                     </div>
                   )}
+
+                  {/* Botão */}
+                  <Link href={`/loja?categoria=${encodeURIComponent(card.category)}`}
+                    className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                    style={{ background: btnBg, color: btnColor, padding: "0.5rem 1.5rem" }}>
+                    Ver itens
+                  </Link>
                 </div>
               )
             })}
