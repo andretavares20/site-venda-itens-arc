@@ -55,12 +55,12 @@ export async function POST(req: NextRequest) {
     })
     if (coupon && coupon.active) {
       validatedCouponCode = coupon.code
-      couponDiscount = round2(total * (coupon.discountPercent / 100))
-      riderCommission = round2(total * (coupon.commissionPercent / 100))
+      couponDiscount = total * (coupon.discountPercent / 100)
+      riderCommission = total * (coupon.commissionPercent / 100)
     }
   }
 
-  const finalTotal = round2(total - couponDiscount)
+  const finalTotal = round2(total - couponDiscount) // MP exige 2 casas decimais
   const commission = round2(finalTotal * COMMISSION_RATE)
 
   // Valida que todos os itens do estoque têm quantidade suficiente

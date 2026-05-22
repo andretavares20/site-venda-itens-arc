@@ -15,6 +15,7 @@ model User {
   cpf             String?         @unique
   role            Role            @default(USER)
   tier            UserTier?
+  phone                String?
   pixKey               String?
   asaasId              String?
   emailVerified        DateTime?
@@ -113,8 +114,8 @@ model Order {
   paymentId        String?
   sellerPaid       Boolean     @default(false)
   couponCode       String?
-  couponDiscount   Decimal?    @db.Decimal(10, 2)
-  riderCommission  Decimal?    @db.Decimal(10, 2)
+  couponDiscount   Decimal?    @db.Decimal(10, 4)
+  riderCommission  Decimal?    @db.Decimal(10, 4)
   riderPaid        Boolean     @default(false)
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt

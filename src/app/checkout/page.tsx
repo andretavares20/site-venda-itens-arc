@@ -112,8 +112,13 @@ export default function CheckoutPage() {
     }
   }
 
-  const discountAmount = coupon ? Math.round(total * (coupon.discountPercent / 100) * 100) / 100 : 0
-  const finalTotal = Math.max(0, total - discountAmount)
+  const discountAmount = coupon ? total * (coupon.discountPercent / 100) : 0
+  const finalTotal = Math.max(0, Math.round((total - discountAmount) * 100) / 100)
+
+  function fmtMoney(n: number) {
+    const s = parseFloat(n.toFixed(4)).toString()
+    return s.includes(".") && s.split(".")[1].length >= 2 ? s : parseFloat(n.toFixed(2)).toFixed(2)
+  }
 
   async function handlePagar() {
     setError("")
@@ -429,7 +434,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span style={{ color: "var(--success)" }}>Desconto ({coupon.discountPercent}%)</span>
-                  <span style={{ color: "var(--success)" }}>-R$ {discountAmount.toFixed(2)}</span>
+                  <span style={{ color: "var(--success)" }}>-R$ {fmtMoney(discountAmount)}</span>
                 </div>
                 <div className="flex justify-between font-semibold pt-1" style={{ borderTop: "1px solid rgba(48,209,88,0.2)" }}>
                   <span style={{ color: "var(--text-primary)" }}>Total</span>
