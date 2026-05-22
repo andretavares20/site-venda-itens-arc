@@ -89,22 +89,6 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // Reserva estoque (decrementa imediatamente ao criar pedido)
-  for (const item of items) {
-    await prisma.stock.update({
-      where: { id: item.stockId },
-      data: {
-        quantity: { decrement: item.quantity },
-        active: { set: true },
-      },
-    })
-    // Desativa se zerou
-    const updated = await prisma.stock.findUnique({ where: { id: item.stockId } })
-    if (updated && updated.quantity <= 0) {
-      await prisma.stock.update({ where: { id: item.stockId }, data: { active: false } })
-    }
-  }
-
   try {
     const buyer = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -143,13 +127,6 @@ export async function POST(req: NextRequest) {
       total: finalTotal,
     })
   } catch (err) {
-    // Reverte estoque se falhar o PIX
-    for (const item of items) {
-      await prisma.stock.update({
-        where: { id: item.stockId },
-        data: { quantity: { increment: item.quantity }, active: true },
-      })
-    }
     await prisma.order.update({ where: { id: order.id }, data: { status: "CANCELADO" } })
     console.error("Erro Mercado Pago:", err)
     return NextResponse.json({ error: "Erro ao gerar PIX. Tente novamente." }, { status: 500 })
