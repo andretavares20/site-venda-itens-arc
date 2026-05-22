@@ -389,17 +389,17 @@ export default function CheckoutPage() {
               <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--text-secondary)" }}>
                 Cupom de desconto
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full">
                 <input
                   value={couponCode}
                   onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCoupon(null); setCouponError("") }}
                   onKeyDown={(e) => e.key === "Enter" && checkCoupon()}
                   placeholder="Código do cupom"
-                  className="flex-1 px-3 py-2 rounded-xl text-sm font-mono outline-none"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-xl text-sm font-mono outline-none"
                   style={{ background: "var(--surface-2)", border: `1px solid ${coupon ? "var(--success)" : couponError ? "var(--error)" : "var(--border)"}`, color: "var(--text-primary)" }}
                 />
                 <button onClick={checkCoupon} disabled={checkingCoupon || !couponCode.trim()}
-                  className="px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5"
+                  className="flex-shrink-0 px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5"
                   style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
                   {checkingCoupon ? <Loader2 size={13} className="animate-spin" /> : <Tag size={13} />}
                   Aplicar
