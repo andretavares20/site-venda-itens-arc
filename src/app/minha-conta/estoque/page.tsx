@@ -31,6 +31,14 @@ const rarityColor: Record<string, string> = {
   Epic: "#bf5af2", Legendary: "#ffd60a",
 }
 
+const rarityBorder: Record<string, string> = {
+  Common:    "rgba(152,152,159,0.4)",
+  Uncommon:  "rgba(48,209,88,0.5)",
+  Rare:      "rgba(0,113,227,0.6)",
+  Epic:      "rgba(191,90,242,0.65)",
+  Legendary: "rgba(255,214,10,0.7)",
+}
+
 function statusInfo(item: StockItem) {
   if (item.listing?.status === "CANCELAMENTO_SOLICITADO") {
     return { label: "Cancelamento pendente", color: "var(--warning)", bg: "rgba(255,214,10,0.1)" }
@@ -112,44 +120,45 @@ export default function MeuEstoquePage() {
             <Link href="/anunciar" className="btn-primary text-sm">Anunciar item</Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {items.map(item => {
               const s = statusInfo(item)
               return (
-                <div key={item.id} className="flex items-center gap-4 p-4 rounded-2xl"
-                  style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                  <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
-                    <Image src={item.product.image} alt={item.product.name}
-                      width={48} height={48} className="w-full h-full object-contain" />
-                  </div>
+                <div key={item.id} className="rounded-2xl overflow-hidden flex flex-col"
+                  style={{ background: "var(--surface-1)", border: `1px solid ${rarityBorder[item.product.rarity] ?? "var(--border)"}` }}>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                        {item.product.name}
-                      </p>
-                      <span className="text-xs font-medium flex-shrink-0"
-                        style={{ color: rarityColor[item.product.rarity] ?? "#98989f" }}>
+                  {/* Imagem */}
+                  <div className="relative aspect-square" style={{ background: "#0d0d0d" }}>
+                    <Image src={item.product.image} alt={item.product.name}
+                      fill className="object-contain p-3" />
+                    {/* Badge status */}
+                    <div className="absolute top-2 left-2">
+                      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
+                        style={{ background: s.bg, color: s.color, fontSize: "10px" }}>
+                        {item.quantity > 0 ? `${item.quantity} un.` : "Esgotado"}
+                      </span>
+                    </div>
+                    {/* Badge raridade */}
+                    <div className="absolute top-2 right-2">
+                      <span className="text-xs px-1.5 py-0.5 rounded font-semibold"
+                        style={{
+                          background: "rgba(0,0,0,0.7)",
+                          color: rarityColor[item.product.rarity] ?? "#98989f",
+                          fontSize: "10px",
+                        }}>
                         {item.product.rarity}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ background: s.bg, color: s.color }}>
-                        {s.label}
-                      </span>
-                      <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                        {item.product.category}
-                      </span>
-                    </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0">
+                  {/* Info */}
+                  <div className="p-3 flex flex-col gap-1" style={{ minHeight: "72px" }}>
+                    <p className="text-xs font-medium line-clamp-2 flex-1"
+                      style={{ color: "var(--text-primary)" }}>
+                      {item.product.name}
+                    </p>
                     <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
                       R$ {Number(item.price).toFixed(2)}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                      {item.quantity} un. em estoque
                     </p>
                   </div>
                 </div>
