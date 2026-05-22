@@ -15,7 +15,6 @@ model User {
   cpf             String?         @unique
   role            Role            @default(USER)
   tier            UserTier?
-  phone                String?
   pixKey               String?
   asaasId              String?
   emailVerified        DateTime?
