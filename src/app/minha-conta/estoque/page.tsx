@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
 import Image from "next/image"
@@ -56,6 +56,19 @@ export default function MeuEstoquePage() {
   const [loading, setLoading] = useState(true)
   const [filterRarity, setFilterRarity] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
+  const [rarityOpen, setRarityOpen] = useState(false)
+  const [statusOpen, setStatusOpen] = useState(false)
+  const rarityRef = useRef<HTMLDivElement>(null)
+  const statusRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (rarityRef.current && !rarityRef.current.contains(e.target as Node)) setRarityOpen(false)
+      if (statusRef.current && !statusRef.current.contains(e.target as Node)) setStatusOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login")
@@ -104,39 +117,71 @@ export default function MeuEstoquePage() {
         </div>
 
         {/* Filtros */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button onClick={() => { setFilterRarity(""); setFilterStatus("") }}
-            className="text-xs px-3 py-1.5 rounded-full font-medium"
-            style={{ background: !filterRarity && !filterStatus ? "var(--accent)" : "var(--surface-2)", color: !filterRarity && !filterStatus ? "#fff" : "var(--text-secondary)" }}>
-            Todos
-          </button>
-          {[
-            { key: "disponivel", label: "Disponível", color: "var(--success)" },
-            { key: "cancelamento", label: "Cancelamento pendente", color: "var(--warning)" },
-            { key: "esgotado", label: "Esgotado", color: "var(--error)" },
-          ].map(s => (
-            <button key={s.key} onClick={() => setFilterStatus(filterStatus === s.key ? "" : s.key)}
-              className="text-xs px-3 py-1.5 rounded-full font-medium"
-              style={{
-                background: filterStatus === s.key ? `${s.color}22` : "var(--surface-2)",
-                color: filterStatus === s.key ? s.color : "var(--text-secondary)",
-                border: `1px solid ${filterStatus === s.key ? `${s.color}44` : "transparent"}`,
-              }}>
-              {s.label}
+        <div className="flex flex-wrap gap-3 mb-6">
+          {/* Raridade */}
+          <div className="relative" ref={rarityRef}>
+            <button onClick={() => setRarityOpen(v => !v)}
+              className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl min-w-36"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: filterRarity ? rarityColor[filterRarity] : "var(--text-secondary)" }}>
+              <span className="flex-1 text-left">{filterRarity || "Todas raridades"}</span>
+              <span style={{ color: "var(--text-tertiary)" }}>▾</span>
             </button>
-          ))}
-          <div className="w-px mx-1" style={{ background: "var(--border)" }} />
-          {rarities.map(r => (
-            <button key={r} onClick={() => setFilterRarity(filterRarity === r ? "" : r)}
-              className="text-xs px-3 py-1.5 rounded-full font-medium"
-              style={{
-                background: filterRarity === r ? `${rarityColor[r] ?? "#98989f"}22` : "var(--surface-2)",
-                color: filterRarity === r ? rarityColor[r] ?? "#98989f" : "var(--text-secondary)",
-                border: `1px solid ${filterRarity === r ? `${rarityColor[r] ?? "#98989f"}44` : "transparent"}`,
-              }}>
-              {r}
+            {rarityOpen && (
+              <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-36"
+                style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+                {["", ...rarities].map(r => (
+                  <button key={r} onClick={() => { setFilterRarity(r); setRarityOpen(false) }}
+                    className="w-full text-left px-4 py-2 text-sm transition-colors"
+                    style={{ color: r ? rarityColor[r] : "var(--text-secondary)", background: filterRarity === r ? "var(--surface-2)" : "transparent" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--surface-2)"}
+                    onMouseLeave={e => e.currentTarget.style.background = filterRarity === r ? "var(--surface-2)" : "transparent"}>
+                    {r || "Todas raridades"}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Status */}
+          <div className="relative" ref={statusRef}>
+            <button onClick={() => setStatusOpen(v => !v)}
+              className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl min-w-44"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+              <span className="flex-1 text-left">
+                {filterStatus === "disponivel" ? "Disponível" :
+                  filterStatus === "cancelamento" ? "Cancelamento pendente" :
+                  filterStatus === "esgotado" ? "Esgotado" : "Todos os status"}
+              </span>
+              <span style={{ color: "var(--text-tertiary)" }}>▾</span>
             </button>
-          ))}
+            {statusOpen && (
+              <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-44"
+                style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+                {[
+                  { key: "", label: "Todos os status", color: "var(--text-secondary)" },
+                  { key: "disponivel", label: "Disponível", color: "var(--success)" },
+                  { key: "cancelamento", label: "Cancelamento pendente", color: "var(--warning)" },
+                  { key: "esgotado", label: "Esgotado", color: "var(--error)" },
+                ].map(s => (
+                  <button key={s.key} onClick={() => { setFilterStatus(s.key); setStatusOpen(false) }}
+                    className="w-full text-left px-4 py-2 text-sm transition-colors"
+                    style={{ color: s.color, background: filterStatus === s.key ? "var(--surface-2)" : "transparent" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--surface-2)"}
+                    onMouseLeave={e => e.currentTarget.style.background = filterStatus === s.key ? "var(--surface-2)" : "transparent"}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {(filterRarity || filterStatus) && (
+            <button onClick={() => { setFilterRarity(""); setFilterStatus("") }}
+              className="text-sm px-3 py-2 rounded-xl"
+              style={{ color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
+              Limpar filtros
+            </button>
+          )}
         </div>
 
         {/* Resumo */}
