@@ -7,13 +7,20 @@ import Navbar from "@/components/navbar"
 import { useCart, cartTotal } from "@/store/cart"
 import Link from "next/link"
 import Image from "next/image"
-import { Copy, CheckCircle, QrCode, ArrowLeft, Clock, XCircle } from "lucide-react"
+import { Copy, CheckCircle, QrCode, ArrowLeft, Clock, XCircle, Tag, Loader2 } from "lucide-react"
 
 type PixData = {
   orderId: string
   pixCode: string
   pixQrCode: string
   total: number
+}
+
+type CouponData = {
+  code: string
+  discountPercent: number
+  commissionPercent: number
+  rider: { name: string }
 }
 
 type PaymentStatus = "waiting" | "paid" | "expired"
@@ -33,6 +40,10 @@ export default function CheckoutPage() {
   const [error, setError] = useState("")
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("waiting")
   const [secondsLeft, setSecondsLeft] = useState(EXPIRY_SECONDS)
+  const [couponCode, setCouponCode] = useState("")
+  const [coupon, setCoupon] = useState<CouponData | null>(null)
+  const [couponError, setCouponError] = useState("")
+  const [checkingCoupon, setCheckingCoupon] = useState(false)
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -84,6 +95,31 @@ export default function CheckoutPage() {
     )
   }
 
+  async function checkCoupon() {
+    if (!couponCode.trim()) return
+    setCheckingCoupon(true)
+    setCouponError("")
+    setCoupon(null)
+    try {
+      const res = await fetch(`/api/cupom/${couponCode.trim()}`)
+      const data = await res.json()
+      if (!res.ok) { setCouponError(data.error || "Cupom inválido"); return }
+      setCoupon(data)
+    } catch {
+      setCouponError("Erro ao verificar cupom")
+    } finally {
+      setCheckingCoupon(false)
+    }
+  }
+
+  const discountAmount = coupon ? total * (coupon.discountPercent / 100) : 0
+  const finalTotal = Math.max(0, Math.round((total - discountAmount) * 100) / 100)
+
+  function fmtMoney(n: number) {
+    const s = parseFloat(n.toFixed(4)).toString()
+    return s.includes(".") && s.split(".")[1].length >= 2 ? s : parseFloat(n.toFixed(2)).toFixed(2)
+  }
+
   async function handlePagar() {
     setError("")
     setLoading(true)
@@ -94,6 +130,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           items: items.map((i) => ({ stockId: i.id, quantity: i.quantity, price: i.price })),
           total,
+          couponCode: coupon?.code ?? null,
         }),
       })
 
@@ -317,7 +354,7 @@ export default function CheckoutPage() {
           Finalizar compra
         </h1>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 items-start">
           <div className="rounded-2xl p-5 flex flex-col gap-4" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
             <h2 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>Resumo</h2>
             {items.map((item) => (
@@ -351,6 +388,61 @@ export default function CheckoutPage() {
                 <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Pagamento instantâneo</p>
               </div>
             </div>
+
+            {/* Cupom */}
+            <div>
+              <label className="text-xs mb-1.5 block font-medium" style={{ color: "var(--text-secondary)" }}>
+                Cupom de desconto
+              </label>
+              <div className="flex gap-2 w-full">
+                <input
+                  value={couponCode}
+                  onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCoupon(null); setCouponError("") }}
+                  onKeyDown={(e) => e.key === "Enter" && checkCoupon()}
+                  placeholder="Código do cupom"
+                  className="flex-1 min-w-0 px-3 py-2 rounded-xl text-sm font-mono outline-none"
+                  style={{ background: "var(--surface-2)", border: `1px solid ${coupon ? "var(--success)" : couponError ? "var(--error)" : "var(--border)"}`, color: "var(--text-primary)" }}
+                />
+                <button onClick={checkCoupon} disabled={checkingCoupon || !couponCode.trim()}
+                  className="flex-shrink-0 px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-1.5 transition-all"
+                  style={{ background: "var(--accent)", border: "1px solid transparent", color: "#fff", opacity: (!couponCode.trim() || checkingCoupon) ? 0.4 : 1 }}
+                  onMouseEnter={e => { if (couponCode.trim() && !checkingCoupon) e.currentTarget.style.opacity = "0.85" }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = (!couponCode.trim() || checkingCoupon) ? "0.4" : "1" }}>
+                  {checkingCoupon ? <Loader2 size={13} className="animate-spin" /> : <Tag size={13} />}
+                  Aplicar
+                </button>
+              </div>
+              {coupon && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-xs" style={{ color: "var(--success)" }}>
+                  <CheckCircle size={12} />
+                  Cupom de {coupon.rider.name} aplicado!
+                  {coupon.discountPercent > 0 && ` · -${coupon.discountPercent}%`}
+                </div>
+              )}
+              {couponError && (
+                <p className="text-xs mt-1" style={{ color: "var(--error)" }}>{couponError}</p>
+              )}
+            </div>
+
+            {/* Resumo do total */}
+            {coupon && discountAmount > 0 && (
+              <div className="flex flex-col gap-1 text-sm px-3 py-2.5 rounded-xl"
+                style={{ background: "rgba(48,209,88,0.06)", border: "1px solid rgba(48,209,88,0.2)" }}>
+                <div className="flex justify-between">
+                  <span style={{ color: "var(--text-secondary)" }}>Subtotal</span>
+                  <span style={{ color: "var(--text-secondary)" }}>R$ {total.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: "var(--success)" }}>Desconto ({coupon.discountPercent}%)</span>
+                  <span style={{ color: "var(--success)" }}>-R$ {fmtMoney(discountAmount)}</span>
+                </div>
+                <div className="flex justify-between font-semibold pt-1" style={{ borderTop: "1px solid rgba(48,209,88,0.2)" }}>
+                  <span style={{ color: "var(--text-primary)" }}>Total</span>
+                  <span style={{ color: "var(--text-primary)" }}>R$ {finalTotal.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
+
             <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
               Logado como: <span style={{ color: "var(--text-primary)" }}>{session?.user.email}</span>
             </div>
@@ -359,14 +451,14 @@ export default function CheckoutPage() {
                 {error}
               </div>
             )}
-            <button onClick={handlePagar} disabled={loading} className="btn-primary w-full mt-auto">
+            <button onClick={handlePagar} disabled={loading} className="btn-primary w-full">
               {loading ? (
                 <span className="flex items-center gap-2">
                   <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                   Gerando PIX...
                 </span>
               ) : (
-                "Gerar PIX · R$ " + total.toFixed(2)
+                `Gerar PIX · R$ ${finalTotal.toFixed(2)}`
               )}
             </button>
           </div>

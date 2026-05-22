@@ -5,7 +5,16 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git push *)",
-      "Bash(rm \"c:/dev/site-venda-itens-arc/src/app/api/saques/route.ts\" \"c:/dev/site-venda-itens-arc/src/app/api/saques/[id]/route.ts\" \"c:/dev/site-venda-itens-arc/src/app/minha-conta/saldo/page.tsx\" \"c:/dev/site-venda-itens-arc/src/app/admin/saques/page.tsx\" && echo \"ok\")"
+      "Bash(rm \"c:/dev/site-venda-itens-arc/src/app/api/saques/route.ts\" \"c:/dev/site-venda-itens-arc/src/app/api/saques/[id]/route.ts\" \"c:/dev/site-venda-itens-arc/src/app/minha-conta/saldo/page.tsx\" \"c:/dev/site-venda-itens-arc/src/app/admin/saques/page.tsx\" && echo \"ok\")",
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\dev\\\\site-venda-itens-arc\\\\src\\\\app\\\\perfil\\\\[id]\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\dev\\\\site-venda-itens-arc\\\\src\\\\app\\\\api\\\\perfil\\\\[id]\")",
+      "Bash(Write-Host \"done\")",
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\dev\\\\site-venda-itens-arc\\\\src\\\\app\\\\api\\\\admin\\\\usuarios\")",
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\dev\\\\site-venda-itens-arc\\\\src\\\\app\\\\api\\\\admin\\\\cupons\")",
+      "Bash(New-Item -ItemType Directory -Force \"c:\\\\dev\\\\site-venda-itens-arc\\\\src\\\\app\\\\api\\\\cupom\\\\[code]\")",
+      "Bash(npx tsc *)",
+      "Bash(Get-Content \"C:\\\\Users\\\\Andre\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--dev-site-venda-itens-arc\\\\fb4d831b-6ee7-4fd2-8a79-d29db20ecbc5\\\\tasks\\\\bqrh32rpa.output\")"
     ],
     "additionalDirectories": [
       "c:\\dev\\site-venda-itens-arc\\src\\app\\api\\saques\\[id]"
