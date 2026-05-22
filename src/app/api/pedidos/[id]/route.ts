@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
-import { decrementStockForOrder } from "@/lib/decrement-stock"
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -41,17 +40,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id } = await params
   const { status, sellerPaid, riderPaid } = await req.json()
-
-  // Se admin está marcando como PAGO manualmente, decrementa estoque
-  if (status === "PAGO") {
-    const existing = await prisma.order.findUnique({
-      where: { id },
-      select: { status: true, items: { select: { stockId: true, quantity: true } } },
-    })
-    if (existing?.status === "PENDENTE") {
-      await decrementStockForOrder(existing.items)
-    }
-  }
 
   const order = await prisma.order.update({
     where: { id },
