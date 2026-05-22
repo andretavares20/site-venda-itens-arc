@@ -56,15 +56,19 @@ export default function MeuEstoquePage() {
   const [loading, setLoading] = useState(true)
   const [filterRarity, setFilterRarity] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
+  const [filterCategory, setFilterCategory] = useState("")
   const [rarityOpen, setRarityOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
+  const [categoryOpen, setCategoryOpen] = useState(false)
   const rarityRef = useRef<HTMLDivElement>(null)
   const statusRef = useRef<HTMLDivElement>(null)
+  const categoryRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (rarityRef.current && !rarityRef.current.contains(e.target as Node)) setRarityOpen(false)
       if (statusRef.current && !statusRef.current.contains(e.target as Node)) setStatusOpen(false)
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) setCategoryOpen(false)
     }
     document.addEventListener("mousedown", handleClick)
     return () => document.removeEventListener("mousedown", handleClick)
@@ -88,14 +92,16 @@ export default function MeuEstoquePage() {
   const disponiveis = items.filter(i => i.active && i.quantity > 0 && i.listing?.status !== "CANCELAMENTO_SOLICITADO").length
 
   const rarities = [...new Set(items.map(i => i.product.rarity))]
+  const categories = [...new Set(items.map(i => i.product.category))].sort()
 
   const filtered = items.filter(i => {
     const matchRarity = !filterRarity || i.product.rarity === filterRarity
+    const matchCategory = !filterCategory || i.product.category === filterCategory
     const matchStatus = !filterStatus ||
       (filterStatus === "disponivel" && i.active && i.quantity > 0 && i.listing?.status !== "CANCELAMENTO_SOLICITADO") ||
       (filterStatus === "cancelamento" && i.listing?.status === "CANCELAMENTO_SOLICITADO") ||
       (filterStatus === "esgotado" && (!i.active || i.quantity === 0))
-    return matchRarity && matchStatus
+    return matchRarity && matchCategory && matchStatus
   })
 
   return (
@@ -175,8 +181,32 @@ export default function MeuEstoquePage() {
             )}
           </div>
 
-          {(filterRarity || filterStatus) && (
-            <button onClick={() => { setFilterRarity(""); setFilterStatus("") }}
+          {/* Categoria */}
+          <div className="relative" ref={categoryRef}>
+            <button onClick={() => setCategoryOpen(v => !v)}
+              className="flex items-center gap-2 text-sm px-3 py-2 rounded-xl min-w-40"
+              style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+              <span className="flex-1 text-left">{filterCategory || "Todas categorias"}</span>
+              <span style={{ color: "var(--text-tertiary)" }}>▾</span>
+            </button>
+            {categoryOpen && (
+              <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-40 max-h-64 overflow-y-auto"
+                style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+                {["", ...categories].map(c => (
+                  <button key={c} onClick={() => { setFilterCategory(c); setCategoryOpen(false) }}
+                    className="w-full text-left px-4 py-2 text-sm transition-colors"
+                    style={{ color: "var(--text-secondary)", background: filterCategory === c ? "var(--surface-2)" : "transparent" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--surface-2)"}
+                    onMouseLeave={e => e.currentTarget.style.background = filterCategory === c ? "var(--surface-2)" : "transparent"}>
+                    {c || "Todas categorias"}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {(filterRarity || filterStatus || filterCategory) && (
+            <button onClick={() => { setFilterRarity(""); setFilterStatus(""); setFilterCategory("") }}
               className="text-sm px-3 py-2 rounded-xl"
               style={{ color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
               Limpar filtros
