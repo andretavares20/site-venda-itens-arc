@@ -7,6 +7,8 @@ const COMMISSION_RATE = 0.10
 
 type CartItem = { stockId: string; quantity: number; price: number }
 
+function round2(n: number) { return Math.round(n * 100) / 100 }
+
 export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
@@ -38,10 +40,28 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Faça login para continuar" }, { status: 401 })
 
-  const { items, total }: { items: CartItem[]; total: number } = await req.json()
+  const { items, total, couponCode }: { items: CartItem[]; total: number; couponCode?: string } = await req.json()
   if (!items?.length) return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 })
 
-  const commission = Math.round(total * COMMISSION_RATE * 100) / 100
+  // Valida e aplica cupom
+  let couponDiscount = 0
+  let riderCommission = 0
+  let validatedCouponCode: string | null = null
+
+  if (couponCode) {
+    const coupon = await prisma.coupon.findUnique({
+      where: { code: couponCode.toUpperCase() },
+      select: { id: true, code: true, discountPercent: true, commissionPercent: true, active: true },
+    })
+    if (coupon && coupon.active) {
+      validatedCouponCode = coupon.code
+      couponDiscount = round2(total * (coupon.discountPercent / 100))
+      riderCommission = round2(total * (coupon.commissionPercent / 100))
+    }
+  }
+
+  const finalTotal = round2(total - couponDiscount)
+  const commission = round2(finalTotal * COMMISSION_RATE)
 
   // Valida que todos os itens do estoque têm quantidade suficiente
   for (const item of items) {
@@ -54,8 +74,11 @@ export async function POST(req: NextRequest) {
   const order = await prisma.order.create({
     data: {
       buyerId: session.user.id,
-      total,
+      total: finalTotal,
       commission,
+      couponCode: validatedCouponCode,
+      couponDiscount: couponDiscount > 0 ? couponDiscount : null,
+      riderCommission: riderCommission > 0 ? riderCommission : null,
       items: {
         create: items.map((i) => ({
           stockId: i.stockId,
@@ -91,7 +114,7 @@ export async function POST(req: NextRequest) {
     const [firstName, ...rest] = (buyer?.name ?? "Cliente").split(" ")
     const payment = await mpPayment.create({
       body: {
-        transaction_amount: total,
+        transaction_amount: finalTotal,
         description: `DropBay #${order.id.slice(-8).toUpperCase()}`,
         payment_method_id: "pix",
         payer: {
@@ -117,7 +140,7 @@ export async function POST(req: NextRequest) {
       orderId: order.id,
       pixCode: txData?.qr_code ?? "",
       pixQrCode: txData?.qr_code_base64 ?? "",
-      total,
+      total: finalTotal,
     })
   } catch (err) {
     // Reverte estoque se falhar o PIX

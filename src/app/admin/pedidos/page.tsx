@@ -15,6 +15,10 @@ type Order = {
   commission: number
   status: "PENDENTE" | "PAGO" | "ENTREGUE" | "CANCELADO"
   sellerPaid: boolean
+  riderPaid: boolean
+  couponCode: string | null
+  couponDiscount: number | null
+  riderCommission: number | null
   createdAt: string
   buyer: { name: string; email: string }
   items: OrderItem[]
@@ -55,7 +59,9 @@ export default function AdminPedidos() {
   function getSellerInfo(order: Order) {
     const seller = order.items[0]?.stock?.seller
     if (!seller) return null
-    return { seller, sellerAmount: Number(order.total) - Number(order.commission) }
+    const grossTotal = Number(order.total) + Number(order.couponDiscount ?? 0)
+    const sellerAmount = grossTotal * 0.9
+    return { seller, sellerAmount }
   }
 
   async function markEntregue(order: Order) {
@@ -303,9 +309,29 @@ export default function AdminPedidos() {
                     <span style={{ color: "var(--text-primary)" }}>R$ {Number(selected.total).toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span style={{ color: "var(--text-tertiary)" }}>Sua comissão (10%)</span>
+                    <span style={{ color: "var(--text-tertiary)" }}>Comissão DropBay</span>
                     <span style={{ color: "var(--success)" }}>+ R$ {Number(selected.commission).toFixed(2)}</span>
                   </div>
+                  {selected.couponCode && (
+                    <>
+                      <div className="flex items-center justify-between text-xs pt-1" style={{ borderTop: "1px solid var(--border)" }}>
+                        <span style={{ color: "var(--text-tertiary)" }}>Cupom</span>
+                        <span className="font-mono font-semibold" style={{ color: "var(--accent)" }}>{selected.couponCode}</span>
+                      </div>
+                      {selected.couponDiscount != null && Number(selected.couponDiscount) > 0 && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span style={{ color: "var(--text-tertiary)" }}>Desconto comprador</span>
+                          <span style={{ color: "var(--warning)" }}>-R$ {Number(selected.couponDiscount).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {selected.riderCommission != null && Number(selected.riderCommission) > 0 && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span style={{ color: "var(--text-tertiary)" }}>Comissão rider</span>
+                          <span style={{ color: "var(--error)" }}>R$ {Number(selected.riderCommission).toFixed(2)}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -331,10 +357,42 @@ export default function AdminPedidos() {
 
               {/* ENTREGUE + vendedor pago */}
               {selected.status === "ENTREGUE" && selected.sellerPaid && (
-                <div className="flex items-center gap-2 p-3 rounded-xl text-sm"
-                  style={{ background: "rgba(48,209,88,0.08)", color: "var(--success)", border: "1px solid rgba(48,209,88,0.2)" }}>
-                  <CheckCircle size={14} />
-                  Pedido concluído · Vendedor pago
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 p-3 rounded-xl text-sm"
+                    style={{ background: "rgba(48,209,88,0.08)", color: "var(--success)", border: "1px solid rgba(48,209,88,0.2)" }}>
+                    <CheckCircle size={14} />
+                    Vendedor pago ✓
+                  </div>
+                  {/* Pagamento ao rider pendente */}
+                  {selected.riderCommission != null && Number(selected.riderCommission) > 0 && !selected.riderPaid && (
+                    <div className="rounded-xl p-4 flex flex-col gap-2"
+                      style={{ background: "rgba(191,90,242,0.06)", border: "1px solid rgba(191,90,242,0.2)" }}>
+                      <p className="text-xs font-semibold" style={{ color: "#bf5af2" }}>
+                        ⚡ Comissão do rider pendente · R$ {Number(selected.riderCommission).toFixed(2)}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                        Cupom: {selected.couponCode}
+                      </p>
+                      <button onClick={async () => {
+                        await fetch(`/api/pedidos/${selected.id}`, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ riderPaid: true }),
+                        })
+                        await load()
+                        setSelected((prev) => prev ? { ...prev, riderPaid: true } : null)
+                      }} className="text-xs px-3 py-1.5 rounded-full font-medium w-fit"
+                        style={{ background: "rgba(191,90,242,0.1)", color: "#bf5af2", border: "1px solid rgba(191,90,242,0.3)" }}>
+                        Marcar comissão como paga
+                      </button>
+                    </div>
+                  )}
+                  {selected.riderCommission != null && Number(selected.riderCommission) > 0 && selected.riderPaid && (
+                    <div className="flex items-center gap-2 p-3 rounded-xl text-xs"
+                      style={{ background: "rgba(191,90,242,0.06)", color: "#bf5af2", border: "1px solid rgba(191,90,242,0.2)" }}>
+                      <CheckCircle size={12} /> Comissão do rider paga ✓
+                    </div>
+                  )}
                 </div>
               )}
 

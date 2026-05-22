@@ -39,13 +39,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const { id } = await params
-  const { status, sellerPaid } = await req.json()
+  const { status, sellerPaid, riderPaid } = await req.json()
 
   const order = await prisma.order.update({
     where: { id },
     data: {
       ...(status && { status }),
       ...(sellerPaid !== undefined && { sellerPaid }),
+      ...(riderPaid !== undefined && { riderPaid }),
     },
   })
 

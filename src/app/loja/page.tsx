@@ -18,7 +18,10 @@ async function getStockItems(category?: string, busca?: string, rarity?: string)
         ...(busca ? { name: { contains: busca, mode: "insensitive" } } : {}),
       },
     },
-    include: { product: true },
+    include: {
+      product: true,
+      seller: { select: { tier: true } },
+    },
     orderBy: { price: "asc" },
   })
 
@@ -28,20 +31,23 @@ async function getStockItems(category?: string, busca?: string, rarity?: string)
     product: typeof stocks[0]["product"]
     totalQty: number
     prices: number[]
+    hasVerifiedTrader: boolean
   }>()
 
   for (const stock of stocks) {
     if (!grouped.has(stock.productId)) {
       grouped.set(stock.productId, {
-        stockId: stock.id, // stockId do mais barato (já ordenado por price asc)
+        stockId: stock.id,
         product: stock.product,
         totalQty: 0,
         prices: [],
+        hasVerifiedTrader: false,
       })
     }
     const g = grouped.get(stock.productId)!
     g.totalQty += stock.quantity
     g.prices.push(Number(stock.price))
+    if (stock.seller.tier === "VERIFIED_TRADER") g.hasVerifiedTrader = true
   }
 
   const RARITY_ORDER: Record<string, number> = {
@@ -55,10 +61,14 @@ async function getStockItems(category?: string, busca?: string, rarity?: string)
       quantity: g.totalQty,
       avgPrice: g.prices.reduce((a, b) => a + b, 0) / g.prices.length,
       minPrice: Math.min(...g.prices),
+      hasVerifiedTrader: g.hasVerifiedTrader,
     }))
-    .sort((a, b) =>
-      (RARITY_ORDER[a.product.rarity] ?? 5) - (RARITY_ORDER[b.product.rarity] ?? 5)
-    )
+    .sort((a, b) => {
+      const rarityDiff = (RARITY_ORDER[a.product.rarity] ?? 5) - (RARITY_ORDER[b.product.rarity] ?? 5)
+      if (rarityDiff !== 0) return rarityDiff
+      // Dentro da mesma raridade: Verified Traders primeiro
+      return (b.hasVerifiedTrader ? 1 : 0) - (a.hasVerifiedTrader ? 1 : 0)
+    })
 }
 
 async function getCategories() {
