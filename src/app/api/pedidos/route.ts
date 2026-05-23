@@ -15,6 +15,8 @@ export async function GET() {
 
   const where = session.user.role === "ADMIN" ? {} : { buyerId: session.user.id }
 
+  const isAdmin = session.user.role === "ADMIN"
+
   const orders = await prisma.order.findMany({
     where,
     include: {
@@ -24,7 +26,7 @@ export async function GET() {
           stock: {
             include: {
               product: { select: { name: true, image: true } },
-              seller: { select: { id: true, name: true, pixKey: true } },
+              seller: { select: { id: true, name: true, pixKey: isAdmin } },
             },
           },
         },

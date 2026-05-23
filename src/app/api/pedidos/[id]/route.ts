@@ -7,6 +7,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const { id } = await params
+  const isAdmin = session.user.role === "ADMIN"
+
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
@@ -16,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
           stock: {
             include: {
               product: true,
-              seller: { select: { id: true, name: true, pixKey: true } },
+              seller: { select: { id: true, name: true, pixKey: isAdmin } },
             },
           },
         },
