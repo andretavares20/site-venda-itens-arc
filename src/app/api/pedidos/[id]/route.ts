@@ -51,6 +51,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     where: { id },
     data: {
       ...(status && { status }),
+      ...(status === "ENTREGUE" && { deliveredAt: new Date() }),
       ...(sellerPaid !== undefined && { sellerPaid }),
       ...(riderPaid !== undefined && { riderPaid }),
     },

@@ -35,7 +35,24 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   })
 
-  return NextResponse.json(orders)
+  if (!isAdmin) return NextResponse.json(orders)
+
+  // Enriquece com pixKey do rider para pedidos com cupom (só admin vê)
+  const couponCodes = [...new Set(orders.map((o) => o.couponCode).filter(Boolean))] as string[]
+  const coupons = couponCodes.length
+    ? await prisma.coupon.findMany({
+        where: { code: { in: couponCodes } },
+        include: { rider: { select: { name: true, pixKey: true } } },
+      })
+    : []
+  const couponMap = Object.fromEntries(coupons.map((c) => [c.code, c]))
+
+  const enriched = orders.map((o) => ({
+    ...o,
+    rider: o.couponCode ? (couponMap[o.couponCode]?.rider ?? null) : null,
+  }))
+
+  return NextResponse.json(enriched)
 }
 
 export async function POST(req: NextRequest) {
