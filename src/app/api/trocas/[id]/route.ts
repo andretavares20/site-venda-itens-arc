@@ -17,6 +17,13 @@ const include = {
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+
+  // Fecha automaticamente se expirou aguardando confirmação
+  await prisma.trade.updateMany({
+    where: { id, status: "AGUARDANDO_CONFIRMACAO", expiresAt: { lt: new Date() } },
+    data: { status: "CANCELADA" },
+  })
+
   const trade = await prisma.trade.findUnique({ where: { id }, include })
   if (!trade) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
   return NextResponse.json(trade)
