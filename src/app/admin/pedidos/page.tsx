@@ -19,9 +19,11 @@ type Order = {
   couponCode: string | null
   couponDiscount: number | null
   riderCommission: number | null
+  deliveredAt: string | null
   createdAt: string
   buyer: { name: string; email: string }
   items: OrderItem[]
+  rider: { name: string; pixKey: string | null } | null
 }
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string; icon: React.ElementType }> = {
@@ -47,6 +49,10 @@ export default function AdminPedidos() {
   const [confirming, setConfirming] = useState(false)
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [loadingQr, setLoadingQr] = useState(false)
+  const [riderModal, setRiderModal] = useState<PayModal | null>(null)
+  const [confirmingRider, setConfirmingRider] = useState(false)
+  const [riderQrCode, setRiderQrCode] = useState<string | null>(null)
+  const [loadingRiderQr, setLoadingRiderQr] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -100,6 +106,46 @@ export default function AdminPedidos() {
     const data = await res.json()
     setQrCode(data.qrCode)
     setLoadingQr(false)
+  }
+
+  async function loadRiderQrCode(modal: PayModal) {
+    setLoadingRiderQr(true)
+    setRiderQrCode(null)
+    const res = await fetch("/api/pix-qrcode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pixKey: modal.pixKey, amount: modal.amount, name: modal.sellerName }),
+    })
+    const data = await res.json()
+    setRiderQrCode(data.qrCode)
+    setLoadingRiderQr(false)
+  }
+
+  function openRiderModal(order: Order) {
+    if (!order.rider?.pixKey || !order.riderCommission) return
+    const modal: PayModal = {
+      orderId: order.id,
+      sellerName: order.rider.name,
+      pixKey: order.rider.pixKey,
+      amount: Number(order.riderCommission),
+    }
+    setRiderModal(modal)
+    loadRiderQrCode(modal)
+  }
+
+  async function confirmRiderPayment() {
+    if (!riderModal) return
+    setConfirmingRider(true)
+    await fetch(`/api/pedidos/${riderModal.orderId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ riderPaid: true }),
+    })
+    setConfirmingRider(false)
+    setRiderModal(null)
+    setRiderQrCode(null)
+    await load()
+    setSelected((prev) => prev ? { ...prev, riderPaid: true } : null)
   }
 
   async function confirmPayment() {
@@ -371,19 +417,15 @@ export default function AdminPedidos() {
                         ⚡ Comissão do rider pendente · R$ {Number(selected.riderCommission).toFixed(2)}
                       </p>
                       <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                        Cupom: {selected.couponCode}
+                        Cupom: {selected.couponCode} · {selected.rider?.name ?? "Rider"}
                       </p>
-                      <button onClick={async () => {
-                        await fetch(`/api/pedidos/${selected.id}`, {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ riderPaid: true }),
-                        })
-                        await load()
-                        setSelected((prev) => prev ? { ...prev, riderPaid: true } : null)
-                      }} className="text-xs px-3 py-1.5 rounded-full font-medium w-fit"
+                      <button
+                        onClick={() => openRiderModal(selected)}
+                        disabled={!selected.rider?.pixKey}
+                        className="text-xs px-3 py-1.5 rounded-full font-medium w-fit"
                         style={{ background: "rgba(191,90,242,0.1)", color: "#bf5af2", border: "1px solid rgba(191,90,242,0.3)" }}>
-                        Marcar comissão como paga
+                        <Send size={12} style={{ display: "inline", marginRight: 4 }} />
+                        {selected.rider?.pixKey ? "Pagar rider agora" : "Rider sem chave PIX"}
                       </button>
                     </div>
                   )}
@@ -484,6 +526,75 @@ export default function AdminPedidos() {
             </button>
 
             <button onClick={() => setPayModal(null)}
+              className="text-xs text-center" style={{ color: "var(--text-tertiary)" }}>
+              Fechar e pagar depois
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de pagamento ao rider */}
+      {riderModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}>
+          <div className="w-full max-w-sm rounded-3xl p-6 flex flex-col gap-5"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{ background: "rgba(191,90,242,0.1)" }}>
+                <Send size={24} style={{ color: "#bf5af2" }} />
+              </div>
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--text-secondary)" }}>
+                Comissão para {riderModal.sellerName}
+              </p>
+              <p className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>
+                R$ {riderModal.amount.toFixed(2)}
+              </p>
+            </div>
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-3 rounded-2xl" style={{ background: "#fff" }}>
+                {loadingRiderQr ? (
+                  <div className="w-[250px] h-[250px] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full border-2 animate-spin"
+                      style={{ borderColor: "#eee", borderTopColor: "#000" }} />
+                  </div>
+                ) : riderQrCode ? (
+                  <img src={riderQrCode} alt="QR Code PIX Rider" width={250} height={250} />
+                ) : null}
+              </div>
+              <p className="text-xs text-center" style={{ color: "var(--text-secondary)" }}>
+                Abra o <strong>Mercado Pago</strong> → PIX → Escanear
+              </p>
+            </div>
+
+            {/* Chave PIX */}
+            <div>
+              <p className="text-xs mb-1.5 text-center" style={{ color: "var(--text-tertiary)" }}>
+                Ou copie a chave PIX manualmente
+              </p>
+              <button onClick={() => copy(riderModal.pixKey, "key")}
+                className="w-full flex items-center justify-between p-3 rounded-xl transition-all"
+                style={{ background: "var(--surface-2)", border: `1px solid ${copied === "key" ? "var(--success)" : "var(--border)"}` }}>
+                <span className="text-xs truncate mr-2" style={{ color: "var(--text-primary)" }}>
+                  {riderModal.pixKey}
+                </span>
+                <span className="flex items-center gap-1 text-xs font-medium flex-shrink-0"
+                  style={{ color: copied === "key" ? "var(--success)" : "#bf5af2" }}>
+                  {copied === "key" ? <><CheckCircle size={12} /> Copiado</> : <><Copy size={12} /> Copiar</>}
+                </span>
+              </button>
+            </div>
+
+            <button onClick={confirmRiderPayment} disabled={confirmingRider} className="btn-primary w-full"
+              style={{ background: "#bf5af2" }}>
+              <CheckCircle size={16} />
+              {confirmingRider ? "Confirmando..." : "Já enviei o pagamento ✓"}
+            </button>
+
+            <button onClick={() => setRiderModal(null)}
               className="text-xs text-center" style={{ color: "var(--text-tertiary)" }}>
               Fechar e pagar depois
             </button>

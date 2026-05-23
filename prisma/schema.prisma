@@ -117,6 +117,7 @@ model Order {
   couponDiscount   Decimal?    @db.Decimal(10, 4)
   riderCommission  Decimal?    @db.Decimal(10, 4)
   riderPaid        Boolean     @default(false)
+  deliveredAt      DateTime?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 }
