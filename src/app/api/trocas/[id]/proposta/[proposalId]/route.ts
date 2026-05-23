@@ -12,9 +12,25 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const { action } = await req.json() // "aceitar" | "recusar" | "cancelar" | "confirmar" | "reclamar"
 
   const [trade, proposal] = await Promise.all([
-    prisma.trade.findUnique({ where: { id: tradeId } }),
-    prisma.tradeProposal.findUnique({ where: { id: proposalId } }),
+    prisma.trade.findUnique({
+      where: { id: tradeId },
+      include: { offerItems: true },
+    }),
+    prisma.tradeProposal.findUnique({
+      where: { id: proposalId },
+      include: { offerItems: true },
+    }),
   ])
+
+  async function checkStock(userId: string, items: { productId: string; quantity: number }[]) {
+    for (const item of items) {
+      const stock = await prisma.stock.findFirst({
+        where: { sellerId: userId, productId: item.productId, active: true, quantity: { gte: item.quantity } },
+      })
+      if (!stock) return item.productId
+    }
+    return null
+  }
 
   if (!trade || !proposal) return NextResponse.json({ error: "Não encontrado" }, { status: 404 })
 
@@ -24,6 +40,13 @@ export async function PUT(req: NextRequest, { params }: Params) {
   if (action === "aceitar") {
     if (!isOwner) return NextResponse.json({ error: "Apenas o dono pode aceitar propostas" }, { status: 403 })
     if (trade.status !== "ABERTA") return NextResponse.json({ error: "Troca não está aberta" }, { status: 400 })
+
+    // Valida que os itens de ambos os lados ainda existem em estoque
+    const missingOwner = await checkStock(trade.userId, trade.offerItems)
+    if (missingOwner) return NextResponse.json({ error: "Um dos seus itens já não está mais disponível no estoque" }, { status: 400 })
+
+    const missingProposer = await checkStock(proposal.proposerId, proposal.offerItems)
+    if (missingProposer) return NextResponse.json({ error: "Um dos itens do proponente já não está mais disponível no estoque" }, { status: 400 })
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
@@ -63,6 +86,25 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     const bothConfirmed = updated.ownerConfirmed && updated.proposerConfirmed
     if (bothConfirmed) {
+      // Valida novamente antes de concluir (itens podem ter sido vendidos entre aceite e confirmação)
+      const missingOwner = await checkStock(trade.userId, trade.offerItems)
+      if (missingOwner) {
+        await prisma.$transaction([
+          prisma.tradeProposal.update({ where: { id: proposalId }, data: { status: "COM_RECLAMACAO" } }),
+          prisma.trade.update({ where: { id: tradeId }, data: { status: "COM_RECLAMACAO" } }),
+        ])
+        return NextResponse.json({ error: "Um dos itens do dono não está mais disponível. Troca marcada como problemática." }, { status: 400 })
+      }
+
+      const missingProposer = await checkStock(proposal.proposerId, proposal.offerItems)
+      if (missingProposer) {
+        await prisma.$transaction([
+          prisma.tradeProposal.update({ where: { id: proposalId }, data: { status: "COM_RECLAMACAO" } }),
+          prisma.trade.update({ where: { id: tradeId }, data: { status: "COM_RECLAMACAO" } }),
+        ])
+        return NextResponse.json({ error: "Um dos itens do proponente não está mais disponível. Troca marcada como problemática." }, { status: 400 })
+      }
+
       await prisma.$transaction([
         prisma.tradeProposal.update({ where: { id: proposalId }, data: { status: "CONCLUIDA" } }),
         prisma.trade.update({ where: { id: tradeId }, data: { status: "CONCLUIDA" } }),
