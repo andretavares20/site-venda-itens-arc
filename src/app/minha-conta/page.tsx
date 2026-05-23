@@ -228,6 +228,7 @@ export default function MinhaContaPage() {
             Algum problema com um pedido? Entre em contato pelo WhatsApp.
           </span>
         </div>
+
       </main>
     </div>
   )

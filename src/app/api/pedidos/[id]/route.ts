@@ -43,6 +43,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params
   const { status, sellerPaid, riderPaid } = await req.json()
 
+  const before = status === "ENTREGUE"
+    ? await prisma.order.findUnique({ where: { id }, select: { buyerId: true, status: true } })
+    : null
+
   const order = await prisma.order.update({
     where: { id },
     data: {
@@ -51,6 +55,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       ...(riderPaid !== undefined && { riderPaid }),
     },
   })
+
+  if (before && before.status !== "ENTREGUE" && status === "ENTREGUE") {
+    await prisma.notification.create({
+      data: {
+        userId: before.buyerId,
+        type: "ORDER_DELIVERED",
+        title: "Pedido entregue!",
+        body: `Seu pedido #${id.slice(-8).toUpperCase()} foi entregue. Avalie o vendedor!`,
+        link: `/pedido/${id}`,
+      },
+    })
+  }
 
   return NextResponse.json(order)
 }
