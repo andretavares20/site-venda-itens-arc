@@ -41,6 +41,7 @@ export default function AnunciarPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [submitError, setSubmitError] = useState("")
   const [hasPixKey, setHasPixKey] = useState<boolean | null>(null)
   const [rawQty, setRawQty] = useState<Record<string, string>>({})
   const searchRef = useRef<HTMLDivElement>(null)
@@ -112,15 +113,26 @@ export default function AnunciarPage() {
   async function handleSubmit() {
     if (!cart.length) return
     setSubmitting(true)
-    const res = await fetch("/api/anuncios", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        items: cart.map((i) => ({ productId: i.product.id, quantity: i.quantity, price: i.price })),
-      }),
-    })
-    if (res.ok) setDone(true)
-    setSubmitting(false)
+    setSubmitError("")
+    try {
+      const res = await fetch("/api/anuncios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cart.map((i) => ({ productId: i.product.id, quantity: i.quantity, price: i.price })),
+        }),
+      })
+      if (res.ok) {
+        setDone(true)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setSubmitError(data.error || "Erro ao criar anúncio. Tente novamente.")
+      }
+    } catch {
+      setSubmitError("Erro de conexão. Verifique sua internet e tente novamente.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (status === "loading" || status === "unauthenticated") return null
@@ -378,6 +390,11 @@ export default function AnunciarPage() {
             <a href="/minha-conta/perfil" style={{ color: "var(--accent)" }}>Meu perfil</a>{" "}
             para poder anunciar.
           </p>
+        )}
+        {submitError && (
+          <div className="text-sm px-4 py-3 rounded-xl mb-2" style={{ background: "rgba(255,69,58,0.1)", color: "var(--error)" }}>
+            {submitError}
+          </div>
         )}
         <button
           onClick={handleSubmit}

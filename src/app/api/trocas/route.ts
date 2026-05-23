@@ -9,10 +9,22 @@ const include = {
   proposals:  { select: { id: true, status: true } },
 }
 
+async function closeExpiredTrades() {
+  await prisma.trade.updateMany({
+    where: {
+      status: "AGUARDANDO_CONFIRMACAO",
+      expiresAt: { lt: new Date() },
+    },
+    data: { status: "CANCELADA" },
+  })
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const mine = searchParams.get("mine")
   const session = await auth()
+
+  await closeExpiredTrades()
 
   const where = mine && session
     ? { userId: session.user.id }
