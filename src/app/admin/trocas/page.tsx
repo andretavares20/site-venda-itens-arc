@@ -48,8 +48,13 @@ export default function AdminTrocas() {
   useEffect(() => { load() }, [])
 
   async function load() {
-    const res = await fetch("/api/admin/trocas")
-    setTrades(await res.json())
+    try {
+      const res = await fetch("/api/admin/trocas")
+      if (!res.ok) { setLoading(false); return }
+      setTrades(await res.json())
+    } catch {
+      // API ainda não disponível
+    }
     setLoading(false)
   }
 
