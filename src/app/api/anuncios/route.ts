@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { notifyAdmins } from "@/lib/notify-admins"
 import { sendAdminNewListingEmail } from "@/lib/email"
+import { ADMIN_EMAIL } from "@/lib/constants"
 import { sendDiscordDM, sendAdminAlert, dmAnuncioRecebido, embedNovoAnuncio } from "@/lib/discord"
 
 export async function GET(req: NextRequest) {
@@ -61,6 +62,17 @@ export async function POST(req: NextRequest) {
     `${session.user.name ?? "Vendedor"} anunciou: ${itemNames}. Combine a retirada no Discord.`,
     "/admin/anuncios",
   )
+  sendAdminNewListingEmail({
+    adminEmails: [ADMIN_EMAIL],
+    sellerName: session.user.name ?? "Usuário",
+    sellerEmail: session.user.email ?? "",
+    listingId: listing.id,
+    items: listing.items.map((it) => ({
+      name: it.product.name,
+      quantity: it.quantity,
+      price: Number(it.price),
+    })),
+  }).catch(() => {})
 
   // Fire-and-forget: Discord (DM vendedor + alerta canal admin)
   prisma.user
