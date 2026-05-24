@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from "react"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Package, TrendingUp, ShoppingBag, Archive } from "lucide-react"
+import { ArrowLeft, Package, TrendingUp, ShoppingBag, Archive, Search } from "lucide-react"
 
 type StockItem = {
   id: string
@@ -54,6 +54,7 @@ export default function MeuEstoquePage() {
   const router = useRouter()
   const [items, setItems] = useState<StockItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const [filterRarity, setFilterRarity] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
   const [filterCategory, setFilterCategory] = useState("")
@@ -95,13 +96,14 @@ export default function MeuEstoquePage() {
   const categories = [...new Set(items.map(i => i.product.category))].sort()
 
   const filtered = items.filter(i => {
+    const matchSearch = !search || i.product.name.toLowerCase().includes(search.toLowerCase())
     const matchRarity = !filterRarity || i.product.rarity === filterRarity
     const matchCategory = !filterCategory || i.product.category === filterCategory
     const matchStatus = !filterStatus ||
       (filterStatus === "disponivel" && i.active && i.quantity > 0 && i.listing?.status !== "CANCELAMENTO_SOLICITADO") ||
       (filterStatus === "cancelamento" && i.listing?.status === "CANCELAMENTO_SOLICITADO") ||
       (filterStatus === "esgotado" && (!i.active || i.quantity === 0))
-    return matchRarity && matchCategory && matchStatus
+    return matchSearch && matchRarity && matchCategory && matchStatus
   })
 
   return (
@@ -124,6 +126,19 @@ export default function MeuEstoquePage() {
 
         {/* Filtros */}
         <div className="flex flex-wrap gap-3 mb-6">
+          {/* Busca por nome */}
+          <div className="flex items-center gap-2 flex-1 min-w-48 px-3 py-2 rounded-xl"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+            <Search size={14} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
+            <input
+              className="flex-1 bg-transparent outline-none text-sm"
+              style={{ color: "var(--text-primary)" }}
+              placeholder="Buscar por nome..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+
           {/* Raridade */}
           <div className="relative" ref={rarityRef}>
             <button onClick={() => setRarityOpen(v => !v)}
@@ -205,8 +220,8 @@ export default function MeuEstoquePage() {
             )}
           </div>
 
-          {(filterRarity || filterStatus || filterCategory) && (
-            <button onClick={() => { setFilterRarity(""); setFilterStatus(""); setFilterCategory("") }}
+          {(search || filterRarity || filterStatus || filterCategory) && (
+            <button onClick={() => { setSearch(""); setFilterRarity(""); setFilterStatus(""); setFilterCategory("") }}
               className="text-sm px-3 py-2 rounded-xl"
               style={{ color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
               Limpar filtros
