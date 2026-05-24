@@ -16,6 +16,7 @@ export default function PerfilPage() {
   const [savedPix, setSavedPix] = useState(false)
   const [savedName, setSavedName] = useState(false)
   const [loadingPix, setLoadingPix] = useState(false)
+  const [loadingName, setLoadingName] = useState(false)
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login")
@@ -28,6 +29,18 @@ export default function PerfilPage() {
       .then((r) => r.json())
       .then((data) => { if (data.pixKey) setPixKey(data.pixKey) })
   }, [status, session])
+
+  async function saveName() {
+    setLoadingName(true)
+    await fetch("/api/usuario/perfil", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    })
+    setLoadingName(false)
+    setSavedName(true)
+    setTimeout(() => setSavedName(false), 3000)
+  }
 
   async function savePixKey() {
     setLoadingPix(true)
@@ -80,6 +93,20 @@ export default function PerfilPage() {
                 placeholder="Seu nome"
               />
             </div>
+            <button
+              onClick={saveName}
+              disabled={!name.trim() || loadingName}
+              className="btn-primary w-full text-sm"
+            >
+              {loadingName ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  Salvando...
+                </span>
+              ) : savedName ? (
+                <><CheckCircle size={15} /> Nome salvo!</>
+              ) : "Salvar nome"}
+            </button>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                 Email

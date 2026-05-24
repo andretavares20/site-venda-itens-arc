@@ -14,6 +14,7 @@ model User {
   password        String
   cpf             String?         @unique
   role            Role            @default(USER)
+  tier            UserTier?
   pixKey               String?
   asaasId              String?
   emailVerified        DateTime?
@@ -28,11 +29,19 @@ model User {
   reviewsReceived Review[]        @relation("ReviewReceiver")
   trades          Trade[]
   proposals       TradeProposal[]
+  coupon          Coupon?
+  notifications   Notification[]
 }
 
 enum Role {
   USER
   ADMIN
+}
+
+enum UserTier {
+  PARTNER
+  VERIFIED_TRADER
+  ELITE_RIDER
 }
 
 model Product {
@@ -93,20 +102,25 @@ enum ListingItemStatus {
 }
 
 model Order {
-  id         String      @id @default(cuid())
-  buyerId    String
-  buyer      User        @relation(fields: [buyerId], references: [id])
-  items      OrderItem[]
-  total      Decimal     @db.Decimal(10, 2)
-  commission Decimal     @db.Decimal(10, 2)
-  status     OrderStatus @default(PENDENTE)
-  pixCode    String?
-  pixQrCode  String?
-  pixExpires DateTime?
-  paymentId  String?
-  sellerPaid Boolean     @default(false)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id               String      @id @default(cuid())
+  buyerId          String
+  buyer            User        @relation(fields: [buyerId], references: [id])
+  items            OrderItem[]
+  total            Decimal     @db.Decimal(10, 2)
+  commission       Decimal     @db.Decimal(10, 2)
+  status           OrderStatus @default(PENDENTE)
+  pixCode          String?
+  pixQrCode        String?
+  pixExpires       DateTime?
+  paymentId        String?
+  sellerPaid       Boolean     @default(false)
+  couponCode       String?
+  couponDiscount   Decimal?    @db.Decimal(10, 4)
+  riderCommission  Decimal?    @db.Decimal(10, 4)
+  riderPaid        Boolean     @default(false)
+  deliveredAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 }
 
 enum OrderStatus {
@@ -241,4 +255,31 @@ enum ReviewType {
   COMPRADOR_PARA_VENDEDOR
   VENDEDOR_PARA_COMPRADOR
   TROCA
+}
+
+// ─── Cupons de Elite Riders ──────────────────────────────────────
+
+// ─── Notificações ────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  body      String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Coupon {
+  id                String   @id @default(cuid())
+  code              String   @unique
+  discountPercent   Float    @default(0)
+  commissionPercent Float    @default(5)
+  riderId           String   @unique
+  rider             User     @relation(fields: [riderId], references: [id])
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
 }

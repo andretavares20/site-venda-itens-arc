@@ -1,10 +1,11 @@
 import Navbar from "@/components/navbar"
+import ReviewForm from "@/components/review-form"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import type { LucideIcon } from "lucide-react"
-import { CheckCircle, Clock, Package, XCircle } from "lucide-react"
+import { CheckCircle, Clock, Package, Star, XCircle } from "lucide-react"
 
 type StatusKey = "PENDENTE" | "PAGO" | "ENTREGUE" | "CANCELADO"
 
@@ -25,7 +26,12 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
     include: {
       items: {
         include: {
-          stock: { include: { product: true } },
+          stock: {
+            include: {
+              product: true,
+              seller: { select: { id: true, name: true } },
+            },
+          },
         },
       },
     },
@@ -35,6 +41,24 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
 
   const status = statusConfig[order.status as StatusKey] ?? statusConfig.PENDENTE
   const Icon = status.icon
+
+  // Deduplica vendedores dos itens
+  const sellersMap = new Map<string, string>()
+  for (const item of order.items) {
+    const seller = item.stock?.seller
+    if (seller) sellersMap.set(seller.id, seller.name)
+  }
+  const sellers = Array.from(sellersMap.entries()).map(([id, name]) => ({ id, name }))
+
+  // Avaliações já enviadas neste pedido pelo comprador
+  const existingReviews = order.status === "ENTREGUE"
+    ? await prisma.review.findMany({
+        where: { orderId: id, giverId: session.user.id, type: "COMPRADOR_PARA_VENDEDOR" },
+        select: { receiverId: true },
+      })
+    : []
+  const reviewedSellerIds = new Set(existingReviews.map((r) => r.receiverId))
+  const pendingSellers = sellers.filter((s) => !reviewedSellerIds.has(s.id))
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -52,6 +76,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
         </div>
 
         <div className="flex flex-col gap-4">
+          {/* Itens */}
           <div className="rounded-2xl p-5"
             style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
             <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
@@ -66,6 +91,9 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
                   </p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                     x{item.quantity} · R$ {Number(item.price).toFixed(2)} cada
+                    {item.stock?.seller && (
+                      <> · por {item.stock.seller.name}</>
+                    )}
                   </p>
                 </div>
                 <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -81,6 +109,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
 
+          {/* PIX code (pedido pendente) */}
           {order.status === "PENDENTE" && order.pixCode && (
             <div className="rounded-2xl p-5 flex flex-col gap-3"
               style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
@@ -91,6 +120,32 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
                 style={{ background: "var(--surface-2)", color: "var(--text-secondary)" }}>
                 {order.pixCode}
               </p>
+            </div>
+          )}
+
+          {/* Seção de avaliação (só quando ENTREGUE) */}
+          {order.status === "ENTREGUE" && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Star size={16} style={{ color: "#FFD60A" }} />
+                <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {pendingSellers.length > 0 ? "Avaliar vendedor" : "Avaliações"}
+                </h2>
+              </div>
+
+              {pendingSellers.length > 0 ? (
+                <ReviewForm orderId={id} sellers={pendingSellers} />
+              ) : (
+                <div
+                  className="rounded-2xl p-5 flex items-center gap-3"
+                  style={{ background: "rgba(48,209,88,0.08)", border: "1px solid rgba(48,209,88,0.25)" }}
+                >
+                  <Star size={18} fill="var(--success)" style={{ color: "var(--success)" }} />
+                  <p className="text-sm font-medium" style={{ color: "var(--success)" }}>
+                    Você já avaliou este pedido. Obrigado!
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

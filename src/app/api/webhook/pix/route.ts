@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { createHmac } from "crypto"
+import { decrementStockForOrder } from "@/lib/decrement-stock"
 
 function validateSignature(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -47,9 +48,13 @@ export async function POST(req: NextRequest) {
     const mpPayment = await mpRes.json()
     if (mpPayment.status !== "approved") return NextResponse.json({ ok: true })
 
-    const order = await prisma.order.findFirst({ where: { paymentId } })
+    const order = await prisma.order.findFirst({
+      where: { paymentId },
+      include: { items: { select: { stockId: true, quantity: true } } },
+    })
     if (order?.status === "PENDENTE") {
       await prisma.order.update({ where: { id: order.id }, data: { status: "PAGO" } })
+      await decrementStockForOrder(order.items)
     }
   }
 

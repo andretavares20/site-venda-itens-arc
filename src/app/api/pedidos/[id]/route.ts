@@ -7,6 +7,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
   const { id } = await params
+  const isAdmin = session.user.role === "ADMIN"
+
   const order = await prisma.order.findUnique({
     where: { id },
     include: {
@@ -16,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
           stock: {
             include: {
               product: true,
-              seller: { select: { id: true, name: true, pixKey: true } },
+              seller: { select: { id: true, name: true, pixKey: isAdmin } },
             },
           },
         },
@@ -39,15 +41,33 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   const { id } = await params
-  const { status, sellerPaid } = await req.json()
+  const { status, sellerPaid, riderPaid } = await req.json()
+
+  const before = status === "ENTREGUE"
+    ? await prisma.order.findUnique({ where: { id }, select: { buyerId: true, status: true } })
+    : null
 
   const order = await prisma.order.update({
     where: { id },
     data: {
       ...(status && { status }),
+      ...(status === "ENTREGUE" && { deliveredAt: new Date() }),
       ...(sellerPaid !== undefined && { sellerPaid }),
+      ...(riderPaid !== undefined && { riderPaid }),
     },
   })
+
+  if (before && before.status !== "ENTREGUE" && status === "ENTREGUE") {
+    await prisma.notification.create({
+      data: {
+        userId: before.buyerId,
+        type: "ORDER_DELIVERED",
+        title: "Pedido entregue!",
+        body: `Seu pedido #${id.slice(-8).toUpperCase()} foi entregue. Avalie o vendedor!`,
+        link: `/pedido/${id}`,
+      },
+    })
+  }
 
   return NextResponse.json(order)
 }
