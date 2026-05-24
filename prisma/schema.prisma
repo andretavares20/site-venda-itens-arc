@@ -34,6 +34,8 @@ model User {
   notifications        Notification[]
   encomendas           Encomenda[]
   encomendaProposals   EncomendaProposal[]
+  complaints           Complaint[]
+  resolvedComplaints   Complaint[]         @relation("ComplaintResolver")
 }
 
 enum Role {
@@ -122,9 +124,14 @@ model Order {
   couponDiscount          Decimal?           @db.Decimal(10, 4)
   riderCommission         Decimal?           @db.Decimal(10, 4)
   riderPaid               Boolean            @default(false)
+  sellerDelivered         Boolean            @default(false)
+  buyerReceived           Boolean            @default(false)
+  adminConfirmed          Boolean            @default(false)
   deliveredAt             DateTime?
   encomendaProposalId     String?            @unique
   encomendaProposal       EncomendaProposal? @relation(fields: [encomendaProposalId], references: [id])
+  complaints              Complaint[]
+  reviews                 Review[]
   createdAt               DateTime           @default(now())
   updatedAt               DateTime           @updatedAt
 }
@@ -134,6 +141,7 @@ enum OrderStatus {
   PAGO
   ENTREGUE
   CANCELADO
+  COM_RECLAMACAO
 }
 
 model OrderItem {
@@ -175,6 +183,7 @@ model Trade {
   offerItems TradeOfferItem[]
   wantItems  TradeWantItem[]  // vazio = aceita qualquer proposta
   proposals  TradeProposal[]
+  complaints Complaint[]
   status     TradeStatus     @default(ABERTA)
   note       String?         // observação opcional do dono
   expiresAt  DateTime?       // 24h após proposta aceita
@@ -252,17 +261,52 @@ model Review {
   receiverId String
   receiver   User       @relation("ReviewReceiver", fields: [receiverId], references: [id])
   orderId    String?
+  order      Order?     @relation(fields: [orderId], references: [id])
   tradeId    String?
   rating     Int
   comment    String?
   type       ReviewType
   createdAt  DateTime   @default(now())
+
+  @@unique([orderId, giverId])
+  @@unique([tradeId, giverId])
 }
 
 enum ReviewType {
   COMPRADOR_PARA_VENDEDOR
   VENDEDOR_PARA_COMPRADOR
   TROCA
+}
+
+// ─── Reclamações ─────────────────────────────────────────────────
+
+model Complaint {
+  id           String          @id @default(cuid())
+  orderId      String?
+  order        Order?          @relation(fields: [orderId], references: [id])
+  tradeId      String?
+  trade        Trade?          @relation(fields: [tradeId], references: [id])
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  role         ComplaintRole
+  description  String
+  status       ComplaintStatus @default(ABERTA)
+  resolution   String?
+  resolvedAt   DateTime?
+  resolvedById String?
+  resolvedBy   User?           @relation("ComplaintResolver", fields: [resolvedById], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+enum ComplaintRole {
+  COMPRADOR
+  VENDEDOR
+}
+
+enum ComplaintStatus {
+  ABERTA
+  RESOLVIDA
 }
 
 // ─── Cupons de Elite Riders ──────────────────────────────────────

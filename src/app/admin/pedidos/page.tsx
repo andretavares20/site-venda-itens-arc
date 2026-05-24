@@ -82,12 +82,12 @@ export default function AdminPedidos() {
     return { seller, sellerAmount }
   }
 
-  async function markEntregue(order: Order) {
+  async function markAdminOk(order: Order) {
     setUpdating("ENTREGUE")
     await fetch(`/api/pedidos/${order.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "ENTREGUE" }),
+      body: JSON.stringify({ action: "admin_ok" }),
     })
     setUpdating(null)
     await load()
@@ -397,22 +397,26 @@ export default function AdminPedidos() {
                 </div>
               </div>
 
-              {/* PAGO: entregar */}
+              {/* PAGO: botão fallback admin (apenas se vendedor e comprador ainda não confirmaram) */}
               {selected.status === "PAGO" && (
                 <div className="rounded-xl p-4 flex flex-col gap-3"
                   style={{ background: "rgba(0,113,227,0.06)", border: "1px solid rgba(0,113,227,0.2)" }}>
                   <div className="flex items-center gap-2">
                     <Package size={14} style={{ color: "var(--accent)" }} />
                     <span className="text-sm font-semibold" style={{ color: "var(--accent)" }}>
-                      Entregue o item ao comprador in-game
+                      Confirmação admin
                     </span>
                   </div>
-                  <button onClick={() => markEntregue(selected)} disabled={updating === "ENTREGUE"}
+                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                    Use apenas quando vendedor e comprador não conseguirem confirmar por conta própria.
+                    Vendedor e comprador entregam e recebem diretamente in-game.
+                  </p>
+                  <button onClick={() => markAdminOk(selected)} disabled={updating === "ENTREGUE"}
                     className="text-xs px-4 py-1.5 rounded-full font-medium w-fit transition-colors"
                     style={{ background: "var(--surface-2)", color: "var(--accent)", border: "1px solid rgba(0,113,227,0.3)" }}
                     onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,113,227,0.1)"}
                     onMouseLeave={(e) => e.currentTarget.style.background = "var(--surface-2)"}>
-                    {updating === "ENTREGUE" ? "Registrando..." : "Marcar como entregue"}
+                    {updating === "ENTREGUE" ? "Confirmando..." : "Confirmar tudo OK (admin)"}
                   </button>
                 </div>
               )}
