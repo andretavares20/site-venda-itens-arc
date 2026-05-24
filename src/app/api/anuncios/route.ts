@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         items: listing.items.map((it) => ({
           name: it.product.name,
           quantity: it.quantity,
-          price: it.price,
+          price: Number(it.price),
         })),
       })
     })
