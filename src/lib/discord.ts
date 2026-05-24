@@ -119,6 +119,14 @@ export function embedNovaTroca(params: {
   }
 }
 
+export function dmPropostaAceita(userName: string): string {
+  return `🤝 Boa notícia, **${userName}**!\n\nSua proposta de troca foi **aceita**! Acesse o site para confirmar a troca e finalizar o processo.\n\nVocê tem 24 horas para confirmar. ⏰`
+}
+
+export function dmAguardandoRecolhimento(userName: string): string {
+  return `✅ **${userName}**, tudo confirmado!\n\nAmbos os jogadores confirmaram a troca. Nossa equipe vai entrar em contato em breve pelo Discord para combinar a retirada dos itens dentro do jogo.\n\nFique atento às mensagens! 🎮`
+}
+
 export function dmTrocaAnunciada(userName: string): string {
   return `🔄 Olá, **${userName}**!\n\nSua troca foi anunciada na **DropBay**. Assim que outro jogador fizer uma proposta, você receberá uma notificação por aqui.\n\nFique atento! 🎮`
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { notifyAdmins } from "@/lib/notify-admins"
-import { sendAdminAlert, embedNovaTroca } from "@/lib/discord"
+import { sendAdminAlert, sendDiscordDM, embedNovaTroca, dmPropostaAceita, dmAguardandoRecolhimento } from "@/lib/discord"
 
 type Params = { params: Promise<{ id: string; proposalId: string }> }
 
@@ -49,6 +49,16 @@ export async function PUT(req: NextRequest, { params }: Params) {
       }),
       prisma.trade.update({ where: { id: tradeId }, data: { status: "AGUARDANDO_CONFIRMACAO", expiresAt } }),
     ])
+
+    // DM Discord para o proponente aceito
+    prisma.user
+      .findUnique({ where: { id: proposal.proposerId }, select: { name: true, discordId: true } })
+      .then((proposer) => {
+        if (proposer?.discordId) {
+          sendDiscordDM(proposer.discordId, dmPropostaAceita(proposer.name)).catch(() => {})
+        }
+      })
+      .catch(() => {})
 
     // Notifica o proponente aceito
     await prisma.notification.create({
@@ -144,6 +154,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
       if (fullTrade) {
         const ap = fullTrade.proposals[0]
+
+        // DM para ambos os jogadores
+        if (fullTrade.user.discordId) {
+          sendDiscordDM(fullTrade.user.discordId, dmAguardandoRecolhimento(fullTrade.user.name)).catch(() => {})
+        }
+        if (ap?.proposer.discordId) {
+          sendDiscordDM(ap.proposer.discordId, dmAguardandoRecolhimento(ap.proposer.name)).catch(() => {})
+        }
+
         sendAdminAlert(embedNovaTroca({
           tradeId,
           ownerName: fullTrade.user.name,
