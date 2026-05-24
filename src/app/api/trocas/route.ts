@@ -23,12 +23,15 @@ async function closeExpiredTrades() {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const mine = searchParams.get("mine")
+  const proposed = searchParams.get("proposed")
   const session = await auth()
 
   await closeExpiredTrades()
 
   const where = mine && session
     ? { userId: session.user.id }
+    : proposed && session
+    ? { proposals: { some: { proposerId: session.user.id } } }
     : { status: "ABERTA" as const }
 
   const trades = await prisma.trade.findMany({

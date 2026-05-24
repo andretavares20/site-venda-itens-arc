@@ -119,6 +119,14 @@ export function embedNovaTroca(params: {
   }
 }
 
+export function dmNovaPropostaRecebida(ownerName: string, proposerName: string, itemNames: string): string {
+  return `🔔 Olá, **${ownerName}**!\n\nVocê recebeu uma nova proposta de troca de **${proposerName}**!\n\nItens oferecidos: **${itemNames}**\n\nAcesse o site para ver os detalhes e aceitar ou recusar a proposta. 🎮`
+}
+
+export function dmPropostaEnviada(proposerName: string): string {
+  return `✅ Olá, **${proposerName}**!\n\nSua proposta de troca foi enviada com sucesso! O dono do anúncio será notificado e você receberá uma resposta em breve.\n\nFique atento às mensagens! 🎮`
+}
+
 export function dmPropostaAceita(userName: string): string {
   return `🤝 Boa notícia, **${userName}**!\n\nSua proposta de troca foi **aceita**! Acesse o site para confirmar a troca e finalizar o processo.\n\nVocê tem 24 horas para confirmar. ⏰`
 }
