@@ -22,7 +22,7 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(hours / 24)}d atrás`
 }
 
-export default function AdminBell() {
+export default function AdminBell({ align = "left" }: { align?: "left" | "right" }) {
   const [open, setOpen] = useState(false)
   const [unread, setUnread] = useState(0)
   const [listings, setListings] = useState<Listing[]>([])
@@ -106,7 +106,7 @@ export default function AdminBell() {
         <div style={{
           position: "absolute",
           top: "calc(100% + 8px)",
-          left: 0,
+          ...(align === "right" ? { right: 0 } : { left: 0 }),
           width: "320px",
           background: "var(--surface-1)",
           border: "1px solid var(--border)",
