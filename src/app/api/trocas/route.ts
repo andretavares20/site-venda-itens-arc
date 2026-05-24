@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { sendAdminAlert, sendDiscordDM, embedNovaTrocaAnunciada, dmTrocaAnunciada } from "@/lib/discord"
+import { notifyAdmins } from "@/lib/notify-admins"
 
 const include = {
   user: { select: { id: true, name: true } },
@@ -72,15 +73,26 @@ export async function POST(req: NextRequest) {
     include,
   })
 
+  const sellerName = session.user.name ?? "Jogador"
+
+  // In-app notification for admins
+  notifyAdmins(
+    "NEW_TRADE",
+    "Nova troca anunciada",
+    `${sellerName} publicou um anúncio de troca.`,
+    `/admin/trocas`,
+  ).catch(() => {})
+
+  // Fire-and-forget: Discord DM ao criador + alerta canal admin
   prisma.user
     .findUnique({ where: { id: session.user.id }, select: { discordId: true } })
     .then((user) => {
       if (user?.discordId) {
-        sendDiscordDM(user.discordId, dmTrocaAnunciada(session.user.name ?? "Jogador")).catch(() => {})
+        sendDiscordDM(user.discordId, dmTrocaAnunciada(sellerName)).catch(() => {})
       }
       sendAdminAlert(embedNovaTrocaAnunciada({
         tradeId: trade.id,
-        ownerName: session.user.name ?? "Jogador",
+        ownerName: sellerName,
         ownerDiscord: user?.discordId ?? null,
         offerItems: trade.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
         wantItems: trade.wantItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),

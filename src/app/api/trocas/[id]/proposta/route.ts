@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { sendDiscordDM, dmNovaPropostaRecebida, dmPropostaEnviada } from "@/lib/discord"
+import { notifyAdmins } from "@/lib/notify-admins"
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -63,6 +64,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       link: `/trocas/${tradeId}`,
     },
   })
+
+  // In-app notification for admins
+  notifyAdmins(
+    "TRADE_PROPOSAL",
+    "Nova proposta de troca",
+    `${proposerName} fez uma proposta para a troca de ${ownerName}: ${itemNames}.`,
+    `/admin/trocas`,
+  ).catch(() => {})
 
   // Discord DMs fire-and-forget
   if (trade.user.discordId) {
