@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db"
 import { createHmac } from "crypto"
 import { decrementStockForOrder } from "@/lib/decrement-stock"
 import { notifyAdmins } from "@/lib/notify-admins"
-import { sendDiscordDM, sendAdminAlert, dmPedidoPago, embedPedidoPago } from "@/lib/discord"
+import { sendDiscordDM, sendAdminAlert, dmPedidoPago, dmPagamentoConfirmado, embedPedidoPago } from "@/lib/discord"
 
 function validateSignature(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       const fullOrder = await prisma.order.findUnique({
         where: { id: order.id },
         include: {
-          buyer: { select: { name: true } },
+          buyer: { select: { name: true, discordId: true } },
           items: {
             include: {
               stock: {
@@ -109,6 +109,10 @@ export async function POST(req: NextRequest) {
         const firstItem = fullOrder.items[0]?.stock
         const seller = firstItem?.seller
         const itemName = firstItem?.product.name ?? "item"
+
+        if (fullOrder.buyer.discordId) {
+          sendDiscordDM(fullOrder.buyer.discordId, dmPagamentoConfirmado(fullOrder.buyer.name ?? "Comprador", itemName)).catch(() => {})
+        }
 
         if (seller?.discordId) {
           sendDiscordDM(seller.discordId, dmPedidoPago(seller.name ?? "Vendedor", itemName)).catch(() => {})

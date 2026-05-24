@@ -54,6 +54,10 @@ export async function sendAdminAlert(embed: Embed): Promise<void> {
 
 // ── Mensagens prontas ──────────────────────────────────────────────
 
+export function dmPagamentoConfirmado(buyerName: string, itemName: string): string {
+  return `✅ Olá, **${buyerName}**!\n\nSeu pagamento foi confirmado! O item **${itemName}** foi comprado com sucesso.\n\nNossa equipe vai entrar em contato para combinar a entrega dentro do jogo. Fique atento às mensagens! 🎮`
+}
+
 export function dmAnuncioRecebido(sellerName: string): string {
   return `👋 Olá, **${sellerName}**!\n\nRecebemos seu anúncio na **DropBay**. Nossa equipe vai entrar em contato em breve para combinar a coleta do item dentro do jogo.\n\nFique atento às mensagens por aqui! 🎮`
 }
