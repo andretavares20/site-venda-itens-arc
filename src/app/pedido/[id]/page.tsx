@@ -6,16 +6,18 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import type { LucideIcon } from "lucide-react"
-import { CheckCircle, Clock, MessageCircle, Package, Star, XCircle } from "lucide-react"
+import { AlertTriangle, CheckCircle, Clock, MessageCircle, Package, Star, XCircle } from "lucide-react"
 import { DISCORD_URL } from "@/lib/constants"
+import OrderActions from "@/components/order-actions"
 
-type StatusKey = "PENDENTE" | "PAGO" | "ENTREGUE" | "CANCELADO"
+type StatusKey = "PENDENTE" | "PAGO" | "ENTREGUE" | "CANCELADO" | "COM_RECLAMACAO"
 
 const statusConfig: Record<StatusKey, { label: string; icon: LucideIcon; color: string }> = {
-  PENDENTE: { label: "Aguardando pagamento", icon: Clock, color: "var(--warning)" },
-  PAGO: { label: "Pago — em entrega", icon: CheckCircle, color: "var(--accent)" },
-  ENTREGUE: { label: "Entregue", icon: Package, color: "var(--success)" },
-  CANCELADO: { label: "Cancelado", icon: XCircle, color: "var(--error)" },
+  PENDENTE:        { label: "Aguardando pagamento", icon: Clock,         color: "var(--warning)" },
+  PAGO:            { label: "Pago — aguardando entrega", icon: Package,  color: "var(--accent)" },
+  ENTREGUE:        { label: "Entregue", icon: CheckCircle,               color: "var(--success)" },
+  CANCELADO:       { label: "Cancelado", icon: XCircle,                  color: "var(--error)" },
+  COM_RECLAMACAO:  { label: "Com reclamação", icon: AlertTriangle,       color: "var(--warning)" },
 }
 
 export default async function PedidoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,6 +38,10 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
           },
         },
       },
+      complaints: {
+        where: { userId: session.user.id },
+        select: { id: true, status: true },
+      },
     },
   })
 
@@ -44,15 +50,13 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
   const status = statusConfig[order.status as StatusKey] ?? statusConfig.PENDENTE
   const Icon = status.icon
 
-  // Deduplica vendedores dos itens
   const sellersMap = new Map<string, string>()
   for (const item of order.items) {
     const seller = item.stock?.seller
     if (seller) sellersMap.set(seller.id, seller.name)
   }
-  const sellers = Array.from(sellersMap.entries()).map(([id, name]) => ({ id, name }))
+  const sellers = Array.from(sellersMap.entries()).map(([sid, name]) => ({ id: sid, name }))
 
-  // Avaliações já enviadas neste pedido pelo comprador
   const existingReviews = order.status === "ENTREGUE"
     ? await prisma.review.findMany({
         where: { orderId: id, giverId: session.user.id, type: "COMPRADOR_PARA_VENDEDOR" },
@@ -61,6 +65,9 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
     : []
   const reviewedSellerIds = new Set(existingReviews.map((r) => r.receiverId))
   const pendingSellers = sellers.filter((s) => !reviewedSellerIds.has(s.id))
+
+  const hasOpenComplaint = order.complaints.some((c) => c.status === "ABERTA")
+  const canComplain = order.status === "PAGO" && !hasOpenComplaint
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -81,9 +88,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
           {/* Itens */}
           <div className="rounded-2xl p-5"
             style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
-            <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
-              Itens
-            </h2>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Itens</h2>
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center justify-between py-2"
                 style={{ borderBottom: "1px solid var(--border)" }}>
@@ -93,9 +98,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
                   </p>
                   <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                     x{item.quantity} · R$ {Number(item.price).toFixed(2)} cada
-                    {item.stock?.seller && (
-                      <> · por {item.stock.seller.name}</>
-                    )}
+                    {item.stock?.seller && <> · por {item.stock.seller.name}</>}
                   </p>
                 </div>
                 <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -111,26 +114,17 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
 
-          {/* PIX (pedido pendente) */}
+          {/* PIX pendente */}
           {order.status === "PENDENTE" && order.pixCode && (
             <div className="rounded-2xl p-5 flex flex-col gap-3"
               style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
-              <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                Pagar com PIX
-              </h2>
+              <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Pagar com PIX</h2>
               {order.pixQrCode && (
                 <div className="self-center p-4 rounded-2xl" style={{ background: "#fff" }}>
-                  <Image
-                    src={`data:image/png;base64,${order.pixQrCode}`}
-                    alt="QR Code PIX"
-                    width={200}
-                    height={200}
-                  />
+                  <Image src={`data:image/png;base64,${order.pixQrCode}`} alt="QR Code PIX" width={200} height={200} />
                 </div>
               )}
-              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                Ou copie o código abaixo:
-              </p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Ou copie o código abaixo:</p>
               <p className="text-xs font-mono break-all p-3 rounded-xl"
                 style={{ background: "var(--surface-2)", color: "var(--text-secondary)" }}>
                 {order.pixCode}
@@ -138,9 +132,9 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
             </div>
           )}
 
-          {/* Discord CTA quando pago e aguardando entrega */}
+          {/* PAGO — aguardando entrega P2P */}
           {order.status === "PAGO" && (
-            <div className="rounded-2xl p-5 flex flex-col gap-3"
+            <div className="rounded-2xl p-5 flex flex-col gap-4"
               style={{ background: "rgba(88,101,242,0.08)", border: "1px solid rgba(88,101,242,0.25)" }}>
               <div className="flex items-center gap-2">
                 <MessageCircle size={16} style={{ color: "#5865F2" }} />
@@ -149,22 +143,68 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
                 </h2>
               </div>
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                Nossa equipe já foi notificada e entrará em contato para combinar a entrega. Se precisar de ajuda, fale com a gente no Discord.
+                O vendedor irá entrar em contato para combinar a entrega do item in-game.
+                Se precisar de ajuda, fale com a gente no Discord.
               </p>
-              <a
-                href={DISCORD_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+
+              {/* Indicadores de progresso */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ background: order.sellerDelivered ? "var(--success)" : "var(--surface-2)", border: "1px solid var(--border)" }}>
+                    {order.sellerDelivered && <CheckCircle size={10} color="#fff" />}
+                  </div>
+                  <span style={{ color: order.sellerDelivered ? "var(--success)" : "var(--text-secondary)" }}>
+                    {order.sellerDelivered ? "Vendedor confirmou a entrega" : "Aguardando confirmação do vendedor"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ background: order.buyerReceived ? "var(--success)" : "var(--surface-2)", border: "1px solid var(--border)" }}>
+                    {order.buyerReceived && <CheckCircle size={10} color="#fff" />}
+                  </div>
+                  <span style={{ color: order.buyerReceived ? "var(--success)" : "var(--text-secondary)" }}>
+                    {order.buyerReceived ? "Você confirmou o recebimento" : "Aguardando sua confirmação"}
+                  </span>
+                </div>
+              </div>
+
+              <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 self-start px-4 py-2 rounded-full text-sm font-medium"
-                style={{ background: "#5865F2", color: "#fff" }}
-              >
+                style={{ background: "#5865F2", color: "#fff" }}>
                 <MessageCircle size={14} />
                 Falar no Discord
               </a>
             </div>
           )}
 
-          {/* Seção de avaliação (só quando ENTREGUE) */}
+          {/* Ações do comprador — confirmar recebimento e reclamar */}
+          {(order.status === "PAGO" || order.status === "COM_RECLAMACAO") && (
+            <OrderActions
+              orderId={id}
+              buyerReceived={order.buyerReceived}
+              canComplain={canComplain}
+              hasOpenComplaint={hasOpenComplaint}
+            />
+          )}
+
+          {/* COM_RECLAMACAO */}
+          {order.status === "COM_RECLAMACAO" && (
+            <div className="rounded-2xl p-5 flex flex-col gap-2"
+              style={{ background: "rgba(255,214,10,0.08)", border: "1px solid rgba(255,214,10,0.3)" }}>
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={16} style={{ color: "var(--warning)" }} />
+                <p className="text-sm font-semibold" style={{ color: "var(--warning)" }}>
+                  Reclamação em análise
+                </p>
+              </div>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                Nossa equipe está analisando o caso. Você será notificado assim que houver uma resolução.
+              </p>
+            </div>
+          )}
+
+          {/* Avaliação após entrega */}
           {order.status === "ENTREGUE" && (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
@@ -173,14 +213,11 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
                   {pendingSellers.length > 0 ? "Avaliar vendedor" : "Avaliações"}
                 </h2>
               </div>
-
               {pendingSellers.length > 0 ? (
                 <ReviewForm orderId={id} sellers={pendingSellers} />
               ) : (
-                <div
-                  className="rounded-2xl p-5 flex items-center gap-3"
-                  style={{ background: "rgba(48,209,88,0.08)", border: "1px solid rgba(48,209,88,0.25)" }}
-                >
+                <div className="rounded-2xl p-5 flex items-center gap-3"
+                  style={{ background: "rgba(48,209,88,0.08)", border: "1px solid rgba(48,209,88,0.25)" }}>
                   <Star size={18} fill="var(--success)" style={{ color: "var(--success)" }} />
                   <p className="text-sm font-medium" style={{ color: "var(--success)" }}>
                     Você já avaliou este pedido. Obrigado!

@@ -75,28 +75,28 @@ export async function POST(req: NextRequest) {
         await notifyAdmins(
           "ORDER_PAID",
           `Encomenda paga — #${orderId}`,
-          "O comprador pagou. Retire o item com o vendedor e entregue no Discord.",
+          "O comprador pagou. Vendedor e comprador combinam a entrega diretamente.",
           "/admin/pedidos",
         )
       } else {
         await notifyAdmins(
           "ORDER_PAID",
           `Pedido pago — #${orderId}`,
-          "Novo pagamento confirmado. Entregue o item ao comprador no Discord.",
+          "Novo pagamento confirmado. Vendedor e comprador combinam a entrega in-game.",
           "/admin/pedidos",
         )
       }
 
-      // Notificações Discord (DM vendedor + alerta canal admin)
+      // Busca dados completos para notificações
       const fullOrder = await prisma.order.findUnique({
         where: { id: order.id },
         include: {
-          buyer: { select: { name: true, discordId: true } },
+          buyer: { select: { id: true, name: true, discordId: true } },
           items: {
             include: {
               stock: {
                 include: {
-                  seller: { select: { name: true, discordId: true } },
+                  seller: { select: { id: true, name: true, discordId: true } },
                   product: { select: { name: true } },
                 },
               },
@@ -109,11 +109,36 @@ export async function POST(req: NextRequest) {
         const firstItem = fullOrder.items[0]?.stock
         const seller = firstItem?.seller
         const itemName = firstItem?.product.name ?? "item"
+        const orderLink = `/pedido/${order.id}`
 
+        // Notificação in-app para o comprador
+        await prisma.notification.create({
+          data: {
+            userId: fullOrder.buyer.id,
+            type: "ORDER_PAID",
+            title: "Pagamento confirmado!",
+            body: `Seu pagamento foi confirmado. Aguarde o vendedor entrar em contato para combinar a entrega do ${itemName} in-game.`,
+            link: orderLink,
+          },
+        })
+
+        // Notificação in-app para o vendedor
+        if (seller?.id) {
+          await prisma.notification.create({
+            data: {
+              userId: seller.id,
+              type: "ORDER_SOLD",
+              title: "Seu item foi vendido!",
+              body: `${itemName} foi vendido. Entre em contato com o comprador para combinar a entrega in-game.`,
+              link: `/minha-conta/vendas`,
+            },
+          })
+        }
+
+        // Discord DM para comprador e vendedor
         if (fullOrder.buyer.discordId) {
           sendDiscordDM(fullOrder.buyer.discordId, dmPagamentoConfirmado(fullOrder.buyer.name ?? "Comprador", itemName)).catch(() => {})
         }
-
         if (seller?.discordId) {
           sendDiscordDM(seller.discordId, dmPedidoPago(seller.name ?? "Vendedor", itemName)).catch(() => {})
         }
