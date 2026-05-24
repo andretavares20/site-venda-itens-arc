@@ -24,12 +24,14 @@ model User {
   orders          Order[]
   listings        Listing[]
   stocks          Stock[]
-  reviewsGiven    Review[]        @relation("ReviewGiver")
-  reviewsReceived Review[]        @relation("ReviewReceiver")
-  trades          Trade[]
-  proposals       TradeProposal[]
-  coupon          Coupon?
-  notifications   Notification[]
+  reviewsGiven         Review[]            @relation("ReviewGiver")
+  reviewsReceived      Review[]            @relation("ReviewReceiver")
+  trades               Trade[]
+  proposals            TradeProposal[]
+  coupon               Coupon?
+  notifications        Notification[]
+  encomendas           Encomenda[]
+  encomendaProposals   EncomendaProposal[]
 }
 
 enum Role {
@@ -60,6 +62,7 @@ model Product {
   tradeOfferItems TradeOfferItem[]
   tradeWantItems  TradeWantItem[]
   proposalItems   ProposalItem[]
+  encomendas      Encomenda[]
 }
 
 model Listing {
@@ -112,14 +115,16 @@ model Order {
   pixQrCode        String?
   pixExpires       DateTime?
   paymentId        String?
-  sellerPaid       Boolean     @default(false)
-  couponCode       String?
-  couponDiscount   Decimal?    @db.Decimal(10, 4)
-  riderCommission  Decimal?    @db.Decimal(10, 4)
-  riderPaid        Boolean     @default(false)
-  deliveredAt      DateTime?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  sellerPaid              Boolean            @default(false)
+  couponCode              String?
+  couponDiscount          Decimal?           @db.Decimal(10, 4)
+  riderCommission         Decimal?           @db.Decimal(10, 4)
+  riderPaid               Boolean            @default(false)
+  deliveredAt             DateTime?
+  encomendaProposalId     String?            @unique
+  encomendaProposal       EncomendaProposal? @relation(fields: [encomendaProposalId], references: [id])
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
 }
 
 enum OrderStatus {
@@ -257,6 +262,52 @@ enum ReviewType {
 }
 
 // ─── Cupons de Elite Riders ──────────────────────────────────────
+
+// ─── Encomendas ──────────────────────────────────────────────────
+
+model Encomenda {
+  id        String              @id @default(cuid())
+  buyerId   String
+  buyer     User                @relation(fields: [buyerId], references: [id])
+  productId String
+  product   Product             @relation(fields: [productId], references: [id])
+  quantity  Int
+  maxPrice  Decimal?            @db.Decimal(10, 2)
+  note      String?
+  status    EncomendaStatus     @default(ABERTA)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  proposals EncomendaProposal[]
+}
+
+enum EncomendaStatus {
+  ABERTA
+  ACEITA
+  PAGA
+  CONCLUIDA
+  CANCELADA
+}
+
+model EncomendaProposal {
+  id          String                  @id @default(cuid())
+  encomendaId String
+  encomenda   Encomenda               @relation(fields: [encomendaId], references: [id])
+  sellerId    String
+  seller      User                    @relation(fields: [sellerId], references: [id])
+  price       Decimal                 @db.Decimal(10, 2)
+  note        String?
+  status      EncomendaProposalStatus @default(PENDENTE)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  order       Order?
+}
+
+enum EncomendaProposalStatus {
+  PENDENTE
+  ACEITA
+  RECUSADA
+  CANCELADA
+}
 
 // ─── Notificações ────────────────────────────────────────────────
 

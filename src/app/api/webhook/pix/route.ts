@@ -50,11 +50,25 @@ export async function POST(req: NextRequest) {
 
     const order = await prisma.order.findFirst({
       where: { paymentId },
-      include: { items: { select: { stockId: true, quantity: true } } },
+      include: {
+        items: { select: { stockId: true, quantity: true } },
+        encomendaProposal: { select: { encomendaId: true } },
+      },
     })
     if (order?.status === "PENDENTE") {
       await prisma.order.update({ where: { id: order.id }, data: { status: "PAGO" } })
-      await decrementStockForOrder(order.items)
+
+      // Pedido normal: decrementa estoque
+      const stockItems = order.items.filter((i) => i.stockId)
+      if (stockItems.length > 0) await decrementStockForOrder(stockItems)
+
+      // Pedido de encomenda: atualiza status da encomenda
+      if (order.encomendaProposal?.encomendaId) {
+        await prisma.encomenda.update({
+          where: { id: order.encomendaProposal.encomendaId },
+          data: { status: "PAGA" },
+        })
+      }
     }
   }
 
