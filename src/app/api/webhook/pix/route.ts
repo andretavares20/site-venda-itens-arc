@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db"
 import { createHmac } from "crypto"
 import { decrementStockForOrder } from "@/lib/decrement-stock"
 import { notifyAdmins } from "@/lib/notify-admins"
+import { sendDiscordDM, sendAdminAlert, dmPedidoPago, embedPedidoPago } from "@/lib/discord"
 
 function validateSignature(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -42,7 +43,6 @@ export async function POST(req: NextRequest) {
   if (body.type === "payment" && body.data?.id) {
     const paymentId = String(body.data.id)
 
-    // Verifica status real do pagamento no Mercado Pago
     const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
     })
@@ -56,17 +56,17 @@ export async function POST(req: NextRequest) {
         encomendaProposal: { select: { encomendaId: true } },
       },
     })
+
     if (order?.status === "PENDENTE") {
       await prisma.order.update({ where: { id: order.id }, data: { status: "PAGO" } })
 
-      // Pedido normal: decrementa estoque
       const stockItems = order.items.filter((i) => i.stockId)
       if (stockItems.length > 0) await decrementStockForOrder(stockItems)
 
       const orderId = order.id.slice(-8).toUpperCase()
       const isEncomenda = !!order.encomendaProposal?.encomendaId
 
-      // Pedido de encomenda: atualiza status da encomenda
+      // Notificação in-app para admins
       if (isEncomenda) {
         await prisma.encomenda.update({
           where: { id: order.encomendaProposal!.encomendaId },
@@ -85,6 +85,42 @@ export async function POST(req: NextRequest) {
           "Novo pagamento confirmado. Entregue o item ao comprador no Discord.",
           "/admin/pedidos",
         )
+      }
+
+      // Notificações Discord (DM vendedor + alerta canal admin)
+      const fullOrder = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          buyer: { select: { name: true } },
+          items: {
+            include: {
+              stock: {
+                include: {
+                  seller: { select: { name: true, discordId: true } },
+                  product: { select: { name: true } },
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (fullOrder) {
+        const firstItem = fullOrder.items[0]?.stock
+        const seller = firstItem?.seller
+        const itemName = firstItem?.product.name ?? "item"
+
+        if (seller?.discordId) {
+          sendDiscordDM(seller.discordId, dmPedidoPago(seller.name ?? "Vendedor", itemName)).catch(() => {})
+        }
+
+        sendAdminAlert(embedPedidoPago({
+          buyerName: fullOrder.buyer.name ?? "Comprador",
+          sellerName: seller?.name ?? "Vendedor",
+          sellerDiscord: seller?.discordId ?? null,
+          itemName,
+          total: Number(fullOrder.total),
+        })).catch(() => {})
       }
     }
   }
