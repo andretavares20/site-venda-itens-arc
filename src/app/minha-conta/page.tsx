@@ -103,6 +103,7 @@ export default function MinhaContaPage() {
             { href: "/minha-conta/anuncios", label: "Meus anúncios", desc: "Gerencie o que você vende" },
             { href: "/minha-conta/estoque", label: "Meu estoque", desc: "Itens aprovados e disponíveis" },
             { href: "/minha-conta/trocas", label: "Minhas trocas", desc: "Trocas que você anunciou" },
+            { href: "/minha-conta/encomendas", label: "Encomendas", desc: "Suas encomendas e propostas" },
             { href: "/anunciar", label: "Novo anúncio", desc: "Anuncie um item" },
           ].map(({ href, label, desc }) => (
             <Link key={href} href={href}

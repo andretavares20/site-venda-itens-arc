@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { notifyAdmins } from "@/lib/notify-admins"
 import { sendAdminNewListingEmail } from "@/lib/email"
 import { sendDiscordDM, sendAdminAlert, dmAnuncioRecebido, embedNovoAnuncio } from "@/lib/discord"
 
@@ -51,15 +52,23 @@ export async function POST(req: NextRequest) {
     include: { items: { include: { product: true } } },
   })
 
-  // Fire-and-forget: email + Discord
+  const itemNames = listing.items.map((i) => i.product.name).join(", ")
+
+  // Notificação in-app para admins
+  await notifyAdmins(
+    "NEW_LISTING",
+    `Novo anúncio para retirar`,
+    `${session.user.name ?? "Vendedor"} anunciou: ${itemNames}. Combine a retirada no Discord.`,
+    "/admin/anuncios",
+  )
+
+  // Fire-and-forget: Discord (DM vendedor + alerta canal admin)
   prisma.user
     .findUnique({ where: { id: session.user.id }, select: { discordId: true } })
     .then((seller) => {
-      // DM para o vendedor
       if (seller?.discordId) {
         sendDiscordDM(seller.discordId, dmAnuncioRecebido(session.user.name ?? "Vendedor")).catch(() => {})
       }
-      // Alerta no canal admin
       sendAdminAlert(embedNovoAnuncio({
         sellerName: session.user.name ?? "Vendedor",
         sellerDiscord: seller?.discordId ?? null,
@@ -69,6 +78,7 @@ export async function POST(req: NextRequest) {
     })
     .catch(() => {})
 
+  // Fire-and-forget: email para admins
   prisma.user
     .findMany({ where: { role: "ADMIN" }, select: { email: true } })
     .then((admins) => {
@@ -85,7 +95,7 @@ export async function POST(req: NextRequest) {
         })),
       })
     })
-    .catch(() => {/* notification failure must not break the response */})
+    .catch(() => {})
 
   return NextResponse.json(listing)
 }

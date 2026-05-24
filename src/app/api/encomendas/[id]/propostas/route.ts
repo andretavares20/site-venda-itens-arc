@@ -1,0 +1,54 @@
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/db"
+import { auth } from "@/lib/auth"
+
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+
+  const { id: encomendaId } = await params
+  const { price, note } = await req.json()
+
+  if (!price || price <= 0) {
+    return NextResponse.json({ error: "Preço inválido" }, { status: 400 })
+  }
+
+  const encomenda = await prisma.encomenda.findUnique({ where: { id: encomendaId } })
+  if (!encomenda) return NextResponse.json({ error: "Encomenda não encontrada" }, { status: 404 })
+  if (encomenda.status !== "ABERTA") {
+    return NextResponse.json({ error: "Esta encomenda não está mais aberta" }, { status: 400 })
+  }
+  if (encomenda.buyerId === session.user.id) {
+    return NextResponse.json({ error: "Você não pode propor na sua própria encomenda" }, { status: 400 })
+  }
+
+  const existing = await prisma.encomendaProposal.findFirst({
+    where: { encomendaId, sellerId: session.user.id, status: "PENDENTE" },
+  })
+  if (existing) {
+    return NextResponse.json({ error: "Você já tem uma proposta pendente nesta encomenda" }, { status: 409 })
+  }
+
+  const proposal = await prisma.encomendaProposal.create({
+    data: {
+      encomendaId,
+      sellerId: session.user.id,
+      price,
+      note: note ?? null,
+    },
+    include: { seller: { select: { name: true } } },
+  })
+
+  // Notifica o comprador
+  await prisma.notification.create({
+    data: {
+      userId: encomenda.buyerId,
+      type: "ENCOMENDA_PROPOSAL",
+      title: "Nova proposta na sua encomenda!",
+      body: `${proposal.seller.name} fez uma proposta de R$ ${Number(price).toFixed(2)}.`,
+      link: `/encomendas/${encomendaId}`,
+    },
+  })
+
+  return NextResponse.json(proposal, { status: 201 })
+}

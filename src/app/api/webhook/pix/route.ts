@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { createHmac } from "crypto"
 import { decrementStockForOrder } from "@/lib/decrement-stock"
+import { notifyAdmins } from "@/lib/notify-admins"
 import { sendDiscordDM, sendAdminAlert, dmPedidoPago, embedPedidoPago } from "@/lib/discord"
 
 function validateSignature(req: NextRequest, rawBody: string): boolean {
@@ -42,7 +43,6 @@ export async function POST(req: NextRequest) {
   if (body.type === "payment" && body.data?.id) {
     const paymentId = String(body.data.id)
 
-    // Verifica status real do pagamento no Mercado Pago
     const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
     })
@@ -51,13 +51,43 @@ export async function POST(req: NextRequest) {
 
     const order = await prisma.order.findFirst({
       where: { paymentId },
-      include: { items: { select: { stockId: true, quantity: true } } },
+      include: {
+        items: { select: { stockId: true, quantity: true } },
+        encomendaProposal: { select: { encomendaId: true } },
+      },
     })
+
     if (order?.status === "PENDENTE") {
       await prisma.order.update({ where: { id: order.id }, data: { status: "PAGO" } })
-      await decrementStockForOrder(order.items)
 
-      // Notificações Discord
+      const stockItems = order.items.filter((i) => i.stockId)
+      if (stockItems.length > 0) await decrementStockForOrder(stockItems)
+
+      const orderId = order.id.slice(-8).toUpperCase()
+      const isEncomenda = !!order.encomendaProposal?.encomendaId
+
+      // Notificação in-app para admins
+      if (isEncomenda) {
+        await prisma.encomenda.update({
+          where: { id: order.encomendaProposal!.encomendaId },
+          data: { status: "PAGA" },
+        })
+        await notifyAdmins(
+          "ORDER_PAID",
+          `Encomenda paga — #${orderId}`,
+          "O comprador pagou. Retire o item com o vendedor e entregue no Discord.",
+          "/admin/pedidos",
+        )
+      } else {
+        await notifyAdmins(
+          "ORDER_PAID",
+          `Pedido pago — #${orderId}`,
+          "Novo pagamento confirmado. Entregue o item ao comprador no Discord.",
+          "/admin/pedidos",
+        )
+      }
+
+      // Notificações Discord (DM vendedor + alerta canal admin)
       const fullOrder = await prisma.order.findUnique({
         where: { id: order.id },
         include: {
@@ -80,12 +110,10 @@ export async function POST(req: NextRequest) {
         const seller = firstItem?.seller
         const itemName = firstItem?.product.name ?? "item"
 
-        // DM para o vendedor
         if (seller?.discordId) {
           sendDiscordDM(seller.discordId, dmPedidoPago(seller.name ?? "Vendedor", itemName)).catch(() => {})
         }
 
-        // Alerta no canal admin
         sendAdminAlert(embedPedidoPago({
           buyerName: fullOrder.buyer.name ?? "Comprador",
           sellerName: seller?.name ?? "Vendedor",

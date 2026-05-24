@@ -31,6 +31,12 @@ export async function GET() {
           },
         },
       },
+      encomendaProposal: isAdmin ? {
+        include: {
+          seller: { select: { id: true, name: true, pixKey: true } },
+          encomenda: { include: { product: { select: { name: true, image: true } } } },
+        },
+      } : false,
     },
     orderBy: { createdAt: "desc" },
   })
