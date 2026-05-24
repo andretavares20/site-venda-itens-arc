@@ -13,6 +13,14 @@ const rarityColor: Record<string, string> = {
   Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3", Epic: "#bf5af2", Legendary: "#ffd60a",
 }
 
+const rarityStyle: Record<string, { border: string; glow: string }> = {
+  Common:    { border: "rgba(152,152,159,0.4)", glow: "rgba(152,152,159,0)" },
+  Uncommon:  { border: "rgba(48,209,88,0.5)",   glow: "rgba(48,209,88,0.1)" },
+  Rare:      { border: "rgba(0,113,227,0.6)",   glow: "rgba(0,113,227,0.1)" },
+  Epic:      { border: "rgba(191,90,242,0.65)", glow: "rgba(191,90,242,0.1)" },
+  Legendary: { border: "rgba(255,214,10,0.7)",  glow: "rgba(255,214,10,0.12)" },
+}
+
 export default function NovaEncomendaPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -92,7 +100,11 @@ export default function NovaEncomendaPage() {
               <div className="flex items-center gap-3 p-3 rounded-xl"
                 style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
                 <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
-                  style={{ background: "#0d0d0d" }}>
+                  style={{
+                    background: "#0d0d0d",
+                    border: `1px solid ${rarityStyle[selected.rarity]?.border ?? rarityStyle.Common.border}`,
+                    boxShadow: `0 0 8px ${rarityStyle[selected.rarity]?.glow ?? "transparent"}`,
+                  }}>
                   <Image src={selected.image} alt={selected.name} width={40} height={40}
                     className="w-full h-full object-contain" />
                 </div>
@@ -127,7 +139,11 @@ export default function NovaEncomendaPage() {
                         onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-2)"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "none"}>
                         <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0"
-                          style={{ background: "#0d0d0d" }}>
+                          style={{
+                            background: "#0d0d0d",
+                            border: `1px solid ${rarityStyle[p.rarity]?.border ?? rarityStyle.Common.border}`,
+                            boxShadow: `0 0 8px ${rarityStyle[p.rarity]?.glow ?? "transparent"}`,
+                          }}>
                           <Image src={p.image} alt={p.name} width={36} height={36}
                             className="w-full h-full object-contain" />
                         </div>
