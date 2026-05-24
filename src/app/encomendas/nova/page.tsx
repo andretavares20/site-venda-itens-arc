@@ -7,7 +7,11 @@ import Navbar from "@/components/navbar"
 import Image from "next/image"
 import { Search } from "lucide-react"
 
-type Product = { id: string; name: string; image: string; category: string }
+type Product = { id: string; name: string; image: string; category: string; rarity: string }
+
+const rarityColor: Record<string, string> = {
+  Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3", Epic: "#bf5af2", Legendary: "#ffd60a",
+}
 
 export default function NovaEncomendaPage() {
   const { data: session, status } = useSession()
@@ -87,11 +91,17 @@ export default function NovaEncomendaPage() {
             {selected ? (
               <div className="flex items-center gap-3 p-3 rounded-xl"
                 style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                <Image src={selected.image} alt={selected.name} width={40} height={40}
-                  className="rounded-lg object-contain" style={{ background: "var(--surface-1)" }} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{selected.name}</p>
-                  <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>{selected.category}</p>
+                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
+                  style={{ background: "#0d0d0d" }}>
+                  <Image src={selected.image} alt={selected.name} width={40} height={40}
+                    className="w-full h-full object-contain" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{selected.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>{selected.category}</p>
+                    <p className="text-xs font-medium" style={{ color: rarityColor[selected.rarity] ?? "#98989f" }}>{selected.rarity}</p>
+                  </div>
                 </div>
                 <button onClick={() => setSelected(null)}
                   className="text-xs" style={{ color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>
@@ -116,12 +126,17 @@ export default function NovaEncomendaPage() {
                         style={{ background: "none", border: "none", cursor: "pointer" }}
                         onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-2)"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "none"}>
-                        <Image src={p.image} alt={p.name} width={32} height={32}
-                          className="rounded object-contain flex-shrink-0"
-                          style={{ background: "var(--surface-2)" }} />
-                        <div>
-                          <p className="text-sm" style={{ color: "var(--text-primary)" }}>{p.name}</p>
-                          <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>{p.category}</p>
+                        <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0"
+                          style={{ background: "#0d0d0d" }}>
+                          <Image src={p.image} alt={p.name} width={36} height={36}
+                            className="w-full h-full object-contain" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>{p.category}</p>
+                            <p className="text-xs font-medium" style={{ color: rarityColor[p.rarity] ?? "#98989f" }}>{p.rarity}</p>
+                          </div>
                         </div>
                       </button>
                     ))}
