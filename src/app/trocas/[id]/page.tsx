@@ -58,9 +58,11 @@ export default function TrocaPage() {
   const [propQuery, setPropQuery] = useState("")
   const [propResults, setPropResults] = useState<Product[]>([])
   const [submittingProp, setSubmittingProp] = useState(false)
+  const [propError, setPropError] = useState("")
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/trocas/${id}`)
+    if (!res.ok) { setTrade(null); setLoading(false); return }
     const data = await res.json()
     setTrade(data)
     setLoading(false)
@@ -92,7 +94,8 @@ export default function TrocaPage() {
   async function submitProposal() {
     if (!propItems.length) return
     setSubmittingProp(true)
-    await fetch(`/api/trocas/${id}/proposta`, {
+    setPropError("")
+    const res = await fetch(`/api/trocas/${id}/proposta`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -101,6 +104,11 @@ export default function TrocaPage() {
       }),
     })
     setSubmittingProp(false)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setPropError(data.error ?? "Erro ao enviar proposta")
+      return
+    }
     setShowProposalForm(false)
     setPropItems([])
     setPropNote("")
@@ -129,10 +137,12 @@ export default function TrocaPage() {
 
   const statusColor: Record<string, string> = {
     ABERTA: "var(--success)", AGUARDANDO_CONFIRMACAO: "var(--warning)",
+    AGUARDANDO_RECOLHIMENTO: "var(--warning)", AGUARDANDO_ENTREGA: "var(--warning)",
     CONCLUIDA: "var(--accent)", CANCELADA: "var(--error)", COM_RECLAMACAO: "var(--error)",
   }
   const statusLabel: Record<string, string> = {
     ABERTA: "Aberta", AGUARDANDO_CONFIRMACAO: "Aguardando confirmação",
+    AGUARDANDO_RECOLHIMENTO: "Aguardando recolhimento", AGUARDANDO_ENTREGA: "Aguardando entrega",
     CONCLUIDA: "Concluída", CANCELADA: "Cancelada", COM_RECLAMACAO: "Com reclamação",
   }
 
@@ -277,6 +287,12 @@ export default function TrocaPage() {
                 </div>
                 <textarea className="input-field text-sm resize-none mb-3" rows={2}
                   placeholder="Observação (opcional)" value={propNote} onChange={(e) => setPropNote(e.target.value)} />
+                {propError && (
+                  <p className="text-xs px-3 py-2 rounded-xl mb-3"
+                    style={{ background: "rgba(255,69,58,0.1)", color: "var(--error)" }}>
+                    {propError}
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <button onClick={() => setShowProposalForm(false)} className="btn-secondary flex-1 text-sm">Cancelar</button>
                   <button onClick={submitProposal} disabled={!propItems.length || submittingProp} className="btn-primary flex-1 text-sm">
