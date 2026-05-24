@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { sendAdminAlert, sendDiscordDM, embedNovaTrocaAnunciada, dmTrocaAnunciada } from "@/lib/discord"
 import { notifyAdmins } from "@/lib/notify-admins"
+import { requireDiscord } from "@/lib/require-discord"
 
 const include = {
   user: { select: { id: true, name: true } },
@@ -46,6 +47,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Faça login para anunciar troca" }, { status: 401 })
+
+  const discordErr = await requireDiscord(session.user.id)
+  if (discordErr) return discordErr
 
   const { offerItems, wantItems, note } = await req.json()
 

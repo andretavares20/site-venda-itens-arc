@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { requireDiscord } from "@/lib/require-discord"
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+
+  const discordErr = await requireDiscord(session.user.id)
+  if (discordErr) return discordErr
 
   const { id: encomendaId } = await params
   const { price, note } = await req.json()

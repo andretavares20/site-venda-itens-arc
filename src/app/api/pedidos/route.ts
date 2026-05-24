@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { mpPayment } from "@/lib/mercadopago"
+import { requireDiscord } from "@/lib/require-discord"
 
 const COMMISSION_RATE = 0.10
 
@@ -64,6 +65,9 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Faça login para continuar" }, { status: 401 })
+
+  const discordErr = await requireDiscord(session.user.id)
+  if (discordErr) return discordErr
 
   const { items, total, couponCode }: { items: CartItem[]; total: number; couponCode?: string } = await req.json()
   if (!items?.length) return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 })

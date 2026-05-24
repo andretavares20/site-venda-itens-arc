@@ -5,6 +5,7 @@ import { notifyAdmins } from "@/lib/notify-admins"
 import { sendAdminNewListingEmail } from "@/lib/email"
 import { ADMIN_EMAIL } from "@/lib/constants"
 import { sendDiscordDM, sendAdminAlert, dmAnuncioAprovado, embedNovoAnuncio } from "@/lib/discord"
+import { requireDiscord } from "@/lib/require-discord"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -32,6 +33,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Faça login para anunciar" }, { status: 401 })
+
+  const discordErr = await requireDiscord(session.user.id)
+  if (discordErr) return discordErr
 
   const { items } = await req.json()
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Navbar from "@/components/navbar"
+import DiscordGate from "@/components/discord-gate"
 import Image from "next/image"
 import { Search } from "lucide-react"
 
@@ -80,6 +81,7 @@ export default function NovaEncomendaPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
+      <DiscordGate>
       <main className="pt-20 pb-16 px-4 max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
           Nova encomenda
@@ -212,6 +214,7 @@ export default function NovaEncomendaPage() {
           </button>
         </div>
       </main>
+      </DiscordGate>
     </div>
   )
 }

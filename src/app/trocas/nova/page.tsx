@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Navbar from "@/components/navbar"
+import DiscordGate from "@/components/discord-gate"
 import { Search, Plus, Trash2, CheckCircle, ArrowLeftRight, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -166,6 +167,7 @@ export default function NovaTrocaPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
+      <DiscordGate>
       <main className="pt-20 pb-16 px-4 max-w-2xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>Anunciar troca</h1>
@@ -213,6 +215,7 @@ export default function NovaTrocaPage() {
           </button>
         </div>
       </main>
+      </DiscordGate>
     </div>
   )
 }
