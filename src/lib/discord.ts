@@ -71,6 +71,34 @@ export function embedNovoAnuncio(params: {
     .setFooter({ text: "DropBay · Marketplace Arc Raiders" })
 }
 
+export function embedNovaTroca(params: {
+  tradeId: string
+  ownerName: string
+  ownerDiscord: string | null
+  proposerName: string
+  proposerDiscord: string | null
+  ownerItems: { name: string; quantity: number }[]
+  proposerItems: { name: string; quantity: number }[]
+}): EmbedBuilder {
+  const { tradeId, ownerName, ownerDiscord, proposerName, proposerDiscord, ownerItems, proposerItems } = params
+  return new EmbedBuilder()
+    .setColor(0xFF9F0A)
+    .setTitle("🔄 Troca aguardando recolhimento")
+    .addFields(
+      { name: "Jogador A", value: ownerDiscord ? `<@${ownerDiscord}> (${ownerName})` : ownerName, inline: true },
+      { name: "Jogador B", value: proposerDiscord ? `<@${proposerDiscord}> (${proposerName})` : proposerName, inline: true },
+      { name: "ID", value: `#${tradeId.slice(-8).toUpperCase()}`, inline: true },
+      { name: "Itens de A", value: ownerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
+      { name: "Itens de B", value: proposerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
+    )
+    .setTimestamp()
+    .setFooter({ text: "DropBay · Marketplace Arc Raiders" })
+}
+
+export function dmTrocaConcluida(userName: string): string {
+  return `🎉 Tudo certo, **${userName}**!\n\nSua troca foi concluída com sucesso. Os itens foram entregues pelos dois lados.\n\nObrigado por usar a **DropBay**! 💚`
+}
+
 export function embedPedidoPago(params: {
   buyerName: string
   sellerName: string
