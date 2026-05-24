@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation"
 import CartDrawer from "./cart-drawer"
 import NotificationBell from "./notification-bell"
 import { DISCORD_URL } from "@/lib/constants"
-import AdminBell from "./admin-bell"
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -158,13 +157,6 @@ export default function Navbar() {
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)" }}>
               <Search size={18} />
             </button>
-
-            {/* Sino admin */}
-            {session?.user.role === "ADMIN" && (
-              <div className="hidden md:block">
-                <AdminBell align="right" />
-              </div>
-            )}
 
             {/* Discord */}
             <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer"
