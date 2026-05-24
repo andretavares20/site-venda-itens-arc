@@ -41,7 +41,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (!isOwner) return NextResponse.json({ error: "Apenas o dono pode aceitar propostas" }, { status: 403 })
     if (trade.status !== "ABERTA") return NextResponse.json({ error: "Troca não está aberta" }, { status: 400 })
 
-    // Valida que os itens de ambos os lados ainda existem em estoque
     const missingOwner = await checkStock(trade.userId, trade.offerItems)
     if (missingOwner) return NextResponse.json({ error: "Um dos seus itens já não está mais disponível no estoque" }, { status: 400 })
 
@@ -49,6 +48,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (missingProposer) return NextResponse.json({ error: "Um dos itens do proponente já não está mais disponível no estoque" }, { status: 400 })
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+    // Busca outras propostas pendentes antes da transação para saber quem notificar
+    const cancelledProposals = await prisma.tradeProposal.findMany({
+      where: { tradeId, id: { not: proposalId }, status: "PENDENTE" },
+      select: { proposerId: true },
+    })
 
     await prisma.$transaction([
       prisma.tradeProposal.update({ where: { id: proposalId }, data: { status: "ACEITA" } }),
@@ -58,12 +63,48 @@ export async function PUT(req: NextRequest, { params }: Params) {
       }),
       prisma.trade.update({ where: { id: tradeId }, data: { status: "AGUARDANDO_CONFIRMACAO", expiresAt } }),
     ])
+
+    // Notifica o proponente aceito
+    await prisma.notification.create({
+      data: {
+        userId: proposal.proposerId,
+        type: "TRADE_PROPOSAL_ACCEPTED",
+        title: "Proposta aceita!",
+        body: "Sua proposta de troca foi aceita. Confirme para concluir.",
+        link: `/trocas/${tradeId}`,
+      },
+    })
+
+    // Notifica os proponentes cujas propostas foram canceladas
+    if (cancelledProposals.length > 0) {
+      await prisma.notification.createMany({
+        data: cancelledProposals.map((p) => ({
+          userId: p.proposerId,
+          type: "TRADE_PROPOSAL_REJECTED",
+          title: "Proposta não selecionada",
+          body: "Outra proposta foi aceita nesta troca. Sua proposta foi cancelada.",
+          link: `/trocas/${tradeId}`,
+        })),
+      })
+    }
+
     return NextResponse.json({ ok: true })
   }
 
   if (action === "recusar") {
     if (!isOwner) return NextResponse.json({ error: "Não autorizado" }, { status: 403 })
     await prisma.tradeProposal.update({ where: { id: proposalId }, data: { status: "RECUSADA" } })
+
+    await prisma.notification.create({
+      data: {
+        userId: proposal.proposerId,
+        type: "TRADE_PROPOSAL_REJECTED",
+        title: "Proposta recusada",
+        body: "Sua proposta de troca foi recusada pelo dono do anúncio.",
+        link: `/trocas/${tradeId}`,
+      },
+    })
+
     return NextResponse.json({ ok: true })
   }
 
