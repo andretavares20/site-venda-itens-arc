@@ -9,9 +9,6 @@ export async function GET() {
   }
 
   const trades = await prisma.trade.findMany({
-    where: {
-      status: { in: ["AGUARDANDO_RECOLHIMENTO", "AGUARDANDO_ENTREGA", "CONCLUIDA", "COM_RECLAMACAO"] },
-    },
     include: {
       user: { select: { id: true, name: true, discordId: true } },
       offerItems: { include: { product: { select: { name: true } } } },

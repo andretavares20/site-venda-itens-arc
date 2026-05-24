@@ -13,7 +13,7 @@ type Proposal = {
 }
 type Trade = {
   id: string
-  status: "AGUARDANDO_RECOLHIMENTO" | "AGUARDANDO_ENTREGA" | "CONCLUIDA" | "COM_RECLAMACAO"
+  status: "ABERTA" | "AGUARDANDO_CONFIRMACAO" | "AGUARDANDO_RECOLHIMENTO" | "AGUARDANDO_ENTREGA" | "CONCLUIDA" | "CANCELADA" | "COM_RECLAMACAO"
   user: TradeUser
   offerItems: TradeItem[]
   proposals: Proposal[]
@@ -22,15 +22,20 @@ type Trade = {
 }
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string; icon: React.ElementType }> = {
+  ABERTA:                  { bg: "rgba(48,209,88,0.08)",  color: "var(--success)", label: "Aberta", icon: ArrowLeftRight },
+  AGUARDANDO_CONFIRMACAO:  { bg: "rgba(99,99,102,0.12)",  color: "var(--text-secondary)", label: "Aguard. confirmação", icon: Clock },
   AGUARDANDO_RECOLHIMENTO: { bg: "rgba(255,159,10,0.12)", color: "#FF9F0A", label: "Aguardando recolhimento", icon: Clock },
-  AGUARDANDO_ENTREGA:      { bg: "rgba(0,113,227,0.1)",  color: "var(--accent)", label: "Aguardando entrega", icon: Package },
-  CONCLUIDA:               { bg: "rgba(48,209,88,0.1)",  color: "var(--success)", label: "Concluída", icon: CheckCircle },
-  COM_RECLAMACAO:          { bg: "rgba(255,69,58,0.1)",  color: "var(--error)", label: "Com reclamação", icon: XCircle },
+  AGUARDANDO_ENTREGA:      { bg: "rgba(0,113,227,0.1)",   color: "var(--accent)", label: "Aguardando entrega", icon: Package },
+  CONCLUIDA:               { bg: "rgba(48,209,88,0.1)",   color: "var(--success)", label: "Concluída", icon: CheckCircle },
+  CANCELADA:               { bg: "rgba(99,99,102,0.1)",   color: "var(--text-tertiary)", label: "Cancelada", icon: XCircle },
+  COM_RECLAMACAO:          { bg: "rgba(255,69,58,0.1)",   color: "var(--error)", label: "Com reclamação", icon: XCircle },
 }
 
-const TABS = ["TODOS", "AGUARDANDO_RECOLHIMENTO", "AGUARDANDO_ENTREGA", "COM_RECLAMACAO", "CONCLUIDA"]
+const TABS = ["TODOS", "ABERTA", "AGUARDANDO_CONFIRMACAO", "AGUARDANDO_RECOLHIMENTO", "AGUARDANDO_ENTREGA", "COM_RECLAMACAO", "CONCLUIDA"]
 const TAB_LABELS: Record<string, string> = {
   TODOS: "Todos",
+  ABERTA: "Abertas",
+  AGUARDANDO_CONFIRMACAO: "Confirmação",
   AGUARDANDO_RECOLHIMENTO: "Recolhimento",
   AGUARDANDO_ENTREGA: "Entrega",
   COM_RECLAMACAO: "Reclamações",
@@ -81,10 +86,13 @@ export default function AdminTrocas() {
   })
 
   const counts = {
+    ABERTA: trades.filter((t) => t.status === "ABERTA").length,
+    AGUARDANDO_CONFIRMACAO: trades.filter((t) => t.status === "AGUARDANDO_CONFIRMACAO").length,
     AGUARDANDO_RECOLHIMENTO: trades.filter((t) => t.status === "AGUARDANDO_RECOLHIMENTO").length,
     AGUARDANDO_ENTREGA: trades.filter((t) => t.status === "AGUARDANDO_ENTREGA").length,
     COM_RECLAMACAO: trades.filter((t) => t.status === "COM_RECLAMACAO").length,
     CONCLUIDA: trades.filter((t) => t.status === "CONCLUIDA").length,
+    CANCELADA: trades.filter((t) => t.status === "CANCELADA").length,
   }
 
   return (
@@ -102,10 +110,10 @@ export default function AdminTrocas() {
       {/* Cards de resumo */}
       <div className="grid grid-cols-4 gap-3 mb-5">
         {([
+          ["ABERTA",                  "Abertas",               "var(--success)"],
           ["AGUARDANDO_RECOLHIMENTO", "Aguardam recolhimento", "#FF9F0A"],
           ["AGUARDANDO_ENTREGA",      "Aguardam entrega",      "var(--accent)"],
           ["COM_RECLAMACAO",          "Com reclamação",        "var(--error)"],
-          ["CONCLUIDA",               "Concluídas",            "var(--success)"],
         ] as const).map(([key, label, color]) => (
           <button key={key} onClick={() => setTab(key)}
             className="rounded-2xl p-4 text-left transition-all"
