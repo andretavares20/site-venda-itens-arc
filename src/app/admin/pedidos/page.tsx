@@ -9,6 +9,11 @@ type OrderItem = {
   price: number
   stock: { product: { name: string }; seller: Seller }
 }
+type EncomendaProposalInfo = {
+  seller: { id: string; name: string; pixKey: string | null }
+  encomenda: { product: { name: string; image: string } }
+}
+
 type Order = {
   id: string
   total: number
@@ -24,6 +29,7 @@ type Order = {
   buyer: { name: string; email: string }
   items: OrderItem[]
   rider: { name: string; pixKey: string | null } | null
+  encomendaProposal: EncomendaProposalInfo | null
 }
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string; icon: React.ElementType }> = {
@@ -63,10 +69,16 @@ export default function AdminPedidos() {
   }
 
   function getSellerInfo(order: Order) {
-    const seller = order.items[0]?.stock?.seller
-    if (!seller) return null
     const grossTotal = Number(order.total) + Number(order.couponDiscount ?? 0)
     const sellerAmount = grossTotal * 0.9
+
+    // Pedido de encomenda: vendedor vem da proposta
+    if (order.encomendaProposal) {
+      return { seller: order.encomendaProposal.seller, sellerAmount }
+    }
+
+    const seller = order.items[0]?.stock?.seller
+    if (!seller) return null
     return { seller, sellerAmount }
   }
 
@@ -250,7 +262,9 @@ export default function AdminPedidos() {
                     <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>{order.buyer.email}</p>
                   </td>
                   <td className="px-4 py-3 text-xs" style={{ color: "var(--text-secondary)" }}>
-                    {order.items.length} item{order.items.length !== 1 ? "s" : ""}
+                    {order.encomendaProposal
+                      ? <span style={{ color: "var(--accent)" }}>Encomenda</span>
+                      : `${order.items.length} item${order.items.length !== 1 ? "s" : ""}`}
                   </td>
                   <td className="px-4 py-3 font-semibold text-xs" style={{ color: "var(--text-primary)" }}>
                     R$ {Number(order.total).toFixed(2)}
@@ -344,7 +358,9 @@ export default function AdminPedidos() {
                     <div key={i} className="flex items-center justify-between text-sm"
                       style={{ borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>
                       <span style={{ color: "var(--text-primary)" }}>
-                        {item.stock?.product?.name ?? "Item"}{" "}
+                        {item.stock?.product?.name
+                          ?? selected.encomendaProposal?.encomenda?.product?.name
+                          ?? "Item"}{" "}
                         <span style={{ color: "var(--text-tertiary)" }}>x{item.quantity}</span>
                       </span>
                       <span style={{ color: "var(--text-primary)" }}>R$ {(Number(item.price) * item.quantity).toFixed(2)}</span>

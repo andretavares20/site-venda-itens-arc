@@ -4,8 +4,10 @@ import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import type { LucideIcon } from "lucide-react"
-import { CheckCircle, Clock, Package, Star, XCircle } from "lucide-react"
+import { CheckCircle, Clock, MessageCircle, Package, Star, XCircle } from "lucide-react"
+import { DISCORD_URL } from "@/lib/constants"
 
 type StatusKey = "PENDENTE" | "PAGO" | "ENTREGUE" | "CANCELADO"
 
@@ -109,17 +111,56 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
 
-          {/* PIX code (pedido pendente) */}
+          {/* PIX (pedido pendente) */}
           {order.status === "PENDENTE" && order.pixCode && (
             <div className="rounded-2xl p-5 flex flex-col gap-3"
               style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
               <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                Código PIX
+                Pagar com PIX
               </h2>
+              {order.pixQrCode && (
+                <div className="self-center p-4 rounded-2xl" style={{ background: "#fff" }}>
+                  <Image
+                    src={`data:image/png;base64,${order.pixQrCode}`}
+                    alt="QR Code PIX"
+                    width={200}
+                    height={200}
+                  />
+                </div>
+              )}
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                Ou copie o código abaixo:
+              </p>
               <p className="text-xs font-mono break-all p-3 rounded-xl"
                 style={{ background: "var(--surface-2)", color: "var(--text-secondary)" }}>
                 {order.pixCode}
               </p>
+            </div>
+          )}
+
+          {/* Discord CTA quando pago e aguardando entrega */}
+          {order.status === "PAGO" && (
+            <div className="rounded-2xl p-5 flex flex-col gap-3"
+              style={{ background: "rgba(88,101,242,0.08)", border: "1px solid rgba(88,101,242,0.25)" }}>
+              <div className="flex items-center gap-2">
+                <MessageCircle size={16} style={{ color: "#5865F2" }} />
+                <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  Pagamento confirmado!
+                </h2>
+              </div>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                Nossa equipe já foi notificada e entrará em contato para combinar a entrega. Se precisar de ajuda, fale com a gente no Discord.
+              </p>
+              <a
+                href={DISCORD_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 self-start px-4 py-2 rounded-full text-sm font-medium"
+                style={{ background: "#5865F2", color: "#fff" }}
+              >
+                <MessageCircle size={14} />
+                Falar no Discord
+              </a>
             </div>
           )}
 
