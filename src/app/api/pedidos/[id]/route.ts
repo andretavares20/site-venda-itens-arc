@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { deleteDiscordChannel } from "@/lib/discord"
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -126,10 +127,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (order.status !== "PAGO") return NextResponse.json({ error: "Pedido não está em andamento" }, { status: 400 })
     if (order.buyerReceived) return NextResponse.json({ error: "Já confirmado" }, { status: 400 })
 
-    await prisma.order.update({
+    const updated = await prisma.order.update({
       where: { id },
       data: { buyerReceived: true, status: "ENTREGUE", deliveredAt: new Date() },
+      select: { discordChannelId: true },
     })
+
+    if (updated.discordChannelId) deleteDiscordChannel(updated.discordChannelId).catch(() => {})
 
     if (sellerId) {
       await prisma.notification.create({
@@ -151,10 +155,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!isAdmin) return NextResponse.json({ error: "Não autorizado" }, { status: 403 })
     if (order.status !== "PAGO") return NextResponse.json({ error: "Pedido não está em andamento" }, { status: 400 })
 
-    await prisma.order.update({
+    const updated = await prisma.order.update({
       where: { id },
       data: { adminConfirmed: true, status: "ENTREGUE", deliveredAt: new Date() },
+      select: { discordChannelId: true },
     })
+
+    if (updated.discordChannelId) deleteDiscordChannel(updated.discordChannelId).catch(() => {})
 
     const notifs = [
       {

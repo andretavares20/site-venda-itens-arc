@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { notifyAdmins } from "@/lib/notify-admins"
-import { sendAdminAlert, sendDiscordDM, embedNovaTroca, dmPropostaAceita, dmAguardandoRecolhimento } from "@/lib/discord"
+import { sendAdminAlert, sendDiscordDM, embedNovaTroca, dmPropostaAceita, dmAguardandoRecolhimento, createPrivateChannel, embedCanalTroca, deleteDiscordChannel } from "@/lib/discord"
 
 type Params = { params: Promise<{ id: string; proposalId: string }> }
 
@@ -16,11 +16,11 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const [trade, proposal] = await Promise.all([
     prisma.trade.findUnique({
       where: { id: tradeId },
-      include: { offerItems: true },
+      include: { offerItems: { include: { product: { select: { name: true } } } } },
     }),
     prisma.tradeProposal.findUnique({
       where: { id: proposalId },
-      include: { offerItems: true },
+      include: { offerItems: { include: { product: { select: { name: true } } } } },
     }),
   ])
 
@@ -50,15 +50,36 @@ export async function PUT(req: NextRequest, { params }: Params) {
       prisma.trade.update({ where: { id: tradeId }, data: { status: "AGUARDANDO_CONFIRMACAO", expiresAt } }),
     ])
 
-    // DM Discord para o proponente aceito
-    prisma.user
-      .findUnique({ where: { id: proposal.proposerId }, select: { name: true, discordId: true } })
-      .then((proposer) => {
-        if (proposer?.discordId) {
-          sendDiscordDM(proposer.discordId, dmPropostaAceita(proposer.name)).catch(() => {})
-        }
+    // DM Discord + canal privado fire-and-forget
+    Promise.all([
+      prisma.user.findUnique({ where: { id: trade.userId },        select: { name: true, discordId: true } }),
+      prisma.user.findUnique({ where: { id: proposal.proposerId }, select: { name: true, discordId: true } }),
+    ]).then(async ([owner, proposer]) => {
+      if (proposer?.discordId) {
+        sendDiscordDM(proposer.discordId, dmPropostaAceita(proposer.name ?? "Jogador")).catch(() => {})
+      }
+
+      // Cria canal privado com os dois jogadores
+      const tradeCode = tradeId.slice(-8).toUpperCase()
+      const memberIds = [owner?.discordId, proposer?.discordId].filter(Boolean) as string[]
+      const channelId = await createPrivateChannel({
+        name: `troca-${tradeId.slice(-8).toLowerCase()}`,
+        topic: `Troca #${tradeCode} · ${owner?.name ?? "Jogador A"} ↔ ${proposer?.name ?? "Jogador B"}`,
+        memberDiscordIds: memberIds,
+        introEmbed: embedCanalTroca({
+          tradeId: tradeCode,
+          ownerName:     owner?.name    ?? "Jogador A",
+          ownerDiscord:  owner?.discordId  ?? null,
+          proposerName:  proposer?.name ?? "Jogador B",
+          proposerDiscord: proposer?.discordId ?? null,
+          ownerItems:    trade.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
+          proposerItems: proposal.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
+        }),
       })
-      .catch(() => {})
+      if (channelId) {
+        await prisma.trade.update({ where: { id: tradeId }, data: { discordChannelId: channelId } }).catch(() => {})
+      }
+    }).catch(() => {})
 
     // Notifica o proponente aceito
     await prisma.notification.create({
@@ -142,6 +163,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         include: {
           user: { select: { name: true, discordId: true } },
           offerItems: { include: { product: { select: { name: true } } } },
+          // discordChannelId is a scalar field, included automatically
           proposals: {
             where: { id: proposalId },
             include: {
@@ -172,6 +194,11 @@ export async function PUT(req: NextRequest, { params }: Params) {
           ownerItems: fullTrade.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
           proposerItems: ap?.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })) ?? [],
         })).catch(() => {})
+
+        // Deleta canal privado pois a troca foi concluída
+        if (fullTrade.discordChannelId) {
+          deleteDiscordChannel(fullTrade.discordChannelId).catch(() => {})
+        }
       }
     }
 

@@ -130,6 +130,7 @@ model Order {
   deliveredAt             DateTime?
   encomendaProposalId     String?            @unique
   encomendaProposal       EncomendaProposal? @relation(fields: [encomendaProposalId], references: [id])
+  discordChannelId        String?
   complaints              Complaint[]
   reviews                 Review[]
   createdAt               DateTime           @default(now())
@@ -185,10 +186,11 @@ model Trade {
   proposals  TradeProposal[]
   complaints Complaint[]
   status     TradeStatus     @default(ABERTA)
-  note       String?         // observação opcional do dono
-  expiresAt  DateTime?       // 24h após proposta aceita
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  note             String?
+  expiresAt        DateTime?
+  discordChannelId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 enum TradeStatus {

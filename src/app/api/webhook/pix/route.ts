@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db"
 import { createHmac } from "crypto"
 import { decrementStockForOrder } from "@/lib/decrement-stock"
 import { notifyAdmins } from "@/lib/notify-admins"
-import { sendDiscordDM, sendAdminAlert, dmPedidoPago, dmPagamentoConfirmado, embedPedidoPago } from "@/lib/discord"
+import { sendDiscordDM, sendAdminAlert, dmPedidoPago, dmPagamentoConfirmado, embedPedidoPago, createPrivateChannel, embedCanalPedido } from "@/lib/discord"
 
 function validateSignature(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -150,6 +150,25 @@ export async function POST(req: NextRequest) {
           itemName,
           total: Number(fullOrder.total),
         })).catch(() => {})
+
+        // Cria canal privado temporário no Discord
+        const channelName = `pedido-${order.id.slice(-8).toLowerCase()}`
+        const memberIds = [fullOrder.buyer.discordId, seller?.discordId].filter(Boolean) as string[]
+        createPrivateChannel({
+          name: channelName,
+          topic: `Pedido #${orderId} · ${fullOrder.buyer.name} ↔ ${seller?.name ?? "Vendedor"}`,
+          memberDiscordIds: memberIds,
+          introEmbed: embedCanalPedido({
+            orderId,
+            buyerName:    fullOrder.buyer.name ?? "Comprador",
+            buyerDiscord: fullOrder.buyer.discordId,
+            sellerName:   seller?.name ?? "Vendedor",
+            sellerDiscord: seller?.discordId ?? null,
+            items: fullOrder.items.map((i) => ({ name: i.stock?.product.name ?? "item", quantity: i.quantity })),
+          }),
+        }).then((channelId) => {
+          if (channelId) prisma.order.update({ where: { id: order.id }, data: { discordChannelId: channelId } }).catch(() => {})
+        }).catch(() => {})
       }
     }
   }
