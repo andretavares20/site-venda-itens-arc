@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import AdminBell from "@/components/admin-bell"
 import { Package, ShoppingBag, LayoutDashboard, Megaphone, Archive, Users } from "lucide-react"
 
 const navLinks = [
@@ -32,14 +33,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         className="w-56 flex-shrink-0 flex flex-col py-6 px-3 gap-1"
         style={{ borderRight: "1px solid var(--border)", background: "var(--surface-1)" }}
       >
-        <Link
-          href="/"
-          className="text-base font-bold px-3 mb-4"
-          style={{ color: "var(--text-primary)" }}
-        >
-          Drop<span style={{ color: "var(--accent)" }}>Bay</span>
-          <span className="ml-2 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>Admin</span>
-        </Link>
+        <div className="flex items-center justify-between px-3 mb-4">
+          <Link
+            href="/"
+            className="text-base font-bold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Drop<span style={{ color: "var(--accent)" }}>Bay</span>
+            <span className="ml-2 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>Admin</span>
+          </Link>
+          <AdminBell />
+        </div>
         {navLinks.map(({ href, icon: Icon, label }) => (
           <Link
             key={href}

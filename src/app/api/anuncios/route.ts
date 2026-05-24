@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { notifyAdmins } from "@/lib/notify-admins"
+import { sendAdminNewListingEmail } from "@/lib/email"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -57,6 +58,24 @@ export async function POST(req: NextRequest) {
     `${session.user.name ?? "Vendedor"} anunciou: ${itemNames}. Combine a retirada no Discord.`,
     "/admin/anuncios",
   )
+  // Fire-and-forget admin notification
+  prisma.user
+    .findMany({ where: { role: "ADMIN" }, select: { email: true } })
+    .then((admins) => {
+      const emails = admins.map((a) => a.email).filter(Boolean) as string[]
+      return sendAdminNewListingEmail({
+        adminEmails: emails,
+        sellerName: session.user.name ?? "Usuário",
+        sellerEmail: session.user.email ?? "",
+        listingId: listing.id,
+        items: listing.items.map((it) => ({
+          name: it.product.name,
+          quantity: it.quantity,
+          price: Number(it.price),
+        })),
+      })
+    })
+    .catch(() => {/* notification failure must not break the response */})
 
   return NextResponse.json(listing)
 }

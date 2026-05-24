@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/pedidos",
-      "schedule": "0 * * * *"
+      "schedule": "0 3 * * *"
     },
     {
       "path": "/api/cron/trocas",
-      "schedule": "0 * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }
