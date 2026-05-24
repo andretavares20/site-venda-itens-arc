@@ -119,6 +119,25 @@ export default async function LojaPage({
               initialCategory={params.categoria}
               initialBusca={params.busca}
             />
+
+            {/* Banner encomendas */}
+            <Link
+              href="/encomendas/nova"
+              className="mt-3 flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl"
+              style={{
+                background: "linear-gradient(90deg, rgba(255,69,0,0.15) 0%, rgba(255,140,0,0.12) 100%)",
+                border: "1px solid rgba(255,100,0,0.4)",
+                textDecoration: "none",
+              }}
+            >
+              <p className="text-sm" style={{ color: "var(--text-primary)" }}>
+                <span className="font-semibold">Não achou o item?</span>
+                <span style={{ color: "var(--text-secondary)" }}> Anuncie uma encomenda e os raiders farmam pra você.</span>
+              </p>
+              <span className="text-xs font-semibold flex-shrink-0 px-3 py-1 rounded-full" style={{ background: "linear-gradient(90deg, #ff4500, #ff8c00)", color: "#fff" }}>
+                Encomendar →
+              </span>
+            </Link>
           </div>
         </div>
 
