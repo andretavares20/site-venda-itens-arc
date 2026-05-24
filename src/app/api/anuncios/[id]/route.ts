@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { sendDiscordDM, dmAnuncioAprovado } from "@/lib/discord"
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -42,6 +43,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     data: { status, ...(adminNotes !== undefined && { adminNotes }) },
     include: { items: { include: { product: true } } },
   })
+
+  // DM para o vendedor quando aprovado
+  if (status === "DISPONIVEL" && isAdmin) {
+    prisma.user.findUnique({ where: { id: listing.sellerId }, select: { discordId: true, name: true } })
+      .then((seller) => {
+        if (seller?.discordId) {
+          const itemName = listing.items[0] ? `item do anúncio #${id.slice(-8).toUpperCase()}` : "seu item"
+          sendDiscordDM(seller.discordId, dmAnuncioAprovado(seller.name ?? "Vendedor", itemName)).catch(() => {})
+        }
+      }).catch(() => {})
+  }
 
   // Quando admin aprova (DISPONIVEL) → popula estoque
   if (status === "DISPONIVEL" && isAdmin) {

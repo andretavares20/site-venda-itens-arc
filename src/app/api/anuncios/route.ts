@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { sendAdminNewListingEmail } from "@/lib/email"
+import { sendDiscordDM, sendAdminAlert, dmAnuncioRecebido, embedNovoAnuncio } from "@/lib/discord"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -50,7 +51,24 @@ export async function POST(req: NextRequest) {
     include: { items: { include: { product: true } } },
   })
 
-  // Fire-and-forget admin notification
+  // Fire-and-forget: email + Discord
+  prisma.user
+    .findUnique({ where: { id: session.user.id }, select: { discordId: true } })
+    .then((seller) => {
+      // DM para o vendedor
+      if (seller?.discordId) {
+        sendDiscordDM(seller.discordId, dmAnuncioRecebido(session.user.name ?? "Vendedor")).catch(() => {})
+      }
+      // Alerta no canal admin
+      sendAdminAlert(embedNovoAnuncio({
+        sellerName: session.user.name ?? "Vendedor",
+        sellerDiscord: seller?.discordId ?? null,
+        items: listing.items.map((it) => ({ name: it.product.name, quantity: it.quantity, price: Number(it.price) })),
+        listingId: listing.id,
+      })).catch(() => {})
+    })
+    .catch(() => {})
+
   prisma.user
     .findMany({ where: { role: "ADMIN" }, select: { email: true } })
     .then((admins) => {

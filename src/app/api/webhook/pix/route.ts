@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { createHmac } from "crypto"
 import { decrementStockForOrder } from "@/lib/decrement-stock"
+import { sendDiscordDM, sendAdminAlert, dmPedidoPago, embedPedidoPago } from "@/lib/discord"
 
 function validateSignature(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -55,6 +56,44 @@ export async function POST(req: NextRequest) {
     if (order?.status === "PENDENTE") {
       await prisma.order.update({ where: { id: order.id }, data: { status: "PAGO" } })
       await decrementStockForOrder(order.items)
+
+      // Notificações Discord
+      const fullOrder = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          buyer: { select: { name: true } },
+          items: {
+            include: {
+              stock: {
+                include: {
+                  seller: { select: { name: true, discordId: true } },
+                  product: { select: { name: true } },
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (fullOrder) {
+        const firstItem = fullOrder.items[0]?.stock
+        const seller = firstItem?.seller
+        const itemName = firstItem?.product.name ?? "item"
+
+        // DM para o vendedor
+        if (seller?.discordId) {
+          sendDiscordDM(seller.discordId, dmPedidoPago(seller.name ?? "Vendedor", itemName)).catch(() => {})
+        }
+
+        // Alerta no canal admin
+        sendAdminAlert(embedPedidoPago({
+          buyerName: fullOrder.buyer.name ?? "Comprador",
+          sellerName: seller?.name ?? "Vendedor",
+          sellerDiscord: seller?.discordId ?? null,
+          itemName,
+          total: Number(fullOrder.total),
+        })).catch(() => {})
+      }
     }
   }
 
