@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { sendAdminAlert, sendDiscordDM, embedNovaTrocaAnunciada, dmTrocaAnunciada } from "@/lib/discord"
 
 const include = {
   user: { select: { id: true, name: true } },
@@ -67,6 +68,22 @@ export async function POST(req: NextRequest) {
     },
     include,
   })
+
+  prisma.user
+    .findUnique({ where: { id: session.user.id }, select: { discordId: true } })
+    .then((user) => {
+      if (user?.discordId) {
+        sendDiscordDM(user.discordId, dmTrocaAnunciada(session.user.name ?? "Jogador")).catch(() => {})
+      }
+      sendAdminAlert(embedNovaTrocaAnunciada({
+        tradeId: trade.id,
+        ownerName: session.user.name ?? "Jogador",
+        ownerDiscord: user?.discordId ?? null,
+        offerItems: trade.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
+        wantItems: trade.wantItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
+      })).catch(() => {})
+    })
+    .catch(() => {})
 
   return NextResponse.json(trade)
 }

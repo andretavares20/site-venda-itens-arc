@@ -2,13 +2,14 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import AdminBell from "@/components/admin-bell"
-import { Package, ShoppingBag, LayoutDashboard, Megaphone, Archive, Users } from "lucide-react"
+import { Package, ShoppingBag, LayoutDashboard, Megaphone, Archive, Users, ArrowLeftRight } from "lucide-react"
 
 const navLinks = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/anuncios", icon: Megaphone, label: "Anúncios" },
   { href: "/admin/estoque", icon: Archive, label: "Estoque" },
   { href: "/admin/pedidos", icon: ShoppingBag, label: "Pedidos" },
+  { href: "/admin/trocas", icon: ArrowLeftRight, label: "Trocas" },
   { href: "/admin/produtos", icon: Package, label: "Catálogo" },
   { href: "/admin/usuarios", icon: Users, label: "Usuários" },
 ]

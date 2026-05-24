@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { sendAdminAlert, sendDiscordDM, embedNovaEncomenda, dmEncomendaCriada } from "@/lib/discord"
 
 export async function GET() {
   const encomendas = await prisma.encomenda.findMany({
@@ -38,6 +39,23 @@ export async function POST(req: NextRequest) {
       note: note ?? null,
     },
   })
+
+  prisma.user
+    .findUnique({ where: { id: session.user.id }, select: { discordId: true } })
+    .then((user) => {
+      if (user?.discordId) {
+        sendDiscordDM(user.discordId, dmEncomendaCriada(session.user.name ?? "Comprador", product.name)).catch(() => {})
+      }
+      sendAdminAlert(embedNovaEncomenda({
+        encomendaId: encomenda.id,
+        buyerName: session.user.name ?? "Comprador",
+        buyerDiscord: user?.discordId ?? null,
+        productName: product.name,
+        quantity,
+        maxPrice: maxPrice ?? null,
+      })).catch(() => {})
+    })
+    .catch(() => {})
 
   return NextResponse.json(encomenda, { status: 201 })
 }

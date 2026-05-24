@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { notifyAdmins } from "@/lib/notify-admins"
+import { sendAdminAlert, embedNovaTroca } from "@/lib/discord"
 
 type Params = { params: Promise<{ id: string; proposalId: string }> }
 
@@ -112,9 +114,46 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const bothConfirmed = updated.ownerConfirmed && updated.proposerConfirmed
     if (bothConfirmed) {
       await prisma.$transaction([
-        prisma.tradeProposal.update({ where: { id: proposalId }, data: { status: "CONCLUIDA" } }),
-        prisma.trade.update({ where: { id: tradeId }, data: { status: "CONCLUIDA" } }),
+        prisma.trade.update({ where: { id: tradeId }, data: { status: "AGUARDANDO_RECOLHIMENTO" } }),
       ])
+
+      // Notifica admins in-app
+      const tradeCode = tradeId.slice(-8).toUpperCase()
+      notifyAdmins(
+        "TRADE_READY",
+        `Troca aguardando recolhimento — #${tradeCode}`,
+        "Ambos os jogadores confirmaram. Colete os itens no jogo.",
+        "/admin/trocas",
+      ).catch(() => {})
+
+      // Discord: alerta no canal admin
+      const fullTrade = await prisma.trade.findUnique({
+        where: { id: tradeId },
+        include: {
+          user: { select: { name: true, discordId: true } },
+          offerItems: { include: { product: { select: { name: true } } } },
+          proposals: {
+            where: { id: proposalId },
+            include: {
+              proposer: { select: { name: true, discordId: true } },
+              offerItems: { include: { product: { select: { name: true } } } },
+            },
+          },
+        },
+      })
+
+      if (fullTrade) {
+        const ap = fullTrade.proposals[0]
+        sendAdminAlert(embedNovaTroca({
+          tradeId,
+          ownerName: fullTrade.user.name,
+          ownerDiscord: fullTrade.user.discordId,
+          proposerName: ap?.proposer.name ?? "Jogador B",
+          proposerDiscord: ap?.proposer.discordId ?? null,
+          ownerItems: fullTrade.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
+          proposerItems: ap?.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })) ?? [],
+        })).catch(() => {})
+      }
     }
 
     return NextResponse.json({ ok: true, concluida: bothConfirmed })
