@@ -83,7 +83,7 @@ export function embedNovoAnuncio(params: {
   const { sellerName, sellerDiscord, items, listingId } = params
   return {
     color: 0x0071e3,
-    title: "📦 Novo anúncio — aguardando aprovação",
+    title: "📦 Novo anúncio publicado",
     fields: [
       { name: "Vendedor", value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
       { name: "ID", value: `#${listingId.slice(-8).toUpperCase()}`, inline: true },
