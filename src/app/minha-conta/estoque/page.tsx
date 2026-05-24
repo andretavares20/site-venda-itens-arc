@@ -58,6 +58,8 @@ export default function MeuEstoquePage() {
   const [filterRarity, setFilterRarity] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
   const [filterCategory, setFilterCategory] = useState("")
+  const [page, setPage] = useState(1)
+  const PER_PAGE = 15
   const [rarityOpen, setRarityOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
   const [categoryOpen, setCategoryOpen] = useState(false)
@@ -95,6 +97,8 @@ export default function MeuEstoquePage() {
   const rarities = [...new Set(items.map(i => i.product.rarity))]
   const categories = [...new Set(items.map(i => i.product.category))].sort()
 
+  const resetPage = () => setPage(1)
+
   const filtered = items.filter(i => {
     const matchSearch = !search || i.product.name.toLowerCase().includes(search.toLowerCase())
     const matchRarity = !filterRarity || i.product.rarity === filterRarity
@@ -105,6 +109,9 @@ export default function MeuEstoquePage() {
       (filterStatus === "esgotado" && (!i.active || i.quantity === 0))
     return matchSearch && matchRarity && matchCategory && matchStatus
   })
+
+  const totalPages = Math.ceil(filtered.length / PER_PAGE)
+  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -135,7 +142,7 @@ export default function MeuEstoquePage() {
               style={{ color: "var(--text-primary)" }}
               placeholder="Buscar por nome..."
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => { setSearch(e.target.value); resetPage() }}
             />
           </div>
 
@@ -151,7 +158,7 @@ export default function MeuEstoquePage() {
               <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-36"
                 style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
                 {["", ...rarities].map(r => (
-                  <button key={r} onClick={() => { setFilterRarity(r); setRarityOpen(false) }}
+                  <button key={r} onClick={() => { setFilterRarity(r); setRarityOpen(false); resetPage() }}
                     className="w-full text-left px-4 py-2 text-sm transition-colors"
                     style={{ color: r ? rarityColor[r] : "var(--text-secondary)", background: filterRarity === r ? "var(--surface-2)" : "transparent" }}
                     onMouseEnter={e => e.currentTarget.style.background = "var(--surface-2)"}
@@ -184,7 +191,7 @@ export default function MeuEstoquePage() {
                   { key: "cancelamento", label: "Cancelamento pendente", color: "var(--warning)" },
                   { key: "esgotado", label: "Esgotado", color: "var(--error)" },
                 ].map(s => (
-                  <button key={s.key} onClick={() => { setFilterStatus(s.key); setStatusOpen(false) }}
+                  <button key={s.key} onClick={() => { setFilterStatus(s.key); setStatusOpen(false); resetPage() }}
                     className="w-full text-left px-4 py-2 text-sm transition-colors"
                     style={{ color: s.color, background: filterStatus === s.key ? "var(--surface-2)" : "transparent" }}
                     onMouseEnter={e => e.currentTarget.style.background = "var(--surface-2)"}
@@ -208,7 +215,7 @@ export default function MeuEstoquePage() {
               <div className="absolute top-full left-0 mt-1 rounded-xl overflow-hidden z-20 min-w-40 max-h-64 overflow-y-auto"
                 style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
                 {["", ...categories].map(c => (
-                  <button key={c} onClick={() => { setFilterCategory(c); setCategoryOpen(false) }}
+                  <button key={c} onClick={() => { setFilterCategory(c); setCategoryOpen(false); resetPage() }}
                     className="w-full text-left px-4 py-2 text-sm transition-colors"
                     style={{ color: "var(--text-secondary)", background: filterCategory === c ? "var(--surface-2)" : "transparent" }}
                     onMouseEnter={e => e.currentTarget.style.background = "var(--surface-2)"}
@@ -259,51 +266,103 @@ export default function MeuEstoquePage() {
             <Link href="/anunciar" className="btn-primary text-sm">Anunciar item</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {filtered.map(item => {
-              const s = statusInfo(item)
-              return (
-                <div key={item.id} className="rounded-2xl overflow-hidden flex flex-col"
-                  style={{ background: "var(--surface-1)", border: `1px solid ${rarityBorder[item.product.rarity] ?? "var(--border)"}` }}>
-
-                  {/* Imagem */}
-                  <div className="relative aspect-square" style={{ background: "#0d0d0d" }}>
-                    <Image src={item.product.image} alt={item.product.name}
-                      fill className="object-contain p-3" />
-                    {/* Badge status */}
-                    <div className="absolute top-2 left-2">
-                      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                        style={{ background: s.bg, color: s.color, fontSize: "10px" }}>
-                        {item.quantity > 0 ? `${item.quantity} un.` : "Esgotado"}
-                      </span>
-                    </div>
-                    {/* Badge raridade */}
-                    <div className="absolute top-2 right-2">
-                      <span className="text-xs px-1.5 py-0.5 rounded font-semibold"
-                        style={{
-                          background: "rgba(0,0,0,0.7)",
-                          color: rarityColor[item.product.rarity] ?? "#98989f",
-                          fontSize: "10px",
-                        }}>
-                        {item.product.rarity}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-3 flex flex-col gap-1" style={{ minHeight: "72px" }}>
-                    <p className="text-xs font-medium line-clamp-2 flex-1"
-                      style={{ color: "var(--text-primary)" }}>
-                      {item.product.name}
-                    </p>
-                    <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-                      R$ {Number(item.price).toFixed(2)}
-                    </p>
-                  </div>
+          <>
+            <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ background: "var(--surface-1)", borderBottom: "1px solid var(--border)" }}>
+                    {["Item", "Raridade", "Categoria", "Qtd", "Preço", "Status"].map(h => (
+                      <th key={h} className="text-left px-4 py-3 font-medium text-xs"
+                        style={{ color: "var(--text-secondary)" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map((item, i) => {
+                    const s = statusInfo(item)
+                    return (
+                      <tr key={item.id}
+                        style={{ background: i % 2 === 0 ? "var(--surface-1)" : "var(--bg)", borderBottom: "1px solid var(--border)" }}>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0"
+                              style={{ background: "#0d0d0d", border: `1px solid ${rarityBorder[item.product.rarity] ?? "var(--border)"}` }}>
+                              <Image src={item.product.image} alt={item.product.name}
+                                width={36} height={36} className="w-full h-full object-contain p-1" />
+                            </div>
+                            <span className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>
+                              {item.product.name}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs font-medium" style={{ color: rarityColor[item.product.rarity] ?? "#98989f" }}>
+                            {item.product.rarity}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs" style={{ color: "var(--text-secondary)" }}>
+                          {item.product.category}
+                        </td>
+                        <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>
+                          {item.quantity}
+                        </td>
+                        <td className="px-4 py-3 font-semibold" style={{ color: "var(--text-primary)" }}>
+                          R$ {Number(item.price).toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs px-2 py-1 rounded-full font-medium"
+                            style={{ background: s.bg, color: s.color }}>
+                            {s.label}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+              {filtered.length === 0 && (
+                <div className="text-center py-10" style={{ color: "var(--text-secondary)" }}>
+                  Nenhum item corresponde aos filtros
                 </div>
-              )
-            })}
-          </div>
+              )}
+            </div>
+
+            {/* Paginação */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                  {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} de {filtered.length} itens
+                </p>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                    className="px-3 py-1 rounded-lg text-xs"
+                    style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: page === 1 ? "var(--text-tertiary)" : "var(--text-secondary)" }}>
+                    ‹ Anterior
+                  </button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const start = Math.max(1, Math.min(page - 2, totalPages - 4))
+                    const p = start + i
+                    return (
+                      <button key={p} onClick={() => setPage(p)}
+                        className="w-8 h-7 rounded-lg text-xs font-medium"
+                        style={{
+                          background: page === p ? "var(--accent)" : "var(--surface-1)",
+                          color: page === p ? "#fff" : "var(--text-secondary)",
+                          border: `1px solid ${page === p ? "transparent" : "var(--border)"}`,
+                        }}>
+                        {p}
+                      </button>
+                    )
+                  })}
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                    className="px-3 py-1 rounded-lg text-xs"
+                    style={{ background: "var(--surface-1)", border: "1px solid var(--border)", color: page === totalPages ? "var(--text-tertiary)" : "var(--text-secondary)" }}>
+                    Próxima ›
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
