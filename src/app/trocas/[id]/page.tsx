@@ -62,6 +62,7 @@ export default function TrocaPage() {
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/trocas/${id}`)
+    if (!res.ok) { setTrade(null); setLoading(false); return }
     const data = await res.json()
     setTrade(data)
     setLoading(false)
@@ -115,6 +116,11 @@ export default function TrocaPage() {
       return
     }
     setSubmittingProp(false)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setPropError(data.error ?? "Erro ao enviar proposta")
+      return
+    }
     setShowProposalForm(false)
     setPropItems([])
     setPropNote("")
@@ -144,10 +150,12 @@ export default function TrocaPage() {
 
   const statusColor: Record<string, string> = {
     ABERTA: "var(--success)", AGUARDANDO_CONFIRMACAO: "var(--warning)",
+    AGUARDANDO_RECOLHIMENTO: "var(--warning)", AGUARDANDO_ENTREGA: "var(--warning)",
     CONCLUIDA: "var(--accent)", CANCELADA: "var(--error)", COM_RECLAMACAO: "var(--error)",
   }
   const statusLabel: Record<string, string> = {
     ABERTA: "Aberta", AGUARDANDO_CONFIRMACAO: "Aguardando confirmação",
+    AGUARDANDO_RECOLHIMENTO: "Aguardando recolhimento", AGUARDANDO_ENTREGA: "Aguardando entrega",
     CONCLUIDA: "Concluída", CANCELADA: "Cancelada", COM_RECLAMACAO: "Com reclamação",
   }
 
