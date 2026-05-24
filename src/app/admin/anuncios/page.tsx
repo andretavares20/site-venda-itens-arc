@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { CheckCircle, Clock, X } from "lucide-react"
+import { CheckCircle, X } from "lucide-react"
 
 type ListingItem = {
   id: string
@@ -12,7 +12,7 @@ type ListingItem = {
 }
 
 type Listing = {
-  id: string 
+  id: string
   status: string
   adminNotes: string | null
   createdAt: string
@@ -29,14 +29,30 @@ const statusLabel: Record<string, string> = {
   DISPONIVEL: "Disponível",
   PARCIALMENTE_VENDIDO: "Parcialmente vendido",
   VENDIDO: "Vendido",
-  CANCELAMENTO_SOLICITADO: "Cancelamento — aguardando devolução",
+  CANCELAMENTO_SOLICITADO: "Cancelamento solicitado",
   CANCELADO: "Cancelado",
 }
+
+type Tab = {
+  key: string
+  label: string
+  statuses: string[]
+  accent: string
+  urgent?: boolean
+}
+
+const TABS: Tab[] = [
+  { key: "pendentes",      label: "Pendentes",             statuses: ["PENDENTE_ENTREGA"],                       accent: "#0071e3", urgent: true },
+  { key: "ativos",         label: "Ativos",                statuses: ["DISPONIVEL", "PARCIALMENTE_VENDIDO"],     accent: "#30d158" },
+  { key: "cancelamentos",  label: "Cancelamentos",         statuses: ["CANCELAMENTO_SOLICITADO"],                accent: "#ffd60a", urgent: true },
+  { key: "concluidos",     label: "Concluídos",            statuses: ["VENDIDO", "CANCELADO"],                   accent: "#98989f" },
+  { key: "todos",          label: "Todos",                 statuses: [],                                          accent: "var(--text-secondary)" },
+]
 
 export default function AdminAnunciosPage() {
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState("PENDENTE_ENTREGA")
+  const [activeTab, setActiveTab] = useState("pendentes")
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [updating, setUpdating] = useState<string | null>(null)
 
@@ -60,29 +76,75 @@ export default function AdminAnunciosPage() {
     load()
   }
 
-  const filtered = listings.filter((l) => filter === "TODOS" || l.status === filter)
+  function countTab(tab: Tab) {
+    if (!tab.statuses.length) return listings.length
+    return listings.filter((l) => tab.statuses.includes(l.status)).length
+  }
+
+  const currentTab = TABS.find((t) => t.key === activeTab)!
+  const filtered = currentTab.statuses.length
+    ? listings.filter((l) => currentTab.statuses.includes(l.status))
+    : listings
+
+  const summaryCards = [
+    { label: "Aguardando entrega",    count: listings.filter((l) => l.status === "PENDENTE_ENTREGA").length,            color: "#0071e3", bg: "rgba(0,113,227,0.08)" },
+    { label: "No ar",                 count: listings.filter((l) => ["DISPONIVEL","PARCIALMENTE_VENDIDO"].includes(l.status)).length, color: "#30d158", bg: "rgba(48,209,88,0.08)" },
+    { label: "Cancelamento pendente", count: listings.filter((l) => l.status === "CANCELAMENTO_SOLICITADO").length,     color: "#ffd60a", bg: "rgba(255,214,10,0.08)" },
+    { label: "Concluídos",            count: listings.filter((l) => ["VENDIDO","CANCELADO"].includes(l.status)).length, color: "#98989f", bg: "rgba(152,152,159,0.08)" },
+  ]
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Anúncios</h1>
-        <div className="flex items-center gap-2">
-          {["PENDENTE_ENTREGA", "DISPONIVEL", "CANCELAMENTO_SOLICITADO", "VENDIDO", "CANCELADO", "TODOS"].map((s) => (
-            <button key={s} onClick={() => setFilter(s)}
-              className="text-xs px-3 py-1.5 rounded-full font-medium transition-colors"
-              style={{
-                background: filter === s ? "var(--accent)" : "var(--surface-2)",
-                color: filter === s ? "#fff" : "var(--text-secondary)",
-              }}>
-              {statusLabel[s] ?? s}
-              {s !== "TODOS" && (
-                <span className="ml-1.5">({listings.filter((l) => l.status === s).length})</span>
-              )}
-            </button>
+      <h1 className="text-2xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>Anúncios</h1>
+
+      {/* Summary cards */}
+      {!loading && (
+        <div className="grid grid-cols-4 gap-3 mb-6">
+          {summaryCards.map((card) => (
+            <div key={card.label} className="rounded-xl px-4 py-3"
+              style={{ background: card.bg, border: `1px solid ${card.color}22` }}>
+              <p className="text-2xl font-bold" style={{ color: card.color }}>{card.count}</p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{card.label}</p>
+            </div>
           ))}
         </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-5" style={{ borderBottom: "1px solid var(--border)", paddingBottom: "0" }}>
+        {TABS.map((tab) => {
+          const count = countTab(tab)
+          const isActive = activeTab === tab.key
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors"
+              style={{
+                color: isActive ? tab.accent : "var(--text-secondary)",
+                background: "transparent",
+                border: "none",
+                borderBottom: isActive ? `2px solid ${tab.accent}` : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: "-1px",
+              }}
+            >
+              {tab.label}
+              {count > 0 && (
+                <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold"
+                  style={{
+                    background: isActive ? tab.accent : tab.urgent && count > 0 ? tab.accent + "22" : "var(--surface-2)",
+                    color: isActive ? "#fff" : tab.urgent && count > 0 ? tab.accent : "var(--text-tertiary)",
+                  }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
+      {/* Content */}
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="w-6 h-6 rounded-full border-2 animate-spin"
@@ -93,6 +155,7 @@ export default function AdminAnunciosPage() {
           {filtered.map((listing) => (
             <div key={listing.id} className="rounded-2xl overflow-hidden"
               style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-3"
                 style={{ borderBottom: "1px solid var(--border)" }}>
@@ -135,9 +198,10 @@ export default function AdminAnunciosPage() {
                 </div>
               ))}
 
-              {/* Ações — cancelamento solicitado: botão de devolução */}
+              {/* Ação — cancelamento solicitado */}
               {listing.status === "CANCELAMENTO_SOLICITADO" && (
-                <div className="px-5 py-3 flex items-center gap-3" style={{ background: "rgba(255,214,10,0.05)", borderTop: "1px solid var(--border)" }}>
+                <div className="px-5 py-3 flex items-center gap-3"
+                  style={{ background: "rgba(255,214,10,0.04)", borderTop: "1px solid var(--border)" }}>
                   <div className="flex-1">
                     <p className="text-xs font-medium" style={{ color: "var(--warning)" }}>
                       Vendedor solicitou cancelamento via Discord
@@ -157,7 +221,7 @@ export default function AdminAnunciosPage() {
                 </div>
               )}
 
-              {/* Ações admin */}
+              {/* Ação — pendente entrega */}
               {listing.status === "PENDENTE_ENTREGA" && (
                 <div className="px-5 py-3 flex items-center gap-3" style={{ background: "var(--surface-1)" }}>
                   <input
@@ -186,9 +250,10 @@ export default function AdminAnunciosPage() {
               )}
             </div>
           ))}
+
           {filtered.length === 0 && (
             <div className="text-center py-16" style={{ color: "var(--text-secondary)" }}>
-              Nenhum anúncio nesta categoria
+              Nenhum anúncio nesta categoria.
             </div>
           )}
         </div>
