@@ -147,7 +147,7 @@ export default function AnunciarPage() {
           <div>
             <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>Anúncio criado!</h1>
             <p style={{ color: "var(--text-secondary)" }}>
-              A administração entrará em contato para retirar os itens in-game. Assim que recebermos, seu anúncio ficará visível na loja.
+              Seu anúncio está em análise. Assim que for aprovado pela equipe, ficará visível na loja.
             </p>
           </div>
           <div className="flex gap-3">

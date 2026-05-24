@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
   // Notificação in-app para admins
   await notifyAdmins(
     "NEW_LISTING",
-    `Novo anúncio para retirar`,
-    `${session.user.name ?? "Vendedor"} anunciou: ${itemNames}. Combine a retirada no Discord.`,
-    "/admin/anuncios",
+    `Novo anúncio para aprovar`,
+    `${session.user.name ?? "Vendedor"} anunciou: ${itemNames}.`,
+    `/admin/anuncios?listing=${listing.id}`,
   )
   sendAdminNewListingEmail({
     adminEmails: [ADMIN_EMAIL],

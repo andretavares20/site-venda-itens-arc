@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
+import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { CheckCircle, X } from "lucide-react"
 
@@ -25,7 +26,7 @@ const rarityColor: Record<string, string> = {
 }
 
 const statusLabel: Record<string, string> = {
-  PENDENTE_ENTREGA: "Pendente entrega",
+  PENDENTE_ENTREGA: "Pendente aprovação",
   DISPONIVEL: "Disponível",
   PARCIALMENTE_VENDIDO: "Parcialmente vendido",
   VENDIDO: "Vendido",
@@ -55,8 +56,17 @@ export default function AdminAnunciosPage() {
   const [activeTab, setActiveTab] = useState("pendentes")
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [updating, setUpdating] = useState<string | null>(null)
+  const searchParams = useSearchParams()
+  const highlightId = searchParams.get("listing")
+  const highlightRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    if (highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+  }, [listings])
 
   async function load() {
     const res = await fetch("/api/anuncios")
@@ -87,7 +97,7 @@ export default function AdminAnunciosPage() {
     : listings
 
   const summaryCards = [
-    { label: "Aguardando entrega",    count: listings.filter((l) => l.status === "PENDENTE_ENTREGA").length,            color: "#0071e3", bg: "rgba(0,113,227,0.08)" },
+    { label: "Aguardando aprovação",   count: listings.filter((l) => l.status === "PENDENTE_ENTREGA").length,            color: "#0071e3", bg: "rgba(0,113,227,0.08)" },
     { label: "No ar",                 count: listings.filter((l) => ["DISPONIVEL","PARCIALMENTE_VENDIDO"].includes(l.status)).length, color: "#30d158", bg: "rgba(48,209,88,0.08)" },
     { label: "Cancelamento pendente", count: listings.filter((l) => l.status === "CANCELAMENTO_SOLICITADO").length,     color: "#ffd60a", bg: "rgba(255,214,10,0.08)" },
     { label: "Concluídos",            count: listings.filter((l) => ["VENDIDO","CANCELADO"].includes(l.status)).length, color: "#98989f", bg: "rgba(152,152,159,0.08)" },
@@ -153,8 +163,13 @@ export default function AdminAnunciosPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {filtered.map((listing) => (
-            <div key={listing.id} className="rounded-2xl overflow-hidden"
-              style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+            <div key={listing.id}
+              ref={listing.id === highlightId ? highlightRef : null}
+              className="rounded-2xl overflow-hidden"
+              style={{
+                background: "var(--surface-1)",
+                border: listing.id === highlightId ? "2px solid var(--accent)" : "1px solid var(--border)",
+              }}>
 
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-3"
@@ -202,26 +217,21 @@ export default function AdminAnunciosPage() {
               {listing.status === "CANCELAMENTO_SOLICITADO" && (
                 <div className="px-5 py-3 flex items-center gap-3"
                   style={{ background: "rgba(255,214,10,0.04)", borderTop: "1px solid var(--border)" }}>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium" style={{ color: "var(--warning)" }}>
-                      Vendedor solicitou cancelamento via Discord
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
-                      Após devolver o item in-game, clique no botão ao lado.
-                    </p>
-                  </div>
+                  <p className="flex-1 text-xs font-medium" style={{ color: "var(--warning)" }}>
+                    Vendedor solicitou cancelamento
+                  </p>
                   <button
                     onClick={() => updateStatus(listing.id, "CANCELADO")}
                     disabled={updating === listing.id}
                     className="btn-primary text-sm flex-shrink-0"
                     style={{ background: "var(--success)" }}
                   >
-                    {updating === listing.id ? "Processando..." : "✓ Item devolvido"}
+                    {updating === listing.id ? "Processando..." : "✓ Confirmar cancelamento"}
                   </button>
                 </div>
               )}
 
-              {/* Ação — pendente entrega */}
+              {/* Ação — pendente aprovação */}
               {listing.status === "PENDENTE_ENTREGA" && (
                 <div className="px-5 py-3 flex items-center gap-3" style={{ background: "var(--surface-1)" }}>
                   <input
@@ -236,7 +246,7 @@ export default function AdminAnunciosPage() {
                     className="btn-primary text-sm flex-shrink-0"
                   >
                     <CheckCircle size={14} />
-                    {updating === listing.id ? "Salvando..." : "Item recebido — Publicar"}
+                    {updating === listing.id ? "Salvando..." : "Aprovar e publicar"}
                   </button>
                   <button
                     onClick={() => updateStatus(listing.id, "CANCELADO")}

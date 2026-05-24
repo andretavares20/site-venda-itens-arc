@@ -4,22 +4,20 @@ import Footer from "@/components/footer"
 import Link from "next/link"
 
 const BUY_STEPS = [
-  { n: "01", title: "O vendedor cria um anúncio",       desc: "O player anuncia seu item dentro da plataforma DropBay." },
-  { n: "02", title: "O item fica pendente",              desc: "Antes do anúncio ser liberado, nossa equipe entra em contato com o vendedor." },
-  { n: "03", title: "A equipe coleta o item",            desc: "Um ADM realiza a coleta do item dentro do jogo." },
-  { n: "04", title: "Item em custódia",                  desc: "Após a coleta, o item fica armazenado com segurança pela equipe DropBay." },
-  { n: "05", title: "Anúncio é liberado",                desc: "Somente após a custódia o anúncio fica disponível no marketplace." },
-  { n: "06", title: "O comprador realiza o pagamento",   desc: "O pagamento é processado de forma segura através da plataforma." },
-  { n: "07", title: "Entrega do item",                   desc: "Nossa equipe realiza a entrega diretamente para o comprador dentro do jogo." },
-  { n: "08", title: "Pagamento liberado ao vendedor",    desc: "Após a entrega confirmada, o valor é liberado ao vendedor." },
+  { n: "01", title: "O vendedor cria um anúncio",       desc: "O player anuncia seu item dentro da plataforma DropBay com o preço desejado." },
+  { n: "02", title: "Anúncio em análise",                desc: "Nossa equipe revisa o anúncio antes de publicá-lo no marketplace." },
+  { n: "03", title: "Anúncio é liberado",                desc: "Após aprovação, o item fica disponível para compra na loja." },
+  { n: "04", title: "O comprador realiza o pagamento",   desc: "O pagamento é processado de forma segura através da plataforma." },
+  { n: "05", title: "Vendedor e comprador combinam",     desc: "Vendedor e comprador entram em contato pelo Discord para combinar a entrega do item in-game." },
+  { n: "06", title: "Pagamento liberado ao vendedor",    desc: "Após a entrega confirmada pelo comprador, o valor é liberado ao vendedor." },
 ]
 
 const TRADE_STEPS = [
   { n: "01", title: "O player cria um anúncio de troca",  desc: "O jogador informa os itens que deseja oferecer e quais itens gostaria de receber." },
-  { n: "02", title: "Players combinam a troca",            desc: "Outro player encontra o anúncio e aceita a proposta de troca." },
-  { n: "03", title: "A equipe recolhe os itens",           desc: "Os dois lados entregam os itens para a equipe DropBay." },
-  { n: "04", title: "Verificação de segurança",            desc: "Confirmamos os itens antes da troca ser concluída." },
-  { n: "05", title: "Entrega final",                       desc: "Os itens são entregues para seus novos donos com segurança." },
+  { n: "02", title: "Players combinam a troca",            desc: "Outro player encontra o anúncio e faz uma proposta de troca." },
+  { n: "03", title: "Ambos confirmam",                     desc: "Os dois jogadores confirmam a troca pela plataforma." },
+  { n: "04", title: "A equipe intermedia a troca",         desc: "Nossa equipe recolhe os itens de cada jogador in-game e garante a troca com segurança." },
+  { n: "05", title: "Entrega final",                       desc: "Os itens são entregues para seus novos donos dentro do jogo." },
 ]
 
 const GUARANTEES = [
@@ -151,7 +149,7 @@ export default function ComoFuncionaPage() {
               Custódia e Segurança.
             </h2>
             <p style={{ color: "#6e6e73", fontSize: "17px", lineHeight: 1.6, marginBottom: "32px", maxWidth: "540px" }}>
-              Toda trade realizada na DropBay passa pela nossa equipe. Isso garante:
+              Toda transação na DropBay é supervisionada pela nossa equipe. Isso garante:
             </p>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "14px" }}>
               {GUARANTEES.map((g, i) => (

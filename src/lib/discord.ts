@@ -59,7 +59,7 @@ export function dmPagamentoConfirmado(buyerName: string, itemName: string): stri
 }
 
 export function dmAnuncioRecebido(sellerName: string): string {
-  return `👋 Olá, **${sellerName}**!\n\nRecebemos seu anúncio na **DropBay**. Nossa equipe vai entrar em contato em breve para combinar a coleta do item dentro do jogo.\n\nFique atento às mensagens por aqui! 🎮`
+  return `👋 Olá, **${sellerName}**!\n\nSeu anúncio foi recebido pela **DropBay** e está em análise. Em breve ficará visível na loja para os compradores.\n\nFique atento às mensagens por aqui! 🎮`
 }
 
 export function dmAnuncioAprovado(sellerName: string, itemName: string): string {
@@ -83,7 +83,7 @@ export function embedNovoAnuncio(params: {
   const { sellerName, sellerDiscord, items, listingId } = params
   return {
     color: 0x0071e3,
-    title: "📦 Novo anúncio — aguardando coleta",
+    title: "📦 Novo anúncio — aguardando aprovação",
     fields: [
       { name: "Vendedor", value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
       { name: "ID", value: `#${listingId.slice(-8).toUpperCase()}`, inline: true },
