@@ -58,6 +58,7 @@ export default function TrocaPage() {
   const [propQuery, setPropQuery] = useState("")
   const [propResults, setPropResults] = useState<Product[]>([])
   const [submittingProp, setSubmittingProp] = useState(false)
+  const [propError, setPropError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/trocas/${id}`)
@@ -92,18 +93,32 @@ export default function TrocaPage() {
   async function submitProposal() {
     if (!propItems.length) return
     setSubmittingProp(true)
-    await fetch(`/api/trocas/${id}/proposta`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        offerItems: propItems.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
-        note: propNote || null,
-      }),
-    })
+    setPropError(null)
+    try {
+      const res = await fetch(`/api/trocas/${id}/proposta`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          offerItems: propItems.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+          note: propNote || null,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setPropError(data.error ?? `Erro ao enviar proposta (${res.status})`)
+        setSubmittingProp(false)
+        return
+      }
+    } catch {
+      setPropError("Erro de conexão. Tente novamente.")
+      setSubmittingProp(false)
+      return
+    }
     setSubmittingProp(false)
     setShowProposalForm(false)
     setPropItems([])
     setPropNote("")
+    setPropError(null)
     load()
   }
 
@@ -277,6 +292,9 @@ export default function TrocaPage() {
                 </div>
                 <textarea className="input-field text-sm resize-none mb-3" rows={2}
                   placeholder="Observação (opcional)" value={propNote} onChange={(e) => setPropNote(e.target.value)} />
+                {propError && (
+                  <p className="text-xs mb-3 px-1" style={{ color: "var(--error)" }}>{propError}</p>
+                )}
                 <div className="flex gap-2">
                   <button onClick={() => setShowProposalForm(false)} className="btn-secondary flex-1 text-sm">Cancelar</button>
                   <button onClick={submitProposal} disabled={!propItems.length || submittingProp} className="btn-primary flex-1 text-sm">

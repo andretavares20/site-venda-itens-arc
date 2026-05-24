@@ -13,7 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const trade = await prisma.trade.findUnique({
     where: { id: tradeId },
-    include: { user: { select: { id: true, name: true, discordId: true } } },
+    include: { user: { select: { id: true, name: true } } },
   })
   if (!trade) return NextResponse.json({ error: "Troca não encontrada" }, { status: 404 })
   if (trade.status !== "ABERTA") return NextResponse.json({ error: "Esta troca não está mais disponível" }, { status: 400 })
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       },
     },
     include: {
-      proposer: { select: { id: true, name: true, discordId: true } },
+      proposer: { select: { id: true, name: true } },
       offerItems: { include: { product: true } },
     },
   })
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
   })
 
-  // In-app notification for admins
+  // Fire-and-forget: admin in-app + Discord DMs (fetching discordId separately to avoid blocking)
   notifyAdmins(
     "TRADE_PROPOSAL",
     "Nova proposta de troca",
@@ -73,13 +73,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     `/admin/trocas`,
   ).catch(() => {})
 
-  // Discord DMs fire-and-forget
-  if (trade.user.discordId) {
-    sendDiscordDM(trade.user.discordId, dmNovaPropostaRecebida(ownerName, proposerName, itemNames)).catch(() => {})
-  }
-  if (proposal.proposer.discordId) {
-    sendDiscordDM(proposal.proposer.discordId, dmPropostaEnviada(proposerName)).catch(() => {})
-  }
+  prisma.user
+    .findMany({
+      where: { id: { in: [trade.userId, session.user.id] } },
+      select: { id: true, discordId: true },
+    })
+    .then((users) => {
+      const owner    = users.find((u) => u.id === trade.userId)
+      const proposer = users.find((u) => u.id === session.user.id)
+      if (owner?.discordId) sendDiscordDM(owner.discordId, dmNovaPropostaRecebida(ownerName, proposerName, itemNames)).catch(() => {})
+      if (proposer?.discordId) sendDiscordDM(proposer.discordId, dmPropostaEnviada(proposerName)).catch(() => {})
+    })
+    .catch(() => {})
 
   return NextResponse.json(proposal)
 }
