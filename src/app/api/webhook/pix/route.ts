@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { createHmac } from "crypto"
 import { decrementStockForOrder } from "@/lib/decrement-stock"
+import { notifyAdmins } from "@/lib/notify-admins"
 
 function validateSignature(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -62,12 +63,28 @@ export async function POST(req: NextRequest) {
       const stockItems = order.items.filter((i) => i.stockId)
       if (stockItems.length > 0) await decrementStockForOrder(stockItems)
 
+      const orderId = order.id.slice(-8).toUpperCase()
+      const isEncomenda = !!order.encomendaProposal?.encomendaId
+
       // Pedido de encomenda: atualiza status da encomenda
-      if (order.encomendaProposal?.encomendaId) {
+      if (isEncomenda) {
         await prisma.encomenda.update({
-          where: { id: order.encomendaProposal.encomendaId },
+          where: { id: order.encomendaProposal!.encomendaId },
           data: { status: "PAGA" },
         })
+        await notifyAdmins(
+          "ORDER_PAID",
+          `Encomenda paga — #${orderId}`,
+          "O comprador pagou. Retire o item com o vendedor e entregue no Discord.",
+          "/admin/pedidos",
+        )
+      } else {
+        await notifyAdmins(
+          "ORDER_PAID",
+          `Pedido pago — #${orderId}`,
+          "Novo pagamento confirmado. Entregue o item ao comprador no Discord.",
+          "/admin/pedidos",
+        )
       }
     }
   }

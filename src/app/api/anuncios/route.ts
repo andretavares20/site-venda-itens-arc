@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
+import { notifyAdmins } from "@/lib/notify-admins"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -48,6 +49,14 @@ export async function POST(req: NextRequest) {
     },
     include: { items: { include: { product: true } } },
   })
+
+  const itemNames = listing.items.map((i) => i.product.name).join(", ")
+  await notifyAdmins(
+    "NEW_LISTING",
+    `Novo anúncio para retirar`,
+    `${session.user.name ?? "Vendedor"} anunciou: ${itemNames}. Combine a retirada no Discord.`,
+    "/admin/anuncios",
+  )
 
   return NextResponse.json(listing)
 }

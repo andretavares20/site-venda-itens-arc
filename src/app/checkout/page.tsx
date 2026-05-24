@@ -7,7 +7,8 @@ import Navbar from "@/components/navbar"
 import { useCart, cartTotal } from "@/store/cart"
 import Link from "next/link"
 import Image from "next/image"
-import { Copy, CheckCircle, QrCode, ArrowLeft, Clock, XCircle, Tag, Loader2 } from "lucide-react"
+import { Copy, CheckCircle, QrCode, ArrowLeft, Clock, XCircle, Tag, Loader2, MessageCircle } from "lucide-react"
+import { DISCORD_URL } from "@/lib/constants"
 
 type PixData = {
   orderId: string
@@ -182,21 +183,38 @@ export default function CheckoutPage() {
               Pagamento confirmado!
             </h1>
             <p style={{ color: "var(--text-secondary)" }}>
-              Seu pedido foi aprovado. Redirecionando...
+              Seu pedido foi aprovado. Em breve nossa equipe entrará em contato para a entrega.
             </p>
           </div>
-          <div
-            className="w-full h-1 rounded-full overflow-hidden"
-            style={{ background: "var(--surface-2)" }}
+
+          <a
+            href={DISCORD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm"
+            style={{ background: "#5865F2", color: "#fff" }}
           >
+            <MessageCircle size={16} />
+            Falar no Discord
+          </a>
+
+          <div className="w-full flex flex-col gap-2">
             <div
-              className="h-full rounded-full"
-              style={{
-                background: "var(--success)",
-                width: "100%",
-                animation: "shrink 3s linear forwards",
-              }}
-            />
+              className="w-full h-1 rounded-full overflow-hidden"
+              style={{ background: "var(--surface-2)" }}
+            >
+              <div
+                className="h-full rounded-full"
+                style={{
+                  background: "var(--success)",
+                  width: "100%",
+                  animation: "shrink 3s linear forwards",
+                }}
+              />
+            </div>
+            <p className="text-xs text-center" style={{ color: "var(--text-tertiary)" }}>
+              Redirecionando para o pedido...
+            </p>
           </div>
           <style>{`
             @keyframes shrink { from { width: 100% } to { width: 0% } }
