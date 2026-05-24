@@ -115,8 +115,62 @@ export function embedNovaTroca(params: {
   }
 }
 
+export function dmTrocaAnunciada(userName: string): string {
+  return `🔄 Olá, **${userName}**!\n\nSua troca foi anunciada na **DropBay**. Assim que outro jogador fizer uma proposta, você receberá uma notificação por aqui.\n\nFique atento! 🎮`
+}
+
+export function dmEncomendaCriada(userName: string, itemName: string): string {
+  return `📋 Olá, **${userName}**!\n\nSua encomenda de **${itemName}** foi registrada na **DropBay**. Assim que um vendedor fizer uma proposta, entraremos em contato.\n\nFique atento às mensagens! 🎮`
+}
+
 export function dmTrocaConcluida(userName: string): string {
   return `🎉 Tudo certo, **${userName}**!\n\nSua troca foi concluída com sucesso. Os itens foram entregues pelos dois lados.\n\nObrigado por usar a **DropBay**! 💚`
+}
+
+export function embedNovaTrocaAnunciada(params: {
+  tradeId: string
+  ownerName: string
+  ownerDiscord: string | null
+  offerItems: { name: string; quantity: number }[]
+  wantItems: { name: string; quantity: number }[]
+}): Embed {
+  const { tradeId, ownerName, ownerDiscord, offerItems, wantItems } = params
+  return {
+    color: 0xFF9F0A,
+    title: "🔄 Nova troca anunciada",
+    fields: [
+      { name: "Jogador", value: ownerDiscord ? `<@${ownerDiscord}> (${ownerName})` : ownerName, inline: true },
+      { name: "ID", value: `#${tradeId.slice(-8).toUpperCase()}`, inline: true },
+      { name: "Oferece", value: offerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
+      { name: "Quer", value: wantItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "Qualquer coisa" },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Marketplace Arc Raiders" },
+  }
+}
+
+export function embedNovaEncomenda(params: {
+  encomendaId: string
+  buyerName: string
+  buyerDiscord: string | null
+  productName: string
+  quantity: number
+  maxPrice: number | null
+}): Embed {
+  const { encomendaId, buyerName, buyerDiscord, productName, quantity, maxPrice } = params
+  return {
+    color: 0x9B59B6,
+    title: "📋 Nova encomenda",
+    fields: [
+      { name: "Comprador", value: buyerDiscord ? `<@${buyerDiscord}> (${buyerName})` : buyerName, inline: true },
+      { name: "ID", value: `#${encomendaId.slice(-8).toUpperCase()}`, inline: true },
+      { name: "Item", value: productName, inline: true },
+      { name: "Quantidade", value: String(quantity), inline: true },
+      { name: "Preço máximo", value: maxPrice ? `R$ ${maxPrice.toFixed(2)}` : "Não informado", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Marketplace Arc Raiders" },
+  }
 }
 
 export function embedPedidoPago(params: {
