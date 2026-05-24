@@ -1,36 +1,54 @@
-import { Client, GatewayIntentBits, TextChannel, EmbedBuilder } from "discord.js"
+const DISCORD_API = "https://discord.com/api/v10"
 
-let client: Client | null = null
-
-async function getClient(): Promise<Client> {
-  if (client?.isReady()) return client
-
-  client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages] })
-  await client.login(process.env.DISCORD_BOT_TOKEN)
-  await new Promise<void>((resolve) => client!.once("ready", () => resolve()))
-  return client
+function botHeaders() {
+  return {
+    Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+    "Content-Type": "application/json",
+  }
 }
 
-// Envia DM para um usuário pelo Discord ID
+async function createDMChannel(discordId: string): Promise<string | null> {
+  const res = await fetch(`${DISCORD_API}/users/@me/channels`, {
+    method: "POST",
+    headers: botHeaders(),
+    body: JSON.stringify({ recipient_id: discordId }),
+  })
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.id
+}
+
 export async function sendDiscordDM(discordId: string, message: string): Promise<boolean> {
   try {
-    const c = await getClient()
-    const user = await c.users.fetch(discordId)
-    await user.send(message)
-    return true
+    const channelId = await createDMChannel(discordId)
+    if (!channelId) return false
+    const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+      method: "POST",
+      headers: botHeaders(),
+      body: JSON.stringify({ content: message }),
+    })
+    return res.ok
   } catch {
     return false
   }
 }
 
-// Posta alerta no canal admin
-export async function sendAdminAlert(embed: EmbedBuilder): Promise<void> {
+type EmbedField = { name: string; value: string; inline?: boolean }
+type Embed = {
+  title?: string
+  color?: number
+  fields?: EmbedField[]
+  timestamp?: string
+  footer?: { text: string }
+}
+
+export async function sendAdminAlert(embed: Embed): Promise<void> {
   try {
-    const c = await getClient()
-    const channel = await c.channels.fetch(process.env.DISCORD_ALERT_CHANNEL_ID!)
-    if (channel instanceof TextChannel) {
-      await channel.send({ embeds: [embed] })
-    }
+    await fetch(`${DISCORD_API}/channels/${process.env.DISCORD_ALERT_CHANNEL_ID}/messages`, {
+      method: "POST",
+      headers: botHeaders(),
+      body: JSON.stringify({ embeds: [embed] }),
+    })
   } catch {}
 }
 
@@ -57,18 +75,19 @@ export function embedNovoAnuncio(params: {
   sellerDiscord: string | null
   items: { name: string; quantity: number; price: number }[]
   listingId: string
-}): EmbedBuilder {
+}): Embed {
   const { sellerName, sellerDiscord, items, listingId } = params
-  return new EmbedBuilder()
-    .setColor(0x0071e3)
-    .setTitle("📦 Novo anúncio — aguardando coleta")
-    .addFields(
+  return {
+    color: 0x0071e3,
+    title: "📦 Novo anúncio — aguardando coleta",
+    fields: [
       { name: "Vendedor", value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
       { name: "ID", value: `#${listingId.slice(-8).toUpperCase()}`, inline: true },
-      { name: "Itens", value: items.map((i) => `• ${i.name} x${i.quantity} — R$ ${i.price.toFixed(2)}`).join("\n") }
-    )
-    .setTimestamp()
-    .setFooter({ text: "DropBay · Marketplace Arc Raiders" })
+      { name: "Itens", value: items.map((i) => `• ${i.name} x${i.quantity} — R$ ${i.price.toFixed(2)}`).join("\n") },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Marketplace Arc Raiders" },
+  }
 }
 
 export function embedNovaTroca(params: {
@@ -79,20 +98,21 @@ export function embedNovaTroca(params: {
   proposerDiscord: string | null
   ownerItems: { name: string; quantity: number }[]
   proposerItems: { name: string; quantity: number }[]
-}): EmbedBuilder {
+}): Embed {
   const { tradeId, ownerName, ownerDiscord, proposerName, proposerDiscord, ownerItems, proposerItems } = params
-  return new EmbedBuilder()
-    .setColor(0xFF9F0A)
-    .setTitle("🔄 Troca aguardando recolhimento")
-    .addFields(
+  return {
+    color: 0xFF9F0A,
+    title: "🔄 Troca aguardando recolhimento",
+    fields: [
       { name: "Jogador A", value: ownerDiscord ? `<@${ownerDiscord}> (${ownerName})` : ownerName, inline: true },
       { name: "Jogador B", value: proposerDiscord ? `<@${proposerDiscord}> (${proposerName})` : proposerName, inline: true },
       { name: "ID", value: `#${tradeId.slice(-8).toUpperCase()}`, inline: true },
       { name: "Itens de A", value: ownerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
       { name: "Itens de B", value: proposerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
-    )
-    .setTimestamp()
-    .setFooter({ text: "DropBay · Marketplace Arc Raiders" })
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Marketplace Arc Raiders" },
+  }
 }
 
 export function dmTrocaConcluida(userName: string): string {
@@ -105,17 +125,18 @@ export function embedPedidoPago(params: {
   sellerDiscord: string | null
   itemName: string
   total: number
-}): EmbedBuilder {
+}): Embed {
   const { buyerName, sellerName, sellerDiscord, itemName, total } = params
-  return new EmbedBuilder()
-    .setColor(0x30d158)
-    .setTitle("💸 Pedido pago — entregar item")
-    .addFields(
+  return {
+    color: 0x30d158,
+    title: "💸 Pedido pago — entregar item",
+    fields: [
       { name: "Comprador", value: buyerName, inline: true },
       { name: "Vendedor", value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
-      { name: "Item", value: itemName, inline: false },
-      { name: "Total", value: `R$ ${total.toFixed(2)}`, inline: true }
-    )
-    .setTimestamp()
-    .setFooter({ text: "DropBay · Marketplace Arc Raiders" })
+      { name: "Item", value: itemName },
+      { name: "Total", value: `R$ ${total.toFixed(2)}`, inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Marketplace Arc Raiders" },
+  }
 }
