@@ -34,5 +34,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     },
   })
 
+  const itemNames = proposal.offerItems.map((i) => i.product.name).join(", ")
+  await prisma.notification.create({
+    data: {
+      userId: trade.userId,
+      type: "TRADE_PROPOSAL",
+      title: "Nova proposta de troca",
+      body: `${proposal.proposer.name} quer trocar: ${itemNames}.`,
+      link: `/trocas/${tradeId}`,
+    },
+  })
+
   return NextResponse.json(proposal)
 }
