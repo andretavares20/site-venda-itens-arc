@@ -144,7 +144,7 @@ export default function AdminTrocas() {
                 {TAB_LABELS[t]} ({count})
                 {isUrgent && tab !== t && (
                   <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full"
-                    style={{ background: t === "COM_RECLAMACAO" ? "var(--error)" : "#FF9F0A" }} />
+                    style={{ background: "#FF9F0A" }} />
                 )}
               </button>
             )
