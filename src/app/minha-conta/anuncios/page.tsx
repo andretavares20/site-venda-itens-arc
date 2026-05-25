@@ -45,11 +45,10 @@ export default function MeusAnunciosPage() {
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
-  const [showDiscord, setShowDiscord] = useState(false)
+  const [cancelError, setCancelError] = useState("")
+  const [cancelPendente, setCancelPendente] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const confirmListing = confirmId ? listings.find((l) => l.id === confirmId) : null
-  const hasFee = confirmListing?.status === "DISPONIVEL"
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }
@@ -72,15 +71,22 @@ useEffect(() => {
   async function handleCancel(id: string) {
     setConfirmId(null)
     setCancelling(id)
+    setCancelError("")
     const res = await fetch(`/api/anuncios/${id}/cancelar`, { method: "POST" })
     const data = await res.json()
     setCancelling(null)
 
-    if (data.type === "imediato") {
-      setListings((prev) => prev.map((l) => l.id === id ? { ...l, status: "CANCELADO" } : l))
-    } else if (data.type === "discord") {
+    if (!res.ok) {
+      setCancelError(data.error ?? "Erro ao cancelar anúncio")
+      return
+    }
+
+    if (data.type === "pendente") {
       setListings((prev) => prev.map((l) => l.id === id ? { ...l, status: "CANCELAMENTO_SOLICITADO" } : l))
-      setShowDiscord(true)
+      setCancelPendente(true)
+      setConfirmId(id)
+    } else {
+      setListings((prev) => prev.map((l) => l.id === id ? { ...l, status: "CANCELADO" } : l))
     }
   }
 
@@ -193,36 +199,18 @@ useEffect(() => {
         )}
       </main>
 
-      {/* Modal Discord — cancelamento de item disponível */}
-      <Dialog
-        open={showDiscord}
-        title="Cancelamento solicitado"
-        message="Seu item está com a administração. Entre em contato no Discord para combinarmos a devolução."
-        onClose={() => setShowDiscord(false)}
-        actions={[
-          {
-            label: "Abrir Discord",
-            variant: "default",
-            onClick: () => { window.open("https://discord.gg/W6PMjDwa", "_blank"); setShowDiscord(false) },
-          },
-          {
-            label: "Fechar",
-            variant: "cancel",
-            onClick: () => setShowDiscord(false),
-          },
-        ]}
-      />
-
       <Dialog
         open={!!confirmId}
-        title="Cancelar anúncio?"
+        title={cancelPendente ? "Cancelamento pendente" : cancelError ? "Erro" : "Cancelar anúncio?"}
         message={
-          hasFee
-            ? "Como o item está disponível na loja, o cancelamento será solicitado e você deve entrar em contato no Discord para devolvermos o item."
-            : "Como o item ainda não foi entregue à administração, o cancelamento é gratuito e imediato."
+          cancelPendente
+            ? "Há um pedido pago com itens deste anúncio. O cancelamento foi solicitado e a administração entrará em contato para resolver."
+            : cancelError || "O anúncio será removido da loja imediatamente."
         }
-        onClose={() => setConfirmId(null)}
-        actions={[
+        onClose={() => { setConfirmId(null); setCancelError(""); setCancelPendente(false) }}
+        actions={cancelPendente || cancelError ? [
+          { label: "Fechar", variant: "cancel", onClick: () => { setConfirmId(null); setCancelError(""); setCancelPendente(false) } },
+        ] : [
           {
             label: "Cancelar anúncio",
             variant: "destructive",

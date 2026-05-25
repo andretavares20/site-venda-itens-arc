@@ -305,6 +305,29 @@ export function embedNovaEncomenda(params: {
   }
 }
 
+export function embedCancelamentoPendente(params: {
+  listingId: string
+  sellerName: string
+  sellerDiscord: string | null
+  buyerName: string
+  items: { name: string; quantity: number }[]
+}): Embed {
+  const { listingId, sellerName, sellerDiscord, buyerName, items } = params
+  return {
+    color: 0xFF9F0A,
+    title: "⚠️ Cancelamento pendente — pedido pago",
+    fields: [
+      { name: "Vendedor",  value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
+      { name: "Comprador", value: buyerName, inline: true },
+      { name: "Anúncio",   value: `#${listingId.slice(-8).toUpperCase()}`, inline: true },
+      { name: "Itens",     value: items.map((i) => `• ${i.name} x${i.quantity}`).join("\n") },
+      { name: "Situação",  value: "O vendedor solicitou cancelamento, mas há um pedido pago em aberto. A administração precisa intervir (reembolso ao comprador ou entrega do item)." },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Marketplace Arc Raiders" },
+  }
+}
+
 export function embedPedidoPago(params: {
   buyerName: string
   sellerName: string
