@@ -44,7 +44,11 @@ export async function createPrivateChannel(params: {
       permission_overwrites: permissionOverwrites,
     }),
   })
-  if (!res.ok) return null
+  if (!res.ok) {
+    const err = await res.text()
+    console.error("[Discord] createPrivateChannel failed:", res.status, err)
+    return null
+  }
   const channel = await res.json()
 
   await fetch(`${DISCORD_API}/channels/${channel.id}/messages`, {
