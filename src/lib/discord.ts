@@ -150,15 +150,15 @@ type Embed = {
 
 export async function sendAdminAlert(embed: Embed): Promise<void> {
   try {
-    const res = await fetch(`${DISCORD_API}/channels/${process.env.DISCORD_ALERT_CHANNEL_ID}/messages`, {
+    const channelId = process.env.DISCORD_ALERT_CHANNEL_ID
+    console.log("[Discord] sendAdminAlert → channel:", channelId)
+    const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
       method: "POST",
       headers: botHeaders(),
       body: JSON.stringify({ embeds: [embed] }),
     })
-    if (!res.ok) {
-      const body = await res.text()
-      console.error("[Discord] sendAdminAlert failed:", res.status, body)
-    }
+    const body = await res.text()
+    console.log("[Discord] sendAdminAlert status:", res.status, body)
   } catch (e) {
     console.error("[Discord] sendAdminAlert error:", e)
   }
