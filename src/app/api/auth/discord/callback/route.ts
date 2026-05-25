@@ -24,7 +24,11 @@ export async function GET(req: NextRequest) {
     }),
   })
 
-  if (!tokenRes.ok) return NextResponse.redirect(`${BASE_URL}minha-conta/perfil?discord=erro`)
+  if (!tokenRes.ok) {
+    const errBody = await tokenRes.text()
+    console.error("[Discord OAuth] token exchange failed:", tokenRes.status, errBody)
+    return NextResponse.redirect(`${BASE_URL}minha-conta/perfil?discord=erro`)
+  }
 
   const { access_token } = await tokenRes.json()
 
