@@ -95,36 +95,23 @@ export default function TrocaPage() {
     if (!propItems.length) return
     setSubmittingProp(true)
     setPropError(null)
-    try {
-      const res = await fetch(`/api/trocas/${id}/proposta`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          offerItems: propItems.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
-          note: propNote || null,
-        }),
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setPropError(data.error ?? `Erro ao enviar proposta (${res.status})`)
-        setSubmittingProp(false)
-        return
-      }
-    } catch {
-      setPropError("Erro de conexão. Tente novamente.")
-      setSubmittingProp(false)
-      return
-    }
+    const res = await fetch(`/api/trocas/${id}/proposta`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        offerItems: propItems.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+        note: propNote || null,
+      }),
+    })
     setSubmittingProp(false)
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      setPropError(data.error ?? "Erro ao enviar proposta")
+      setPropError(data.error ?? `Erro ao enviar proposta (${res.status})`)
       return
     }
     setShowProposalForm(false)
     setPropItems([])
     setPropNote("")
-    setPropError(null)
     load()
   }
 
