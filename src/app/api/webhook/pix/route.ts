@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
     })
+    if (!mpRes.ok) return NextResponse.json({ error: "Erro ao consultar pagamento" }, { status: 500 })
     const mpPayment = await mpRes.json()
     if (mpPayment.status !== "approved") return NextResponse.json({ ok: true })
 

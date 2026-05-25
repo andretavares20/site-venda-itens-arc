@@ -8,6 +8,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Plus, Clock, CheckCircle, XCircle, ShoppingBag, Package, MessageCircle, AlertCircle } from "lucide-react"
 import Dialog from "@/components/dialog"
+import { toast } from "@/lib/toast-store"
 
 type ListingItem = {
   id: string
@@ -87,6 +88,7 @@ useEffect(() => {
       setConfirmId(id)
     } else {
       setListings((prev) => prev.map((l) => l.id === id ? { ...l, status: "CANCELADO" } : l))
+      toast("Anúncio cancelado com sucesso.")
     }
   }
 

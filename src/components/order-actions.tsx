@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { AlertTriangle, CheckCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { toast } from "@/lib/toast-store"
 
 type Props = {
   orderId: string
@@ -28,6 +29,7 @@ export default function OrderActions({ orderId, buyerReceived, canComplain, hasO
     })
     setLoadingReceive(false)
     if (res.ok) {
+      toast("Recebimento confirmado! Pagamento liberado ao vendedor.")
       router.refresh()
     } else {
       const data = await res.json()
@@ -45,6 +47,7 @@ export default function OrderActions({ orderId, buyerReceived, canComplain, hasO
     })
     setLoadingComplaint(false)
     if (res.ok) {
+      toast("Reclamação aberta. A administração entrará em contato.", "info")
       router.refresh()
     } else {
       const data = await res.json()
