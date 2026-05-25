@@ -18,6 +18,7 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get("verificado")) setSuccess("Email verificado com sucesso! Faça login.")
+    if (params.get("redefinido")) setSuccess("Senha redefinida com sucesso! Faça login.")
     if (params.get("erro") === "token-invalido") setError("Link de verificação inválido.")
     if (params.get("erro") === "token-expirado") setError("Link expirado. Crie uma nova conta.")
   }, [])
@@ -123,6 +124,15 @@ export default function LoginPage() {
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Link href="/esqueci-senha" className="text-xs transition-colors"
+              style={{ color: "var(--text-tertiary)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-tertiary)")}>
+              Esqueci minha senha
+            </Link>
           </div>
 
           <button
