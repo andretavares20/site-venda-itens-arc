@@ -8,6 +8,7 @@ import { ArrowLeftRight, CheckCircle, XCircle, AlertCircle, Search, Plus, X, Clo
 import Image from "next/image"
 import Link from "next/link"
 import Dialog from "@/components/dialog"
+import { toast } from "@/lib/toast-store"
 
 const rarityColor: Record<string, string> = {
   Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3", Epic: "#bf5af2", Legendary: "#ffd60a",
@@ -79,15 +80,24 @@ export default function TrocaPage() {
     return () => clearTimeout(t)
   }, [propQuery])
 
+  const actionToast: Record<string, string> = {
+    aceitar:   "Proposta aceita! Aguarde a confirmação do outro jogador.",
+    recusar:   "Proposta recusada.",
+    confirmar: "Confirmação registrada!",
+    cancelar:  "Troca cancelada.",
+  }
+
   async function doAction(action: string, proposalId: string) {
     setActing(proposalId + action)
     setConfirmDialog(null)
-    await fetch(`/api/trocas/${id}/proposta/${proposalId}`, {
+    const res = await fetch(`/api/trocas/${id}/proposta/${proposalId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
     })
     setActing(null)
+    if (res.ok) toast(actionToast[action] ?? "Ação realizada.")
+    else toast("Erro ao realizar ação. Tente novamente.", "error")
     load()
   }
 
@@ -112,6 +122,7 @@ export default function TrocaPage() {
     setShowProposalForm(false)
     setPropItems([])
     setPropNote("")
+    toast("Proposta enviada! O dono do anúncio será notificado.")
     load()
   }
 
