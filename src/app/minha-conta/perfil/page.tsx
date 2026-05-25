@@ -137,7 +137,7 @@ export default function PerfilPage() {
             <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Discord</h2>
           </div>
           <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
-            Conecte seu Discord para receber notificações sobre coleta e entrega dos seus itens.
+            Conecte seu Discord para receber notificações sobre seus anúncios, pedidos e trocas.
           </p>
           {discordStatus === "ok" && (
             <p className="text-xs mb-3 flex items-center gap-1.5" style={{ color: "var(--success)" }}>

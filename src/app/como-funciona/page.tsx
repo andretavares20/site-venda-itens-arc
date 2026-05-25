@@ -4,36 +4,41 @@ import Footer from "@/components/footer"
 import Link from "next/link"
 
 const BUY_STEPS = [
-  { n: "01", title: "O vendedor cria um anúncio",       desc: "O player anuncia seu item dentro da plataforma DropBay." },
-  { n: "02", title: "O item fica pendente",              desc: "Antes do anúncio ser liberado, nossa equipe entra em contato com o vendedor." },
-  { n: "03", title: "A equipe coleta o item",            desc: "Um ADM realiza a coleta do item dentro do jogo." },
-  { n: "04", title: "Item em custódia",                  desc: "Após a coleta, o item fica armazenado com segurança pela equipe DropBay." },
-  { n: "05", title: "Anúncio é liberado",                desc: "Somente após a custódia o anúncio fica disponível no marketplace." },
-  { n: "06", title: "O comprador realiza o pagamento",   desc: "O pagamento é processado de forma segura através da plataforma." },
-  { n: "07", title: "Entrega do item",                   desc: "Nossa equipe realiza a entrega diretamente para o comprador dentro do jogo." },
-  { n: "08", title: "Pagamento liberado ao vendedor",    desc: "Após a entrega confirmada, o valor é liberado ao vendedor." },
+  { n: "01", title: "O vendedor cria um anúncio",        desc: "O player anuncia seu item na DropBay com o preço desejado. O anúncio fica disponível imediatamente na loja." },
+  { n: "02", title: "O comprador realiza o pagamento",    desc: "O comprador encontra o item e efetua o pagamento de forma segura pela plataforma. O valor fica retido até a entrega ser confirmada." },
+  { n: "03", title: "Vendedor e comprador se encontram",  desc: "Após o pagamento, ambos recebem uma notificação e entram em contato pelo Discord para combinar a entrega do item in-game." },
+  { n: "04", title: "Entrega realizada in-game",          desc: "Os jogadores se encontram dentro de ARC Raiders e o item é entregue diretamente pelo vendedor ao comprador." },
+  { n: "05", title: "Comprador confirma a entrega",       desc: "Após receber o item, o comprador confirma a entrega no site. O valor é então liberado ao vendedor." },
 ]
 
 const TRADE_STEPS = [
-  { n: "01", title: "O player cria um anúncio de troca",  desc: "O jogador informa os itens que deseja oferecer e quais itens gostaria de receber." },
-  { n: "02", title: "Players combinam a troca",            desc: "Outro player encontra o anúncio e aceita a proposta de troca." },
-  { n: "03", title: "A equipe recolhe os itens",           desc: "Os dois lados entregam os itens para a equipe DropBay." },
-  { n: "04", title: "Verificação de segurança",            desc: "Confirmamos os itens antes da troca ser concluída." },
-  { n: "05", title: "Entrega final",                       desc: "Os itens são entregues para seus novos donos com segurança." },
+  { n: "01", title: "O player cria um anúncio de troca",  desc: "O jogador informa os itens que oferece e o que deseja receber. Pode aceitar qualquer proposta ou especificar itens de interesse." },
+  { n: "02", title: "Outro player faz uma proposta",      desc: "Interessados enviam propostas com os itens que oferecem em troca. O dono do anúncio recebe uma notificação." },
+  { n: "03", title: "O dono aceita uma proposta",         desc: "Ao aceitar, ambos os jogadores são notificados e precisam confirmar a troca no site." },
+  { n: "04", title: "Ambos confirmam",                    desc: "Com a confirmação dos dois lados, a troca está pronta. Ambos recebem contato via Discord." },
+  { n: "05", title: "Entrega direta in-game",             desc: "Os dois jogadores se encontram pelo Discord e combinam a troca dos itens dentro do jogo." },
+]
+
+const ORDER_STEPS = [
+  { n: "01", title: "O comprador cria uma encomenda",     desc: "O player informa o item que busca, a quantidade desejada e o preço máximo que está disposto a pagar (opcional)." },
+  { n: "02", title: "Um vendedor faz uma proposta",       desc: "Vendedores que possuem o item encontram a encomenda e enviam uma proposta de preço." },
+  { n: "03", title: "O comprador aceita e paga",          desc: "O comprador escolhe a melhor oferta e realiza o pagamento. O valor fica retido até a entrega ser confirmada." },
+  { n: "04", title: "Combinam a entrega via Discord",     desc: "Comprador e vendedor entram em contato pelo Discord para combinar a entrega do item in-game." },
+  { n: "05", title: "Pagamento liberado ao vendedor",     desc: "Após o comprador confirmar o recebimento no site, o valor é liberado ao vendedor." },
 ]
 
 const GUARANTEES = [
-  "Mais segurança em todas as transações",
-  "Redução de golpes entre players",
-  "Confirmação dos itens antes de cada trade",
-  "Maior confiança entre compradores e vendedores",
+  "Pagamento retido em custódia até a confirmação da entrega",
+  "Notificações automáticas por Discord em cada etapa",
+  "Histórico de todas as transações acessível na sua conta",
+  "Suporte da equipe DropBay em caso de disputa ou problema",
 ]
 
 function StepList({ steps, dark }: { steps: typeof BUY_STEPS; dark: boolean }) {
-  const text    = dark ? "#f5f5f7"              : "#1d1d1f"
-  const sub     = dark ? "rgba(255,255,255,0.5)" : "#6e6e73"
-  const accent  = dark ? "#0071e3"              : "#0071e3"
-  const border  = dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"
+  const text   = dark ? "#f5f5f7"               : "#1d1d1f"
+  const sub    = dark ? "rgba(255,255,255,0.5)" : "#6e6e73"
+  const accent = dark ? "#0071e3"               : "#0071e3"
+  const border = dark ? "rgba(255,255,255,0.08)": "rgba(0,0,0,0.08)"
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -89,23 +94,26 @@ export default function ComoFuncionaPage() {
               Como Funciona.
             </h1>
             <p className="mx-auto"
-              style={{ color: "var(--text-secondary)", maxWidth: "460px", lineHeight: 1.6, fontSize: "17px" }}>
-              A DropBay foi criada para tornar as trades de ARC Raiders mais seguras para compradores e vendedores, através de custódia de itens e intermediação da nossa equipe.
+              style={{ color: "var(--text-secondary)", maxWidth: "500px", lineHeight: 1.6, fontSize: "17px" }}>
+              A DropBay conecta compradores e vendedores de ARC Raiders de forma segura. As trocas acontecem diretamente entre os jogadores via Discord — sem intermediários na entrega.
             </p>
           </div>
         </section>
 
-        {/* Compra — fundo branco */}
+        {/* Compra — fundo claro */}
         <section style={{ background: "#f5f5f7" }}>
           <div className="max-w-3xl mx-auto px-6 py-16">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
               Marketplace
             </p>
-            <h2 className="font-bold tracking-tight mb-10"
+            <h2 className="font-bold tracking-tight mb-2"
               style={{ color: "#1d1d1f", fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
               Compra de Itens.
             </h2>
+            <p style={{ color: "#6e6e73", fontSize: "15px", lineHeight: 1.6, marginBottom: "32px" }}>
+              Compre itens de outros jogadores com pagamento seguro. A entrega é combinada diretamente via Discord.
+            </p>
             <StepList steps={BUY_STEPS} dark={false} />
             <div className="mt-10">
               <Link href="/loja"
@@ -117,17 +125,20 @@ export default function ComoFuncionaPage() {
           </div>
         </section>
 
-        {/* Troca — fundo preto */}
+        {/* Troca — fundo escuro */}
         <section style={{ background: "#000" }}>
           <div className="max-w-3xl mx-auto px-6 py-16">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
               Gratuito
             </p>
-            <h2 className="font-bold tracking-tight mb-10"
+            <h2 className="font-bold tracking-tight mb-2"
               style={{ color: "#f5f5f7", fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
               Troca de Itens.
             </h2>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "15px", lineHeight: 1.6, marginBottom: "32px" }}>
+              Troque itens com outros jogadores sem envolver dinheiro. Tudo combinado diretamente entre os dois lados via Discord.
+            </p>
             <StepList steps={TRADE_STEPS} dark={true} />
             <div className="mt-10">
               <Link href="/trocas"
@@ -139,48 +150,73 @@ export default function ComoFuncionaPage() {
           </div>
         </section>
 
-        {/* Custódia — fundo branco */}
+        {/* Encomenda — fundo claro */}
         <section style={{ background: "#f5f5f7" }}>
           <div className="max-w-3xl mx-auto px-6 py-16">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+              Sob demanda
+            </p>
+            <h2 className="font-bold tracking-tight mb-2"
+              style={{ color: "#1d1d1f", fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Encomendas.
+            </h2>
+            <p style={{ color: "#6e6e73", fontSize: "15px", lineHeight: 1.6, marginBottom: "32px" }}>
+              Não encontrou o item que procura na loja? Crie uma encomenda e deixe os vendedores virem até você.
+            </p>
+            <StepList steps={ORDER_STEPS} dark={false} />
+            <div className="mt-10">
+              <Link href="/encomendas/nova"
+                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
+                Criar uma encomenda
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Segurança — fundo escuro */}
+        <section style={{ background: "#000" }}>
+          <div className="max-w-3xl mx-auto px-6 py-16">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
               Nossa garantia
             </p>
             <h2 className="font-bold tracking-tight mb-4"
-              style={{ color: "#1d1d1f", fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-              Custódia e Segurança.
+              style={{ color: "#f5f5f7", fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Como garantimos segurança.
             </h2>
-            <p style={{ color: "#6e6e73", fontSize: "17px", lineHeight: 1.6, marginBottom: "32px", maxWidth: "540px" }}>
-              Toda trade realizada na DropBay passa pela nossa equipe. Isso garante:
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "17px", lineHeight: 1.6, marginBottom: "32px", maxWidth: "540px" }}>
+              Mesmo com entrega direta entre jogadores, a DropBay mantém mecanismos de proteção em toda transação:
             </p>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "14px" }}>
               {GUARANTEES.map((g, i) => (
-                <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px", fontSize: "16px", color: "#1d1d1f" }}>
+                <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px", fontSize: "16px", color: "#f5f5f7" }}>
                   <span style={{ color: "#0071e3", fontWeight: 700, flexShrink: 0, marginTop: "1px" }}>—</span>
                   {g}
                 </li>
               ))}
             </ul>
-            <p style={{ color: "#6e6e73", fontSize: "16px", lineHeight: 1.6, marginTop: "32px", maxWidth: "540px" }}>
-              Nosso objetivo é fortalecer a comunidade brasileira de ARC Raiders através de um ambiente seguro para trades entre players.
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "15px", lineHeight: 1.6, marginTop: "32px", maxWidth: "540px" }}>
+              Em caso de problema, nossa equipe analisa o histórico da transação e oferece suporte para resolução.
             </p>
           </div>
         </section>
 
-        {/* Aviso — fundo preto */}
-        <section style={{ background: "#000" }}>
+        {/* Aviso — fundo claro */}
+        <section style={{ background: "#f5f5f7" }}>
           <div className="max-w-3xl mx-auto px-6 py-16">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
               Aviso importante
             </p>
             <h2 className="font-bold tracking-tight mb-4"
-              style={{ color: "#f5f5f7", fontSize: "clamp(1.6rem, 3vw, 2.2rem)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+              style={{ color: "#1d1d1f", fontSize: "clamp(1.6rem, 3vw, 2.2rem)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
               Sem afiliação oficial.
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "16px", lineHeight: 1.7, maxWidth: "540px" }}>
+            <p style={{ color: "#6e6e73", fontSize: "16px", lineHeight: 1.7, maxWidth: "540px" }}>
               A DropBay não possui afiliação oficial com ARC Raiders ou com seus desenvolvedores.
-              Somos uma plataforma criada pela comunidade para facilitar trades entre jogadores.
+              Somos uma plataforma criada pela comunidade para facilitar trades entre jogadores de forma segura.
             </p>
           </div>
         </section>

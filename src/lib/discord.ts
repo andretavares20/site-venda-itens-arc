@@ -1,9 +1,115 @@
 const DISCORD_API = "https://discord.com/api/v10"
 
+// VIEW_CHANNEL + SEND_MESSAGES + READ_MESSAGE_HISTORY
+const CHANNEL_PERMS = "68608"
+
 function botHeaders() {
   return {
     Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
     "Content-Type": "application/json",
+  }
+}
+
+// ── Canais privados temporários ────────────────────────────────────
+
+export async function createPrivateChannel(params: {
+  name: string
+  topic: string
+  memberDiscordIds: string[]
+  introEmbed: Embed
+}): Promise<string | null> {
+  const guildId    = process.env.DISCORD_GUILD_ID
+  const categoryId = process.env.DISCORD_ORDERS_CATEGORY_ID
+  const adminRole  = process.env.DISCORD_ADMIN_ROLE_ID
+  if (!guildId || !categoryId || !adminRole) return null
+
+  const permissionOverwrites = [
+    { id: guildId,   type: 0, deny:  "1024" },          // @everyone sem acesso
+    { id: adminRole, type: 0, allow: CHANNEL_PERMS },    // role admin com acesso
+    ...params.memberDiscordIds.map((id) => ({
+      id,
+      type: 1,
+      allow: CHANNEL_PERMS,
+    })),
+  ]
+
+  const res = await fetch(`${DISCORD_API}/guilds/${guildId}/channels`, {
+    method: "POST",
+    headers: botHeaders(),
+    body: JSON.stringify({
+      name: params.name,
+      type: 0,
+      parent_id: categoryId,
+      topic: params.topic,
+      permission_overwrites: permissionOverwrites,
+    }),
+  })
+  if (!res.ok) return null
+  const channel = await res.json()
+
+  await fetch(`${DISCORD_API}/channels/${channel.id}/messages`, {
+    method: "POST",
+    headers: botHeaders(),
+    body: JSON.stringify({ embeds: [params.introEmbed] }),
+  }).catch(() => {})
+
+  return channel.id as string
+}
+
+export async function deleteDiscordChannel(channelId: string): Promise<void> {
+  await fetch(`${DISCORD_API}/channels/${channelId}`, {
+    method: "DELETE",
+    headers: botHeaders(),
+  }).catch(() => {})
+}
+
+// ── Embeds para canais de pedido e troca ──────────────────────────
+
+export function embedCanalPedido(params: {
+  orderId: string
+  buyerName: string
+  buyerDiscord: string | null
+  sellerName: string
+  sellerDiscord: string | null
+  items: { name: string; quantity: number }[]
+}): Embed {
+  const { orderId, buyerName, buyerDiscord, sellerName, sellerDiscord, items } = params
+  return {
+    color: 0x5865F2,
+    title: `🛒 Pedido #${orderId}`,
+    fields: [
+      { name: "Comprador", value: buyerDiscord ? `<@${buyerDiscord}> (${buyerName})` : buyerName, inline: true },
+      { name: "Vendedor",  value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
+      { name: "Itens",     value: items.map((i) => `• ${i.name} x${i.quantity}`).join("\n") },
+      { name: "Como proceder", value: "Combinem aqui a entrega do item in-game. Após receber, o comprador confirma no site para liberar o pagamento." },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Canal removido automaticamente após a entrega" },
+  }
+}
+
+export function embedCanalTroca(params: {
+  tradeId: string
+  ownerName: string
+  ownerDiscord: string | null
+  proposerName: string
+  proposerDiscord: string | null
+  ownerItems: { name: string; quantity: number }[]
+  proposerItems: { name: string; quantity: number }[]
+}): Embed {
+  const { tradeId, ownerName, ownerDiscord, proposerName, proposerDiscord, ownerItems, proposerItems } = params
+  return {
+    color: 0xFF9F0A,
+    title: `🔄 Troca #${tradeId}`,
+    fields: [
+      { name: "Jogador A", value: ownerDiscord ? `<@${ownerDiscord}> (${ownerName})` : ownerName, inline: true },
+      { name: "Jogador B", value: proposerDiscord ? `<@${proposerDiscord}> (${proposerName})` : proposerName, inline: true },
+      { name: "Itens de A", value: ownerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
+      { name: "Itens de B", value: proposerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
+      { name: "Como proceder", value: "Combinem aqui a troca dos itens in-game. Após trocar, ambos confirmam no site para concluir." },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Canal removido automaticamente após a conclusão" },
   }
 }
 
@@ -59,7 +165,7 @@ export function dmPagamentoConfirmado(buyerName: string, itemName: string): stri
 }
 
 export function dmAnuncioRecebido(sellerName: string): string {
-  return `👋 Olá, **${sellerName}**!\n\nRecebemos seu anúncio na **DropBay**. Nossa equipe vai entrar em contato em breve para combinar a coleta do item dentro do jogo.\n\nFique atento às mensagens por aqui! 🎮`
+  return `👋 Olá, **${sellerName}**!\n\nSeu anúncio foi recebido pela **DropBay** e está em análise. Em breve ficará visível na loja para os compradores.\n\nFique atento às mensagens por aqui! 🎮`
 }
 
 export function dmAnuncioAprovado(sellerName: string, itemName: string): string {
@@ -83,7 +189,7 @@ export function embedNovoAnuncio(params: {
   const { sellerName, sellerDiscord, items, listingId } = params
   return {
     color: 0x0071e3,
-    title: "📦 Novo anúncio — aguardando coleta",
+    title: "📦 Novo anúncio publicado",
     fields: [
       { name: "Vendedor", value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
       { name: "ID", value: `#${listingId.slice(-8).toUpperCase()}`, inline: true },
@@ -117,6 +223,14 @@ export function embedNovaTroca(params: {
     timestamp: new Date().toISOString(),
     footer: { text: "DropBay · Marketplace Arc Raiders" },
   }
+}
+
+export function dmNovaPropostaRecebida(ownerName: string, proposerName: string, itemNames: string): string {
+  return `🔔 Olá, **${ownerName}**!\n\nVocê recebeu uma nova proposta de troca de **${proposerName}**!\n\nItens oferecidos: **${itemNames}**\n\nAcesse o site para ver os detalhes e aceitar ou recusar a proposta. 🎮`
+}
+
+export function dmPropostaEnviada(proposerName: string): string {
+  return `✅ Olá, **${proposerName}**!\n\nSua proposta de troca foi enviada com sucesso! O dono do anúncio será notificado e você receberá uma resposta em breve.\n\nFique atento às mensagens! 🎮`
 }
 
 export function dmPropostaAceita(userName: string): string {

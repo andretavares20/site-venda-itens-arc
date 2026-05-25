@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { sendAdminAlert, sendDiscordDM, embedNovaEncomenda, dmEncomendaCriada } from "@/lib/discord"
+import { notifyAdmins } from "@/lib/notify-admins"
+import { requireDiscord } from "@/lib/require-discord"
 
 export async function GET() {
   const encomendas = await prisma.encomenda.findMany({
@@ -20,6 +22,9 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
+
+  const discordErr = await requireDiscord(session.user.id)
+  if (discordErr) return discordErr
 
   const { productId, quantity, maxPrice, note } = await req.json()
 
@@ -40,15 +45,26 @@ export async function POST(req: NextRequest) {
     },
   })
 
+  const buyerName = session.user.name ?? "Comprador"
+
+  // In-app notification for admins
+  notifyAdmins(
+    "NEW_ORDER",
+    "Nova encomenda criada",
+    `${buyerName} encomendou: ${product.name} (x${quantity}).`,
+    `/encomendas`,
+  ).catch(() => {})
+
+  // Fire-and-forget: Discord DM ao comprador + alerta canal admin
   prisma.user
     .findUnique({ where: { id: session.user.id }, select: { discordId: true } })
     .then((user) => {
       if (user?.discordId) {
-        sendDiscordDM(user.discordId, dmEncomendaCriada(session.user.name ?? "Comprador", product.name)).catch(() => {})
+        sendDiscordDM(user.discordId, dmEncomendaCriada(buyerName, product.name)).catch(() => {})
       }
       sendAdminAlert(embedNovaEncomenda({
         encomendaId: encomenda.id,
-        buyerName: session.user.name ?? "Comprador",
+        buyerName,
         buyerDiscord: user?.discordId ?? null,
         productName: product.name,
         quantity,

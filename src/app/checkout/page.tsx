@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import Navbar from "@/components/navbar"
+import DiscordGate from "@/components/discord-gate"
 import { useCart, cartTotal } from "@/store/cart"
 import Link from "next/link"
 import Image from "next/image"
@@ -359,6 +360,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
+      <DiscordGate>
       <main className="pt-20 pb-16 px-4 max-w-2xl mx-auto">
         <button
           onClick={() => router.back()}
@@ -482,6 +484,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </main>
+      </DiscordGate>
     </div>
   )
 }

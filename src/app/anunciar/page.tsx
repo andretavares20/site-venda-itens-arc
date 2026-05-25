@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useRef } from "react"
 import Navbar from "@/components/navbar"
+import DiscordGate from "@/components/discord-gate"
 import { Search, Plus, Trash2, CheckCircle, Info, AlertCircle } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -147,7 +148,7 @@ export default function AnunciarPage() {
           <div>
             <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>Anúncio criado!</h1>
             <p style={{ color: "var(--text-secondary)" }}>
-              A administração entrará em contato para retirar os itens in-game. Assim que recebermos, seu anúncio ficará visível na loja.
+              Seu anúncio já está disponível na loja e seu estoque foi atualizado.
             </p>
           </div>
           <div className="flex gap-3">
@@ -162,6 +163,7 @@ export default function AnunciarPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
+      <DiscordGate>
       <main className="pt-20 pb-16 px-4 max-w-2xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>Criar anúncio</h1>
@@ -409,6 +411,7 @@ export default function AnunciarPage() {
           ) : "Criar anúncio"}
         </button>
       </main>
+      </DiscordGate>
     </div>
   )
 }
