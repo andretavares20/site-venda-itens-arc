@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 
-const BASE_URL = process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000/"
+const BASE_URL = (process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000/").replace(/\/?$/, "/")
 
 export async function GET(req: NextRequest) {
   const session = await auth()
