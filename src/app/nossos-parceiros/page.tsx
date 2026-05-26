@@ -3,6 +3,10 @@ import Footer from "@/components/footer"
 import { prisma } from "@/lib/db"
 import { ExternalLink } from "lucide-react"
 
+const css = `
+  .partner-twitch:hover { background: rgba(145,71,255,0.22) !important; }
+`
+
 export default async function NossosParceirosPage() {
   const partners = await prisma.partner.findMany({
     where: { active: true },
@@ -12,6 +16,7 @@ export default async function NossosParceirosPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#000" }}>
+      <style>{css}</style>
       <Navbar />
 
       <main className="pt-14">
@@ -66,10 +71,8 @@ export default async function NossosParceirosPage() {
 
                   {p.twitchUrl && (
                     <a href={p.twitchUrl} target="_blank" rel="noopener noreferrer"
-                      className="mt-auto flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
-                      style={{ background: "rgba(145,71,255,0.12)", color: "#9147ff", border: "1px solid rgba(145,71,255,0.25)" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(145,71,255,0.22)" }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(145,71,255,0.12)" }}>
+                      className="partner-twitch mt-auto flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl"
+                      style={{ background: "rgba(145,71,255,0.12)", color: "#9147ff", border: "1px solid rgba(145,71,255,0.25)", transition: "background 0.15s" }}>
                       <ExternalLink size={14} />
                       Assistir na Twitch
                     </a>
