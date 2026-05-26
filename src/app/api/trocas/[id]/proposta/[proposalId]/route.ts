@@ -61,10 +61,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }
 
     const tradeCode = tradeId.slice(-8).toUpperCase()
+    const slug = (s: string) =>
+      s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 18)
+    const itemASlug = slug(trade.offerItems[0]?.product.name ?? "item")
+    const itemBSlug = slug(proposal.offerItems[0]?.product.name ?? "item")
     const memberIds = [owner?.discordId, proposer?.discordId].filter(Boolean) as string[]
     const channelId = await createPrivateChannel({
-      name: `troca-${tradeCode.toLowerCase()}`,
-      topic: `Troca #${tradeCode} · ${owner?.name ?? "Jogador A"} ↔ ${proposer?.name ?? "Jogador B"}`,
+      name: `troca-${itemASlug}-x-${itemBSlug}-${tradeCode.toLowerCase()}`,
+      topic: `Troca #${tradeCode} · ${owner?.name ?? "Jogador A"} ↔ ${proposer?.name ?? "Jogador B"} · ${trade.offerItems[0]?.product.name ?? "?"} x ${proposal.offerItems[0]?.product.name ?? "?"}`,
       memberDiscordIds: memberIds,
       introEmbed: embedCanalTroca({
         tradeId: tradeCode,
