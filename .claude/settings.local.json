@@ -14,7 +14,16 @@
       "Bash(New-Item -ItemType Directory -Force \"c:\\\\dev\\\\site-venda-itens-arc\\\\src\\\\app\\\\api\\\\admin\\\\cupons\")",
       "Bash(New-Item -ItemType Directory -Force \"c:\\\\dev\\\\site-venda-itens-arc\\\\src\\\\app\\\\api\\\\cupom\\\\[code]\")",
       "Bash(npx tsc *)",
-      "Bash(Get-Content \"C:\\\\Users\\\\Andre\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--dev-site-venda-itens-arc\\\\fb4d831b-6ee7-4fd2-8a79-d29db20ecbc5\\\\tasks\\\\bqrh32rpa.output\")"
+      "Bash(Get-Content \"C:\\\\Users\\\\Andre\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--dev-site-venda-itens-arc\\\\fb4d831b-6ee7-4fd2-8a79-d29db20ecbc5\\\\tasks\\\\bqrh32rpa.output\")",
+      "PowerShell(git add src/lib/discord.ts)",
+      "PowerShell(git push origin fix/admin-alert-pedido-pago)",
+      "PowerShell(git commit -m \"fix: update embedPedidoPago to reflect P2P delivery flow`n`nAdmins no longer need to deliver items. Canal P2P is created between`nbuyerAndSeller automatically on payment confirmation.`n`nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\")",
+      "PowerShell(git checkout main)",
+      "PowerShell(git checkout -b feat/discord-channel-context)",
+      "PowerShell(git add src/lib/discord.ts src/app/api/webhook/pix/route.ts \"src/app/api/trocas/[id]/proposta/[proposalId]/route.ts\")",
+      "PowerShell(git commit -m \"feat: rich Discord channel names and full context embeds for P2P channels`n`n- Channel names now include item slugs: entrega-lince-i-abc12345, troca-lince-i-x-reactor-abc12345`n- embedCanalPedido: adds total and per-item price fields`n- embedCanalTroca: adds trade ID field and bolds item names`n- PIX webhook: await createPrivateChannel so Vercel does not kill it before the intro message is sent`n`nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\")",
+      "PowerShell(git push origin feat/discord-channel-context)",
+      "Bash(Remove-Item \"c:\\\\dev\\\\site-venda-itens-arc\\\\src\\\\app\\\\api\\\\admin\\\\test-discord\\\\route.ts\")"
     ],
     "additionalDirectories": [
       "c:\\dev\\site-venda-itens-arc\\src\\app\\api\\saques\\[id]"
