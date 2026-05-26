@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import AdminBell from "@/components/admin-bell"
-import { AlertTriangle, Package, ShoppingBag, LayoutDashboard, Megaphone, Archive, Users, ArrowLeftRight, ClipboardList } from "lucide-react"
+import { AlertTriangle, Package, ShoppingBag, LayoutDashboard, Megaphone, Archive, Users, ArrowLeftRight, ClipboardList, Star } from "lucide-react"
 
 const navLinks = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
@@ -14,6 +14,7 @@ const navLinks = [
   { href: "/admin/reclamacoes", icon: AlertTriangle, label: "Reclamações" },
   { href: "/admin/produtos", icon: Package, label: "Catálogo" },
   { href: "/admin/usuarios", icon: Users, label: "Usuários" },
+  { href: "/admin/parceiros", icon: Star, label: "Parceiros" },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -2,6 +2,8 @@ import React from "react"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { DISCORD_URL } from "@/lib/constants"
+import { prisma } from "@/lib/db"
+import { ExternalLink } from "lucide-react"
 
 const TIERS = [
   {
@@ -42,7 +44,13 @@ const TIERS = [
   },
 ]
 
-export default function ParceirosPage() {
+export default async function ParceirosPage() {
+  const partners = await prisma.partner.findMany({
+    where: { active: true },
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    select: { id: true, name: true, twitchUrl: true, avatarUrl: true, description: true },
+  })
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
@@ -150,6 +158,53 @@ export default function ParceirosPage() {
             </section>
           )
         })}
+
+        {/* Parceiros ativos */}
+        {partners.length > 0 && (
+          <section style={{ background: "#000", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="max-w-5xl mx-auto px-6 py-16">
+              <p className="text-xs font-semibold mb-3 tracking-widest uppercase text-center"
+                style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "0.12em" }}>
+                Parceiros oficiais
+              </p>
+              <h2 className="font-bold tracking-tight mb-10 text-center"
+                style={{ color: "#f5f5f7", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                Conheça nossos parceiros
+              </h2>
+              <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
+                {partners.map((p) => (
+                  <div key={p.id} className="rounded-2xl p-5 flex flex-col gap-3"
+                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="flex items-center gap-3">
+                      {p.avatarUrl ? (
+                        <img src={p.avatarUrl} alt={p.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0"
+                          style={{ background: "rgba(145,71,255,0.15)", color: "#9147ff" }}>
+                          {p.name[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-semibold" style={{ color: "#f5f5f7" }}>{p.name}</p>
+                        <p className="text-xs" style={{ color: "#9147ff" }}>DropBay Partner</p>
+                      </div>
+                    </div>
+                    {p.description && (
+                      <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{p.description}</p>
+                    )}
+                    {p.twitchUrl && (
+                      <a href={p.twitchUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs font-medium mt-auto"
+                        style={{ color: "#9147ff" }}>
+                        <ExternalLink size={12} /> Assistir na Twitch
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* CTA */}
         <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
