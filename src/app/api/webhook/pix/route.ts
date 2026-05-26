@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
         })).catch(() => {})
 
         // Cria canal privado temporário no Discord
-        const channelName = `pedido-${order.id.slice(-8).toLowerCase()}`
+        const channelName = `entrega-${orderId.toLowerCase()}`
         const memberIds = [fullOrder.buyer.discordId, seller?.discordId].filter(Boolean) as string[]
         createPrivateChannel({
           name: channelName,

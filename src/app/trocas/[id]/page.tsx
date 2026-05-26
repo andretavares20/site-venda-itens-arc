@@ -143,7 +143,7 @@ export default function TrocaPage() {
 
   const isOwner = session?.user.id === trade.user.id
   const acceptedProposal = trade.proposals.find((p) => p.status === "ACEITA")
-  const myProposal = trade.proposals.find((p) => p.proposer.id === session?.user.id)
+  const myProposal = trade.proposals.find((p) => p.proposer.id === session?.user.id && ["PENDENTE", "ACEITA"].includes(p.status))
   const canPropose = session && !isOwner && !myProposal && trade.status === "ABERTA"
 
   const statusColor: Record<string, string> = {

@@ -63,7 +63,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       const tradeCode = tradeId.slice(-8).toUpperCase()
       const memberIds = [owner?.discordId, proposer?.discordId].filter(Boolean) as string[]
       const channelId = await createPrivateChannel({
-        name: `troca-${tradeId.slice(-8).toLowerCase()}`,
+        name: `troca-${tradeCode.toLowerCase()}`,
         topic: `Troca #${tradeCode} · ${owner?.name ?? "Jogador A"} ↔ ${proposer?.name ?? "Jogador B"}`,
         memberDiscordIds: memberIds,
         introEmbed: embedCanalTroca({
