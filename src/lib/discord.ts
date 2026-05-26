@@ -51,10 +51,14 @@ export async function createPrivateChannel(params: {
   }
   const channel = await res.json()
 
+  const mentions = params.memberDiscordIds.map((id) => `<@${id}>`).join(" ")
   await fetch(`${DISCORD_API}/channels/${channel.id}/messages`, {
     method: "POST",
     headers: botHeaders(),
-    body: JSON.stringify({ embeds: [params.introEmbed] }),
+    body: JSON.stringify({
+      content: mentions || undefined,
+      embeds: [params.introEmbed],
+    }),
   }).catch(() => {})
 
   return channel.id as string
@@ -80,15 +84,18 @@ export function embedCanalPedido(params: {
   const { orderId, buyerName, buyerDiscord, sellerName, sellerDiscord, items } = params
   return {
     color: 0x5865F2,
-    title: `🛒 Pedido #${orderId}`,
+    title: `📦 Canal de Entrega — Pedido #${orderId}`,
+    description:
+      "Bem-vindos! Este canal foi criado pela **DropBay** para facilitar a entrega do item in-game.\n\n" +
+      "Usem este espaço para combinar os detalhes da entrega. Após o comprador confirmar o recebimento no site, o canal será **removido automaticamente**.\n\n" +
+      "> ⚠️ Não compartilhem dados pessoais aqui. Qualquer problema, acionem um admin.",
     fields: [
-      { name: "Comprador", value: buyerDiscord ? `<@${buyerDiscord}> (${buyerName})` : buyerName, inline: true },
-      { name: "Vendedor",  value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
-      { name: "Itens",     value: items.map((i) => `• ${i.name} x${i.quantity}`).join("\n") },
-      { name: "Como proceder", value: "Combinem aqui a entrega do item in-game. Após receber, o comprador confirma no site para liberar o pagamento." },
+      { name: "🧑‍💼 Comprador", value: buyerDiscord ? `<@${buyerDiscord}> (${buyerName})` : buyerName, inline: true },
+      { name: "🏪 Vendedor",   value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
+      { name: "🎮 Itens do pedido", value: items.map((i) => `• ${i.name} x${i.quantity}`).join("\n") },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Canal removido automaticamente após a entrega" },
+    footer: { text: "DropBay · Este canal será excluído após a conclusão da entrega" },
   }
 }
 
@@ -104,16 +111,19 @@ export function embedCanalTroca(params: {
   const { tradeId, ownerName, ownerDiscord, proposerName, proposerDiscord, ownerItems, proposerItems } = params
   return {
     color: 0xFF9F0A,
-    title: `🔄 Troca #${tradeId}`,
+    title: `🔄 Canal de Troca — #${tradeId}`,
+    description:
+      "Bem-vindos! Este canal foi criado pela **DropBay** para facilitar a troca dos itens in-game.\n\n" +
+      "Usem este espaço para combinar os detalhes da troca. Após ambos confirmarem no site, o canal será **removido automaticamente**.\n\n" +
+      "> ⚠️ Não compartilhem dados pessoais aqui. Qualquer problema, acionem um admin.",
     fields: [
-      { name: "Jogador A", value: ownerDiscord ? `<@${ownerDiscord}> (${ownerName})` : ownerName, inline: true },
-      { name: "Jogador B", value: proposerDiscord ? `<@${proposerDiscord}> (${proposerName})` : proposerName, inline: true },
-      { name: "Itens de A", value: ownerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
-      { name: "Itens de B", value: proposerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
-      { name: "Como proceder", value: "Combinem aqui a troca dos itens in-game. Após trocar, ambos confirmam no site para concluir." },
+      { name: "👤 Jogador A", value: ownerDiscord ? `<@${ownerDiscord}> (${ownerName})` : ownerName, inline: true },
+      { name: "👤 Jogador B", value: proposerDiscord ? `<@${proposerDiscord}> (${proposerName})` : proposerName, inline: true },
+      { name: `🎮 Itens de ${ownerName}`, value: ownerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
+      { name: `🎮 Itens de ${proposerName}`, value: proposerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Canal removido automaticamente após a conclusão" },
+    footer: { text: "DropBay · Este canal será excluído após a conclusão da troca" },
   }
 }
 
