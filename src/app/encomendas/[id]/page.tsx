@@ -88,7 +88,7 @@ export default function EncomendaPage() {
     if (res.ok) {
       if (action === "ACEITAR") {
         const data = await res.json()
-        router.push(`/pedido/${data.orderId}`)
+        router.push(`/pagar/${data.orderId}`)
       } else {
         load()
       }
