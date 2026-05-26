@@ -102,14 +102,15 @@ export default function TrocaPage() {
   }
 
   async function submitProposal() {
-    if (!propItems.length) return
+    const items = trade?.wantItems.length ? trade.wantItems : propItems
+    if (!items.length) return
     setSubmittingProp(true)
     setPropError(null)
     const res = await fetch(`/api/trocas/${id}/proposta`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        offerItems: propItems.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+        offerItems: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
         note: propNote || null,
       }),
     })
@@ -256,43 +257,52 @@ export default function TrocaPage() {
             ) : (
               <div className="rounded-2xl p-5" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
                 <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Sua proposta</h2>
-                <div className="relative mb-3">
-                  <div className="flex items-center gap-2 input-field" style={{ padding: "0.625rem 0.875rem" }}>
-                    <Search size={14} style={{ color: "var(--text-tertiary)" }} />
-                    <input className="flex-1 bg-transparent outline-none text-sm" style={{ color: "var(--text-primary)" }}
-                      placeholder="Buscar item para oferecer..." value={propQuery} onChange={(e) => setPropQuery(e.target.value)} />
-                  </div>
-                  {propResults.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-10"
-                      style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                      {propResults.map((p) => (
-                        <button key={p.id} onClick={() => { setPropItems((prev) => [...prev.filter((i) => i.product.id !== p.id), { product: p, quantity: 1 }]); setPropQuery(""); setPropResults([]) }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left"
-                          onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-3)"}
-                          onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                          <div className="w-7 h-7 rounded-lg overflow-hidden" style={{ background: "#0d0d0d" }}>
-                            <Image src={p.image} alt={p.name} width={28} height={28} className="w-full h-full object-contain" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</p>
-                            <p className="text-xs" style={{ color: rarityColor[p.rarity] ?? "#98989f" }}>{p.rarity}</p>
-                          </div>
-                          <Plus size={14} style={{ color: "var(--accent)" }} />
-                        </button>
-                      ))}
+                {trade.wantItems.length === 0 ? (
+                  <div className="relative mb-3">
+                    <div className="flex items-center gap-2 input-field" style={{ padding: "0.625rem 0.875rem" }}>
+                      <Search size={14} style={{ color: "var(--text-tertiary)" }} />
+                      <input className="flex-1 bg-transparent outline-none text-sm" style={{ color: "var(--text-primary)" }}
+                        placeholder="Buscar item para oferecer..." value={propQuery} onChange={(e) => setPropQuery(e.target.value)} />
                     </div>
-                  )}
-                </div>
+                    {propResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-10"
+                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                        {propResults.map((p) => (
+                          <button key={p.id} onClick={() => { setPropItems((prev) => [...prev.filter((i) => i.product.id !== p.id), { product: p, quantity: 1 }]); setPropQuery(""); setPropResults([]) }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left"
+                            onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-3)"}
+                            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+                            <div className="w-7 h-7 rounded-lg overflow-hidden" style={{ background: "#0d0d0d" }}>
+                              <Image src={p.image} alt={p.name} width={28} height={28} className="w-full h-full object-contain" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{p.name}</p>
+                              <p className="text-xs" style={{ color: rarityColor[p.rarity] ?? "#98989f" }}>{p.rarity}</p>
+                            </div>
+                            <Plus size={14} style={{ color: "var(--accent)" }} />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs mb-3 px-1" style={{ color: "var(--text-tertiary)" }}>
+                    Esta troca solicita itens específicos. Você está oferecendo:
+                  </p>
+                )}
                 <div className="flex flex-col gap-2 mb-3">
-                  {propItems.map((item) => (
+                  {(trade.wantItems.length > 0 ? trade.wantItems : propItems).map((item) => (
                     <div key={item.product.id} className="flex items-center gap-2 p-2 rounded-xl"
                       style={{ background: "var(--surface-2)" }}>
                       <div className="w-7 h-7 rounded-lg overflow-hidden" style={{ background: "#0d0d0d" }}>
                         <Image src={item.product.image} alt={item.product.name} width={28} height={28} className="w-full h-full object-contain" />
                       </div>
                       <p className="flex-1 text-sm" style={{ color: "var(--text-primary)" }}>{item.product.name}</p>
-                      <button onClick={() => setPropItems((p) => p.filter((i) => i.product.id !== item.product.id))}
-                        style={{ color: "var(--text-tertiary)" }}><X size={13} /></button>
+                      {item.quantity > 1 && <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>x{item.quantity}</span>}
+                      {trade.wantItems.length === 0 && (
+                        <button onClick={() => setPropItems((p) => p.filter((i) => i.product.id !== item.product.id))}
+                          style={{ color: "var(--text-tertiary)" }}><X size={13} /></button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -303,7 +313,7 @@ export default function TrocaPage() {
                 )}
                 <div className="flex gap-2">
                   <button onClick={() => setShowProposalForm(false)} className="btn-secondary flex-1 text-sm">Cancelar</button>
-                  <button onClick={submitProposal} disabled={!propItems.length || submittingProp} className="btn-primary flex-1 text-sm">
+                  <button onClick={submitProposal} disabled={(!trade.wantItems.length && !propItems.length) || submittingProp} className="btn-primary flex-1 text-sm">
                     {submittingProp ? "Enviando..." : "Enviar proposta"}
                   </button>
                 </div>
