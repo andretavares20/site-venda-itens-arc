@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import Carousel from "@/components/carousel"
 import HeroVideo from "@/components/hero-video"
 import Footer from "@/components/footer"
+import PartnerCarousel from "@/components/partner-carousel"
 
 const GRID_CATEGORIES = [
   { category: "Assault Rifle", title: "Assault Rifles",  sub: "As melhores armas do jogo.",       dark: true,  slug: "Temporal IV"  },
@@ -32,8 +33,16 @@ async function getGridItems() {
   return results
 }
 
+async function getPartners() {
+  return prisma.partner.findMany({
+    where: { active: true },
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    select: { id: true, name: true, twitchUrl: true, avatarUrl: true, bannerUrl: true, description: true },
+  })
+}
+
 export default async function Home() {
-  const gridItems = await getGridItems()
+  const [gridItems, partners] = await Promise.all([getGridItems(), getPartners()])
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
@@ -179,7 +188,7 @@ export default async function Home() {
         <section style={{ background: "#FFFFFF", padding: "12px", paddingTop: "60px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
 
-            {gridItems.map((card, i) => {
+            {gridItems.map((card: typeof GRID_CATEGORIES[number] & { image: string | null }, i: number) => {
               const dark = card.dark
               const textColor = dark ? "#f5f5f7" : "#1d1d1f"
               const subColor  = dark ? "rgba(255,255,255,0.5)" : "#6e6e73"
@@ -224,8 +233,8 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Carrossel — ativado quando tivermos destaques */}
-        {/* <Carousel /> */}
+        {/* Parceiros */}
+        {partners.length > 0 && <PartnerCarousel partners={partners} />}
 
         {/* Seção — Como funciona */}
         <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
