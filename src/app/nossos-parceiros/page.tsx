@@ -2,19 +2,30 @@ import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { prisma } from "@/lib/db"
 import { ExternalLink } from "lucide-react"
+import { extractTwitchUsername, getLiveUsernames } from "@/lib/twitch"
 
 export const dynamic = "force-dynamic"
 
 const css = `
   .partner-twitch:hover { background: rgba(145,71,255,0.22) !important; }
+  @keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 `
 
 export default async function NossosParceirosPage() {
-  const partners = await prisma.partner.findMany({
+  const partners = await (prisma as any).partner.findMany({
     where: { active: true },
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     select: { id: true, name: true, twitchUrl: true, avatarUrl: true, bannerUrl: true, description: true },
-  })
+  }) as { id: string; name: string; twitchUrl: string | null; avatarUrl: string | null; bannerUrl: string | null; description: string | null }[]
+
+  const usernames = partners
+    .map((p) => (p.twitchUrl ? extractTwitchUsername(p.twitchUrl) : null))
+    .filter((u): u is string => u !== null)
+  const liveSet = await getLiveUsernames(usernames)
+  const partnersWithLive = partners.map((p) => ({
+    ...p,
+    isLive: p.twitchUrl ? liveSet.has(extractTwitchUsername(p.twitchUrl) ?? "") : false,
+  }))
 
   return (
     <div className="min-h-screen" style={{ background: "#000" }}>
@@ -40,15 +51,15 @@ export default async function NossosParceirosPage() {
 
         {/* Grid de parceiros */}
         <section className="max-w-5xl mx-auto px-6 py-16">
-          {partners.length === 0 ? (
+          {partnersWithLive.length === 0 ? (
             <p className="text-center" style={{ color: "rgba(255,255,255,0.3)", fontSize: "15px" }}>
               Nenhum parceiro cadastrado ainda.
             </p>
           ) : (
             <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
-              {partners.map((p) => (
+              {partnersWithLive.map((p) => (
                 <div key={p.id} className="rounded-2xl overflow-hidden flex flex-col"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${p.isLive ? "rgba(239,68,68,0.35)" : "rgba(255,255,255,0.08)"}` }}>
 
                   {/* Card topo com avatar desfocado */}
                   <div className="relative w-full" style={{ aspectRatio: "16/9", background: "#111", overflow: "hidden" }}>
@@ -70,13 +81,26 @@ export default async function NossosParceirosPage() {
                         </div>
                       )}
                     </div>
-                    {/* Badge Twitch */}
+                    {/* Badge ao vivo / offline */}
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold"
-                      style={{ background: "rgba(0,0,0,0.6)", color: "#fff", backdropFilter: "blur(8px)" }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#9147ff">
-                        <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
-                      </svg>
-                      Twitch
+                      style={{
+                        background: p.isLive ? "rgba(239,68,68,0.75)" : "rgba(0,0,0,0.6)",
+                        color: "#fff",
+                        backdropFilter: "blur(8px)",
+                      }}>
+                      {p.isLive ? (
+                        <>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff", display: "inline-block", animation: "live-pulse 1.6s ease-in-out infinite" }} />
+                          AO VIVO
+                        </>
+                      ) : (
+                        <>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)">
+                            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
+                          </svg>
+                          OFFLINE
+                        </>
+                      )}
                     </div>
                   </div>
 
