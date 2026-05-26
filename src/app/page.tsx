@@ -5,6 +5,7 @@ import Carousel from "@/components/carousel"
 import HeroVideo from "@/components/hero-video"
 import Footer from "@/components/footer"
 import PartnerCarousel from "@/components/partner-carousel"
+import { extractTwitchUsername, getLiveUsernames } from "@/lib/twitch"
 
 export const dynamic = "force-dynamic"
 
@@ -35,12 +36,32 @@ async function getGridItems() {
   return results
 }
 
+type PartnerRow = {
+  id: string
+  name: string
+  twitchUrl: string | null
+  avatarUrl: string | null
+  bannerUrl: string | null
+  description: string | null
+}
+
 async function getPartners() {
-  return prisma.partner.findMany({
+  const partners = await (prisma as any).partner.findMany({
     where: { active: true },
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     select: { id: true, name: true, twitchUrl: true, avatarUrl: true, bannerUrl: true, description: true },
-  })
+  }) as PartnerRow[]
+
+  const usernames = partners
+    .map((p: PartnerRow) => (p.twitchUrl ? extractTwitchUsername(p.twitchUrl) : null))
+    .filter((u: string | null): u is string => u !== null)
+
+  const liveSet = await getLiveUsernames(usernames)
+
+  return partners.map((p: PartnerRow) => ({
+    ...p,
+    isLive: p.twitchUrl ? liveSet.has(extractTwitchUsername(p.twitchUrl) ?? "") : false,
+  }))
 }
 
 export default async function Home() {

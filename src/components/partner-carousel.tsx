@@ -11,6 +11,7 @@ type Partner = {
   avatarUrl: string | null
   bannerUrl: string | null
   description: string | null
+  isLive?: boolean
 }
 
 function getWeeklyStartIndex(total: number) {
@@ -48,10 +49,12 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
     <section style={{ background: "#000", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
       <style>{`
         @keyframes pc-fade { from { opacity: 0; transform: scale(1.015); } to { opacity: 1; transform: scale(1); } }
+        @keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .pc-slide { animation: pc-fade 0.4s ease; }
         .pc-btn:hover { background: rgba(255,255,255,0.12) !important; }
         .pc-twitch:hover { background: rgba(145,71,255,0.25) !important; }
         .pc-dot-btn:hover { opacity: 1 !important; }
+        .live-dot { animation: live-pulse 1.6s ease-in-out infinite; }
       `}</style>
 
       <div className="max-w-6xl mx-auto px-6 pt-16 pb-4 text-center">
@@ -97,6 +100,18 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
                         style={{ background: "rgba(145,71,255,0.3)", color: "#bf94ff", border: "1px solid rgba(145,71,255,0.4)" }}>
                         DropBay Partner
                       </span>
+                      {p.isLive ? (
+                        <span className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded"
+                          style={{ background: "rgba(239,68,68,0.2)", color: "#f87171", border: "1px solid rgba(239,68,68,0.4)" }}>
+                          <span className="live-dot w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+                          AO VIVO
+                        </span>
+                      ) : (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded"
+                          style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.35)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                          OFFLINE
+                        </span>
+                      )}
                     </div>
                     <h3 className="font-bold text-2xl md:text-3xl" style={{ color: "#f5f5f7", letterSpacing: "-0.02em" }}>
                       {p.name}
