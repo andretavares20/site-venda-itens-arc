@@ -7,7 +7,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (!session || session.user.role !== "ADMIN") return NextResponse.json({ error: "Não autorizado" }, { status: 403 })
 
   const { id } = await params
-  const { name, twitchUrl, avatarUrl, description, active, order } = await req.json()
+  const { name, twitchUrl, avatarUrl, bannerUrl, description, active, order } = await req.json()
   if (!name?.trim()) return NextResponse.json({ error: "Nome obrigatório" }, { status: 400 })
 
   const partner = await prisma.partner.update({
@@ -16,6 +16,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       name: name.trim(),
       twitchUrl: twitchUrl?.trim() || null,
       avatarUrl: avatarUrl?.trim() || null,
+      bannerUrl: bannerUrl?.trim() || null,
       description: description?.trim() || null,
       active: active ?? true,
       order: order ?? 0,

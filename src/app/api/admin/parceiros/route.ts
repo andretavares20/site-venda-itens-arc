@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session || session.user.role !== "ADMIN") return NextResponse.json({ error: "Não autorizado" }, { status: 403 })
 
-  const { name, twitchUrl, avatarUrl, description, active, order } = await req.json()
+  const { name, twitchUrl, avatarUrl, bannerUrl, description, active, order } = await req.json()
   if (!name?.trim()) return NextResponse.json({ error: "Nome obrigatório" }, { status: 400 })
 
   const partner = await prisma.partner.create({
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       name: name.trim(),
       twitchUrl: twitchUrl?.trim() || null,
       avatarUrl: avatarUrl?.trim() || null,
+      bannerUrl: bannerUrl?.trim() || null,
       description: description?.trim() || null,
       active: active ?? true,
       order: order ?? 0,

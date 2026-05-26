@@ -34,5 +34,9 @@ export async function GET(req: Request) {
   const user = data.data?.[0]
   if (!user) return NextResponse.json({ error: "Usuário não encontrado na Twitch" }, { status: 404 })
 
-  return NextResponse.json({ avatarUrl: user.profile_image_url, displayName: user.display_name })
+  return NextResponse.json({
+    avatarUrl: user.profile_image_url,
+    bannerUrl: user.offline_image_url || null,
+    displayName: user.display_name,
+  })
 }

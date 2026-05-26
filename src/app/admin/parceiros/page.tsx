@@ -8,12 +8,13 @@ type Partner = {
   name: string
   twitchUrl: string | null
   avatarUrl: string | null
+  bannerUrl: string | null
   description: string | null
   active: boolean
   order: number
 }
 
-const empty: Omit<Partner, "id"> = { name: "", twitchUrl: "", avatarUrl: "", description: "", active: true, order: 0 }
+const empty: Omit<Partner, "id"> = { name: "", twitchUrl: "", avatarUrl: "", bannerUrl: "", description: "", active: true, order: 0 }
 
 export default function AdminParceiros() {
   const [partners, setPartners] = useState<Partner[]>([])
@@ -41,7 +42,7 @@ export default function AdminParceiros() {
 
   function openEdit(p: Partner) {
     setEditId(p.id)
-    setForm({ name: p.name, twitchUrl: p.twitchUrl ?? "", avatarUrl: p.avatarUrl ?? "", description: p.description ?? "", active: p.active, order: p.order })
+    setForm({ name: p.name, twitchUrl: p.twitchUrl ?? "", avatarUrl: p.avatarUrl ?? "", bannerUrl: p.bannerUrl ?? "", description: p.description ?? "", active: p.active, order: p.order })
     setError("")
   }
 
@@ -59,7 +60,7 @@ export default function AdminParceiros() {
     setFetchingAvatar(false)
     if (!res.ok) return
     const data = await res.json()
-    setForm((f) => f && { ...f, avatarUrl: data.avatarUrl, name: f.name || data.displayName })
+    setForm((f) => f && { ...f, avatarUrl: data.avatarUrl, bannerUrl: data.bannerUrl ?? f.bannerUrl, name: f.name || data.displayName })
   }
 
   async function save() {

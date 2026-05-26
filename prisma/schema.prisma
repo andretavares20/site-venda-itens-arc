@@ -391,6 +391,7 @@ model Partner {
   name        String
   twitchUrl   String?
   avatarUrl   String?
+  bannerUrl   String?
   description String?
   active      Boolean  @default(true)
   order       Int      @default(0)

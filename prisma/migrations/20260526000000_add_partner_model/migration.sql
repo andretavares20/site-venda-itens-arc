@@ -4,6 +4,7 @@ CREATE TABLE "Partner" (
     "name" TEXT NOT NULL,
     "twitchUrl" TEXT,
     "avatarUrl" TEXT,
+    "bannerUrl" TEXT,
     "description" TEXT,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "order" INTEGER NOT NULL DEFAULT 0,
