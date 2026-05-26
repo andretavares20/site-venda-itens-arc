@@ -3,6 +3,8 @@ import Footer from "@/components/footer"
 import { prisma } from "@/lib/db"
 import { ExternalLink } from "lucide-react"
 
+export const dynamic = "force-dynamic"
+
 const css = `
   .partner-twitch:hover { background: rgba(145,71,255,0.22) !important; }
 `

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { revalidatePath } from "next/cache"
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -22,6 +23,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       order: order ?? 0,
     },
   })
+  revalidatePath("/")
+  revalidatePath("/nossos-parceiros")
   return NextResponse.json(partner)
 }
 
@@ -31,5 +34,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   const { id } = await params
   await prisma.partner.delete({ where: { id } })
+  revalidatePath("/")
+  revalidatePath("/nossos-parceiros")
   return NextResponse.json({ ok: true })
 }
