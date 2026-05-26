@@ -76,7 +76,7 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
             {/* Background: avatar desfocado */}
             {p.avatarUrl && (
               <img src={p.avatarUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover"
-                style={{ filter: "blur(18px)", transform: "scale(1.2)", opacity: 0.55 }} />
+                style={{ filter: "blur(10px)", transform: "scale(1.07)", opacity: 0.55 }} />
             )}
 
             {/* Gradient overlay */}
