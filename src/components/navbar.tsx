@@ -139,10 +139,10 @@ export default function Navbar() {
               onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
               Loja
             </Link>
-            <Link href="/parceiros"
-              className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-              style={{ background: "#f5f5f7", color: "#000", padding: "0.375rem 1rem" }}>
-              Quero ser parceiro
+            <Link href="/parceiros" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
+              Parceiros
             </Link>
             {session?.user.role === "ADMIN" && (
               <Link href="/admin" className="text-sm flex items-center gap-1 transition-colors" style={{ color: "var(--text-secondary)" }}
@@ -233,7 +233,7 @@ export default function Navbar() {
             <Link href="/anunciar" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Anunciar</Link>
             <Link href="/trocas" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Trocas</Link>
             <Link href="/encomendas" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Encomendas</Link>
-            <Link href="/parceiros" className="py-2 text-sm font-medium" style={{ color: "var(--accent)" }} onClick={() => setMenuOpen(false)}>Quero ser parceiro</Link>
+            <Link href="/parceiros" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Parceiros</Link>
             <button onClick={() => { setMenuOpen(false); setSearchOpen(true) }}
               className="py-2 text-sm text-left flex items-center gap-2"
               style={{ color: "var(--text-secondary)", background: "none", border: "none", cursor: "pointer" }}>
