@@ -73,17 +73,15 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
           <div key={p.id} className="pc-slide relative rounded-2xl overflow-hidden"
             style={{ background: "#111", aspectRatio: "16/7" }}>
 
-            {/* Banner */}
-            {p.bannerUrl ? (
-              <img src={p.bannerUrl} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
-            ) : p.avatarUrl ? (
-              <img src={p.avatarUrl} alt={p.name} className="absolute inset-0 w-full h-full object-cover"
-                style={{ filter: "blur(24px)", transform: "scale(1.1)", opacity: 0.35 }} />
-            ) : null}
+            {/* Background: avatar desfocado */}
+            {p.avatarUrl && (
+              <img src={p.avatarUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover"
+                style={{ filter: "blur(40px)", transform: "scale(1.15)", opacity: 0.25 }} />
+            )}
 
             {/* Gradient overlay */}
             <div className="absolute inset-0"
-              style={{ background: "linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 100%)" }} />
+              style={{ background: "linear-gradient(to right, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.3) 100%)" }} />
 
             {/* Conteúdo */}
             <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12">
