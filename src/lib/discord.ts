@@ -354,12 +354,15 @@ export function embedPedidoPago(params: {
   const { buyerName, sellerName, sellerDiscord, itemName, total } = params
   return {
     color: 0x30d158,
-    title: "💸 Pedido pago — entregar item",
+    title: "💸 Pedido pago — canal P2P criado",
+    description:
+      "Pagamento confirmado. Um canal privado foi aberto entre comprador e vendedor para combinarem a entrega in-game.\n\n" +
+      "> Nenhuma ação necessária dos admins, a menos que haja uma reclamação.",
     fields: [
-      { name: "Comprador", value: buyerName, inline: true },
-      { name: "Vendedor", value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
-      { name: "Item", value: itemName },
-      { name: "Total", value: `R$ ${total.toFixed(2)}`, inline: true },
+      { name: "🧑‍💼 Comprador", value: buyerName, inline: true },
+      { name: "🏪 Vendedor",   value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
+      { name: "🎮 Item",       value: itemName },
+      { name: "💰 Total",      value: `R$ ${total.toFixed(2)}`, inline: true },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: "DropBay · Marketplace Arc Raiders" },
