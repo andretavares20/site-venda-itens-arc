@@ -23,6 +23,7 @@ export default function AdminParceiros() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [fetchingAvatar, setFetchingAvatar] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -48,6 +49,17 @@ export default function AdminParceiros() {
     setForm(null)
     setEditId(null)
     setError("")
+  }
+
+  async function fetchTwitchAvatar(twitchUrl: string) {
+    const match = twitchUrl.match(/twitch\.tv\/([a-zA-Z0-9_]+)/)
+    if (!match) return
+    setFetchingAvatar(true)
+    const res = await fetch(`/api/admin/twitch-avatar?username=${match[1]}`)
+    setFetchingAvatar(false)
+    if (!res.ok) return
+    const data = await res.json()
+    setForm((f) => f && { ...f, avatarUrl: data.avatarUrl, name: f.name || data.displayName })
   }
 
   async function save() {
@@ -101,13 +113,20 @@ export default function AdminParceiros() {
                 <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>URL da Twitch</label>
                 <input className="input-field w-full text-sm" value={form.twitchUrl ?? ""}
                   onChange={(e) => setForm((f) => f && { ...f, twitchUrl: e.target.value })}
+                  onBlur={(e) => e.target.value && fetchTwitchAvatar(e.target.value)}
                   placeholder="https://www.twitch.tv/usuario" />
               </div>
               <div>
-                <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>URL do avatar</label>
+                <label className="text-xs font-medium mb-1 flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
+                  URL do avatar
+                  {fetchingAvatar && <span className="text-xs" style={{ color: "var(--accent)" }}>Buscando da Twitch...</span>}
+                  {!fetchingAvatar && form.avatarUrl && (
+                    <img src={form.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover" />
+                  )}
+                </label>
                 <input className="input-field w-full text-sm" value={form.avatarUrl ?? ""}
                   onChange={(e) => setForm((f) => f && { ...f, avatarUrl: e.target.value })}
-                  placeholder="https://..." />
+                  placeholder="Preenchido automaticamente via Twitch" />
               </div>
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Descrição</label>
