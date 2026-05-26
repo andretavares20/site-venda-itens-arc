@@ -55,23 +55,26 @@ export async function POST(req: NextRequest) {
     `/encomendas`,
   ).catch(() => {})
 
-  // Fire-and-forget: Discord DM ao comprador + alerta canal admin
-  prisma.user
-    .findUnique({ where: { id: session.user.id }, select: { discordId: true } })
-    .then((user) => {
-      if (user?.discordId) {
-        sendDiscordDM(user.discordId, dmEncomendaCriada(buyerName, product.name)).catch(() => {})
-      }
-      sendAdminAlert(embedNovaEncomenda({
-        encomendaId: encomenda.id,
-        buyerName,
-        buyerDiscord: user?.discordId ?? null,
-        productName: product.name,
-        quantity,
-        maxPrice: maxPrice ?? null,
-      })).catch(() => {})
-    })
-    .catch(() => {})
+  // Fetch buyer's Discord ID then send notifications sequentially
+  const buyer = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { discordId: true },
+  })
+
+  // Fire-and-forget DM to buyer
+  if (buyer?.discordId) {
+    sendDiscordDM(buyer.discordId, dmEncomendaCriada(buyerName, product.name)).catch(() => {})
+  }
+
+  // Await so Vercel doesn't terminate before the alert is sent
+  await sendAdminAlert(embedNovaEncomenda({
+    encomendaId: encomenda.id,
+    buyerName,
+    buyerDiscord: buyer?.discordId ?? null,
+    productName: product.name,
+    quantity,
+    maxPrice: maxPrice != null ? Number(maxPrice) : null,
+  }))
 
   return NextResponse.json(encomenda, { status: 201 })
 }
