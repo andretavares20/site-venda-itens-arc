@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { notifyAdmins } from "@/lib/notify-admins"
-import { sendAdminAlert, sendDiscordDM, embedNovaTroca, dmPropostaAceita, dmAguardandoRecolhimento, createPrivateChannel, embedCanalTroca, deleteDiscordChannel } from "@/lib/discord"
+import { sendDiscordDM, dmPropostaAceita, dmTrocaConcluida, createPrivateChannel, embedCanalTroca, deleteDiscordChannel } from "@/lib/discord"
 
 type Params = { params: Promise<{ id: string; proposalId: string }> }
 
@@ -50,36 +50,35 @@ export async function PUT(req: NextRequest, { params }: Params) {
       prisma.trade.update({ where: { id: tradeId }, data: { status: "AGUARDANDO_CONFIRMACAO", expiresAt } }),
     ])
 
-    // DM Discord + canal privado fire-and-forget
-    Promise.all([
+    // DM para proponente + criação do canal privado (awaited para garantir que o channelId seja salvo)
+    const [owner, proposer] = await Promise.all([
       prisma.user.findUnique({ where: { id: trade.userId },        select: { name: true, discordId: true } }),
       prisma.user.findUnique({ where: { id: proposal.proposerId }, select: { name: true, discordId: true } }),
-    ]).then(async ([owner, proposer]) => {
-      if (proposer?.discordId) {
-        sendDiscordDM(proposer.discordId, dmPropostaAceita(proposer.name ?? "Jogador")).catch(() => {})
-      }
+    ])
 
-      // Cria canal privado com os dois jogadores
-      const tradeCode = tradeId.slice(-8).toUpperCase()
-      const memberIds = [owner?.discordId, proposer?.discordId].filter(Boolean) as string[]
-      const channelId = await createPrivateChannel({
-        name: `troca-${tradeCode.toLowerCase()}`,
-        topic: `Troca #${tradeCode} · ${owner?.name ?? "Jogador A"} ↔ ${proposer?.name ?? "Jogador B"}`,
-        memberDiscordIds: memberIds,
-        introEmbed: embedCanalTroca({
-          tradeId: tradeCode,
-          ownerName:     owner?.name    ?? "Jogador A",
-          ownerDiscord:  owner?.discordId  ?? null,
-          proposerName:  proposer?.name ?? "Jogador B",
-          proposerDiscord: proposer?.discordId ?? null,
-          ownerItems:    trade.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
-          proposerItems: proposal.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
-        }),
-      })
-      if (channelId) {
-        await prisma.trade.update({ where: { id: tradeId }, data: { discordChannelId: channelId } }).catch(() => {})
-      }
-    }).catch(() => {})
+    if (proposer?.discordId) {
+      sendDiscordDM(proposer.discordId, dmPropostaAceita(proposer.name ?? "Jogador")).catch(() => {})
+    }
+
+    const tradeCode = tradeId.slice(-8).toUpperCase()
+    const memberIds = [owner?.discordId, proposer?.discordId].filter(Boolean) as string[]
+    const channelId = await createPrivateChannel({
+      name: `troca-${tradeCode.toLowerCase()}`,
+      topic: `Troca #${tradeCode} · ${owner?.name ?? "Jogador A"} ↔ ${proposer?.name ?? "Jogador B"}`,
+      memberDiscordIds: memberIds,
+      introEmbed: embedCanalTroca({
+        tradeId: tradeCode,
+        ownerName:     owner?.name    ?? "Jogador A",
+        ownerDiscord:  owner?.discordId  ?? null,
+        proposerName:  proposer?.name ?? "Jogador B",
+        proposerDiscord: proposer?.discordId ?? null,
+        ownerItems:    trade.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
+        proposerItems: proposal.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
+      }),
+    }).catch(() => null)
+    if (channelId) {
+      await prisma.trade.update({ where: { id: tradeId }, data: { discordChannelId: channelId } })
+    }
 
     // Notifica o proponente aceito
     await prisma.notification.create({
@@ -144,26 +143,18 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     const bothConfirmed = updated.ownerConfirmed && updated.proposerConfirmed
     if (bothConfirmed) {
+      const tradeCode = tradeId.slice(-8).toUpperCase()
+
       await prisma.$transaction([
-        prisma.trade.update({ where: { id: tradeId }, data: { status: "AGUARDANDO_RECOLHIMENTO" } }),
+        prisma.trade.update({ where: { id: tradeId }, data: { status: "CONCLUIDA" } }),
+        prisma.tradeProposal.update({ where: { id: proposalId }, data: { status: "CONCLUIDA" } }),
       ])
 
-      // Notifica admins in-app
-      const tradeCode = tradeId.slice(-8).toUpperCase()
-      notifyAdmins(
-        "TRADE_READY",
-        `Troca aguardando recolhimento — #${tradeCode}`,
-        "Ambos os jogadores confirmaram. Colete os itens no jogo.",
-        "/admin/trocas",
-      ).catch(() => {})
-
-      // Discord: alerta no canal admin
       const fullTrade = await prisma.trade.findUnique({
         where: { id: tradeId },
         include: {
           user: { select: { name: true, discordId: true } },
           offerItems: { include: { product: { select: { name: true } } } },
-          // discordChannelId is a scalar field, included automatically
           proposals: {
             where: { id: proposalId },
             include: {
@@ -177,23 +168,21 @@ export async function PUT(req: NextRequest, { params }: Params) {
       if (fullTrade) {
         const ap = fullTrade.proposals[0]
 
-        // DM para ambos os jogadores
+        // DM de conclusão para ambos os jogadores
         if (fullTrade.user.discordId) {
-          sendDiscordDM(fullTrade.user.discordId, dmAguardandoRecolhimento(fullTrade.user.name)).catch(() => {})
+          sendDiscordDM(fullTrade.user.discordId, dmTrocaConcluida(fullTrade.user.name)).catch(() => {})
         }
         if (ap?.proposer.discordId) {
-          sendDiscordDM(ap.proposer.discordId, dmAguardandoRecolhimento(ap.proposer.name)).catch(() => {})
+          sendDiscordDM(ap.proposer.discordId, dmTrocaConcluida(ap.proposer.name)).catch(() => {})
         }
 
-        sendAdminAlert(embedNovaTroca({
-          tradeId,
-          ownerName: fullTrade.user.name,
-          ownerDiscord: fullTrade.user.discordId,
-          proposerName: ap?.proposer.name ?? "Jogador B",
-          proposerDiscord: ap?.proposer.discordId ?? null,
-          ownerItems: fullTrade.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })),
-          proposerItems: ap?.offerItems.map((i) => ({ name: i.product.name, quantity: i.quantity })) ?? [],
-        })).catch(() => {})
+        // Notifica admins in-app sobre conclusão
+        notifyAdmins(
+          "TRADE_READY",
+          `Troca concluída — #${tradeCode}`,
+          "Ambos os jogadores confirmaram a troca via Discord.",
+          "/admin/trocas",
+        ).catch(() => {})
 
         // Deleta canal privado pois a troca foi concluída
         if (fullTrade.discordChannelId) {
