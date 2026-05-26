@@ -156,8 +156,10 @@ export async function sendDiscordDM(discordId: string, message: string): Promise
 type EmbedField = { name: string; value: string; inline?: boolean }
 type Embed = {
   title?: string
+  description?: string
   color?: number
   fields?: EmbedField[]
+  thumbnail?: { url: string }
   timestamp?: string
   footer?: { text: string }
 }
