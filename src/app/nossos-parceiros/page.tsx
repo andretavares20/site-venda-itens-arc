@@ -54,7 +54,7 @@ export default async function NossosParceirosPage() {
                   <div className="relative w-full" style={{ aspectRatio: "16/9", background: "#111", overflow: "hidden" }}>
                     {p.avatarUrl ? (
                       <img src={p.avatarUrl} alt="" aria-hidden className="w-full h-full object-cover"
-                        style={{ filter: "blur(20px)", transform: "scale(1.15)", opacity: 0.35 }} />
+                        style={{ filter: "blur(14px)", transform: "scale(1.2)", opacity: 0.55 }} />
                     ) : (
                       <div className="w-full h-full" style={{ background: "rgba(145,71,255,0.08)" }} />
                     )}
