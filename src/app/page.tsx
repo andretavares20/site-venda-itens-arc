@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import Carousel from "@/components/carousel"
 import HeroVideo from "@/components/hero-video"
 import Footer from "@/components/footer"
+import PartnerCarousel from "@/components/partner-carousel"
 
 const GRID_CATEGORIES = [
   { category: "Assault Rifle", title: "Assault Rifles",  sub: "As melhores armas do jogo.",       dark: true,  slug: "Temporal IV"  },
@@ -32,8 +33,16 @@ async function getGridItems() {
   return results
 }
 
+async function getPartners() {
+  return prisma.partner.findMany({
+    where: { active: true },
+    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+    select: { id: true, name: true, twitchUrl: true, avatarUrl: true, bannerUrl: true, description: true },
+  })
+}
+
 export default async function Home() {
-  const gridItems = await getGridItems()
+  const [gridItems, partners] = await Promise.all([getGridItems(), getPartners()])
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
@@ -173,13 +182,37 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* Seção — Como funciona */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
+          <div className="max-w-4xl mx-auto px-4 py-20">
+            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+              Transparência
+            </p>
+            <h2 className="font-bold tracking-tight mb-4"
+              style={{ color: "#f5f5f7", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              Trades seguras.
+            </h2>
+            <p className="mb-10 mx-auto"
+              style={{ color: "rgba(255,255,255,0.5)", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
+              Cada negociação passa pela nossa equipe. Entenda como funciona a custódia de itens na DropBay.
+            </p>
+            <Link href="/como-funciona"
+              className="inline-flex items-center justify-center rounded-full font-medium text-sm"
+              style={{ background: "#f5f5f7", color: "#000", padding: "0.6rem 1.75rem" }}>
+              Como funciona
+            </Link>
+          </div>
+        </section>
+
       </main>
 
         {/* Grade 2x3 estilo Apple — fundo branco na página, cards pretos se destacam */}
         <section style={{ background: "#FFFFFF", padding: "12px", paddingTop: "60px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
 
-            {gridItems.map((card, i) => {
+            {gridItems.map((card: typeof GRID_CATEGORIES[number] & { image: string | null }, i: number) => {
               const dark = card.dark
               const textColor = dark ? "#f5f5f7" : "#1d1d1f"
               const subColor  = dark ? "rgba(255,255,255,0.5)" : "#6e6e73"
@@ -224,31 +257,8 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Carrossel — ativado quando tivermos destaques */}
-        {/* <Carousel /> */}
-
-        {/* Seção — Como funciona */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
-          <div className="max-w-4xl mx-auto px-4 py-20">
-            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
-              Transparência
-            </p>
-            <h2 className="font-bold tracking-tight mb-4"
-              style={{ color: "#f5f5f7", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-              Trades seguras.
-            </h2>
-            <p className="mb-10 mx-auto"
-              style={{ color: "rgba(255,255,255,0.5)", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
-              Cada negociação passa pela nossa equipe. Entenda como funciona a custódia de itens na DropBay.
-            </p>
-            <Link href="/como-funciona"
-              className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-              style={{ background: "#f5f5f7", color: "#000", padding: "0.6rem 1.75rem" }}>
-              Como funciona
-            </Link>
-          </div>
-        </section>
+        {/* Parceiros */}
+        {partners.length > 0 && <PartnerCarousel partners={partners} />}
 
       <Footer />
     </div>
