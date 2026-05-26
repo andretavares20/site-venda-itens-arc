@@ -6,6 +6,8 @@ import HeroVideo from "@/components/hero-video"
 import Footer from "@/components/footer"
 import PartnerCarousel from "@/components/partner-carousel"
 
+export const dynamic = "force-dynamic"
+
 const GRID_CATEGORIES = [
   { category: "Assault Rifle", title: "Assault Rifles",  sub: "As melhores armas do jogo.",       dark: true,  slug: "Temporal IV"  },
   { category: "Pistol",        title: "Pistols",         sub: "Compactas, precisas e letais.",     dark: false, slug: "Venator IV" },
