@@ -50,13 +50,11 @@ export default async function NossosParceirosPage() {
                 <div key={p.id} className="rounded-2xl overflow-hidden flex flex-col"
                   style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
 
-                  {/* Banner / imagem offline */}
+                  {/* Card topo com avatar desfocado */}
                   <div className="relative w-full" style={{ aspectRatio: "16/9", background: "#111", overflow: "hidden" }}>
-                    {p.bannerUrl ? (
-                      <img src={p.bannerUrl} alt={p.name} className="w-full h-full object-cover" />
-                    ) : p.avatarUrl ? (
-                      <img src={p.avatarUrl} alt={p.name} className="w-full h-full object-cover"
-                        style={{ filter: "blur(12px)", transform: "scale(1.1)", opacity: 0.4 }} />
+                    {p.avatarUrl ? (
+                      <img src={p.avatarUrl} alt="" aria-hidden className="w-full h-full object-cover"
+                        style={{ filter: "blur(20px)", transform: "scale(1.15)", opacity: 0.35 }} />
                     ) : (
                       <div className="w-full h-full" style={{ background: "rgba(145,71,255,0.08)" }} />
                     )}
