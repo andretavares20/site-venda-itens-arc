@@ -153,11 +153,14 @@ export async function POST(req: NextRequest) {
         })).catch(() => {})
 
         // Cria canal privado temporário no Discord
-        const channelName = `entrega-${orderId.toLowerCase()}`
+        const slug = (s: string) =>
+          s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 22)
+        const itemSlug = slug(itemName)
+        const channelName = `entrega-${itemSlug}-${orderId.toLowerCase()}`
         const memberIds = [fullOrder.buyer.discordId, seller?.discordId].filter(Boolean) as string[]
-        createPrivateChannel({
+        const channelId = await createPrivateChannel({
           name: channelName,
-          topic: `Pedido #${orderId} · ${fullOrder.buyer.name} ↔ ${seller?.name ?? "Vendedor"}`,
+          topic: `Pedido #${orderId} · ${fullOrder.buyer.name ?? "Comprador"} ↔ ${seller?.name ?? "Vendedor"} · ${itemName}`,
           memberDiscordIds: memberIds,
           introEmbed: embedCanalPedido({
             orderId,
@@ -165,11 +168,17 @@ export async function POST(req: NextRequest) {
             buyerDiscord: fullOrder.buyer.discordId,
             sellerName:   seller?.name ?? "Vendedor",
             sellerDiscord: seller?.discordId ?? null,
-            items: fullOrder.items.map((i) => ({ name: i.stock?.product.name ?? "item", quantity: i.quantity })),
+            items: fullOrder.items.map((i) => ({
+              name: i.stock?.product.name ?? "item",
+              quantity: i.quantity,
+              price: Number(i.price),
+            })),
+            total: Number(fullOrder.total),
           }),
-        }).then((channelId) => {
-          if (channelId) prisma.order.update({ where: { id: order.id }, data: { discordChannelId: channelId } }).catch(() => {})
-        }).catch(() => {})
+        }).catch(() => null)
+        if (channelId) {
+          await prisma.order.update({ where: { id: order.id }, data: { discordChannelId: channelId } })
+        }
       }
     }
   }

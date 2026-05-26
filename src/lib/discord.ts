@@ -79,23 +79,25 @@ export function embedCanalPedido(params: {
   buyerDiscord: string | null
   sellerName: string
   sellerDiscord: string | null
-  items: { name: string; quantity: number }[]
+  items: { name: string; quantity: number; price: number }[]
+  total: number
 }): Embed {
-  const { orderId, buyerName, buyerDiscord, sellerName, sellerDiscord, items } = params
+  const { orderId, buyerName, buyerDiscord, sellerName, sellerDiscord, items, total } = params
   return {
     color: 0x5865F2,
-    title: `📦 Canal de Entrega — Pedido #${orderId}`,
+    title: `📦 Entrega — Pedido #${orderId}`,
     description:
-      "Bem-vindos! Este canal foi criado pela **DropBay** para facilitar a entrega do item in-game.\n\n" +
-      "Usem este espaço para combinar os detalhes da entrega. Após o comprador confirmar o recebimento no site, o canal será **removido automaticamente**.\n\n" +
+      "Canal criado pela **DropBay** para vocês combinarem a entrega do item in-game.\n\n" +
       "> ⚠️ Não compartilhem dados pessoais aqui. Qualquer problema, acionem um admin.",
     fields: [
-      { name: "🧑‍💼 Comprador", value: buyerDiscord ? `<@${buyerDiscord}> (${buyerName})` : buyerName, inline: true },
-      { name: "🏪 Vendedor",   value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
-      { name: "🎮 Itens do pedido", value: items.map((i) => `• ${i.name} x${i.quantity}`).join("\n") },
+      { name: "🧑‍💼 Comprador",   value: buyerDiscord ? `<@${buyerDiscord}> (${buyerName})` : buyerName, inline: true },
+      { name: "🏪 Vendedor",     value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
+      { name: "🎮 Itens",        value: items.map((i) => `• **${i.name}** x${i.quantity} — R$ ${Number(i.price).toFixed(2)} cada`).join("\n") },
+      { name: "💰 Total pago",   value: `R$ ${total.toFixed(2)}`, inline: true },
+      { name: "🔖 ID do pedido", value: `#${orderId}`, inline: true },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Este canal será excluído após a conclusão da entrega" },
+    footer: { text: "DropBay · Canal removido automaticamente após a entrega" },
   }
 }
 
@@ -117,13 +119,14 @@ export function embedCanalTroca(params: {
       "Usem este espaço para combinar os detalhes da troca. Após ambos confirmarem no site, o canal será **removido automaticamente**.\n\n" +
       "> ⚠️ Não compartilhem dados pessoais aqui. Qualquer problema, acionem um admin.",
     fields: [
-      { name: "👤 Jogador A", value: ownerDiscord ? `<@${ownerDiscord}> (${ownerName})` : ownerName, inline: true },
-      { name: "👤 Jogador B", value: proposerDiscord ? `<@${proposerDiscord}> (${proposerName})` : proposerName, inline: true },
-      { name: `🎮 Itens de ${ownerName}`, value: ownerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
-      { name: `🎮 Itens de ${proposerName}`, value: proposerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
+      { name: "👤 Jogador A",           value: ownerDiscord ? `<@${ownerDiscord}> (${ownerName})` : ownerName, inline: true },
+      { name: "👤 Jogador B",           value: proposerDiscord ? `<@${proposerDiscord}> (${proposerName})` : proposerName, inline: true },
+      { name: `🎮 Itens de ${ownerName}`,    value: ownerItems.map((i) => `• **${i.name}** x${i.quantity}`).join("\n") || "—" },
+      { name: `🎮 Itens de ${proposerName}`, value: proposerItems.map((i) => `• **${i.name}** x${i.quantity}`).join("\n") || "—" },
+      { name: "🔖 ID da troca",         value: `#${tradeId}`, inline: true },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Este canal será excluído após a conclusão da troca" },
+    footer: { text: "DropBay · Canal removido automaticamente após a conclusão" },
   }
 }
 
