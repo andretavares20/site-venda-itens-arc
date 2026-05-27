@@ -142,7 +142,7 @@ export default function NovaTrocaPage() {
 
   useEffect(() => {
     if (status !== "authenticated") return
-    fetch("/api/trocas")
+    fetch("/api/trocas?recentes")
       .then((r) => r.json())
       .then((data) => setRecentTrocas(Array.isArray(data) ? data.slice(0, 5) : []))
       .catch(() => {})
@@ -235,12 +235,12 @@ export default function NovaTrocaPage() {
           </button>
         </div>
 
-        {/* Trocas abertas recentes do site */}
+        {/* Trocas recentes do site */}
         {recentTrocas.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>
-                TROCAS ABERTAS
+                TROCAS RECENTES
               </p>
               <Link href="/trocas" className="text-xs" style={{ color: "var(--accent)" }}>
                 Ver todas →
@@ -249,6 +249,13 @@ export default function NovaTrocaPage() {
             <div className="flex flex-col gap-2">
               {recentTrocas.map((t) => {
                 const firstItem = t.offerItems[0]
+                const statusMap: Record<string, { label: string; color: string }> = {
+                  ABERTA:                 { label: "Aberta",    color: "var(--success)" },
+                  AGUARDANDO_CONFIRMACAO: { label: "Aguardando", color: "var(--warning)" },
+                  CONCLUIDA:              { label: "Concluída", color: "var(--accent)"  },
+                  CANCELADA:              { label: "Cancelada", color: "var(--text-tertiary)" },
+                }
+                const s = statusMap[t.status]
                 return (
                   <Link key={t.id} href={`/trocas/${t.id}`}
                     className="flex items-center gap-3 p-3 rounded-xl"
@@ -267,10 +274,9 @@ export default function NovaTrocaPage() {
                         {t.wantItems.length > 0 && ` · quer: ${t.wantItems.map((i) => i.product.name).join(", ")}`}
                       </p>
                     </div>
-                    {t.proposals.length > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                        style={{ background: "rgba(0,113,227,0.1)", color: "var(--accent)" }}>
-                        {t.proposals.length} proposta{t.proposals.length > 1 ? "s" : ""}
+                    {s && (
+                      <span className="text-xs font-medium flex-shrink-0" style={{ color: s.color }}>
+                        {s.label}
                       </span>
                     )}
                   </Link>

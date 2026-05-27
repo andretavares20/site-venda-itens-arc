@@ -26,9 +26,19 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const mine = searchParams.get("mine")
   const proposed = searchParams.get("proposed")
+  const recentes = searchParams.has("recentes")
   const session = await auth()
 
   await closeExpiredTrades()
+
+  if (recentes) {
+    const trades = await prisma.trade.findMany({
+      include,
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+    return NextResponse.json(trades)
+  }
 
   const where = mine && session
     ? { userId: session.user.id }
