@@ -54,7 +54,7 @@ export default function NovaEncomendaPage() {
 
   useEffect(() => {
     if (status !== "authenticated") return
-    fetch("/api/encomendas")
+    fetch("/api/encomendas?recentes")
       .then((r) => r.json())
       .then((data) => setRecentEncomendas(Array.isArray(data) ? data.slice(0, 5) : []))
       .catch(() => {})
@@ -241,37 +241,45 @@ export default function NovaEncomendaPage() {
           <div className="mt-8">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>
-                ENCOMENDAS ABERTAS
+                ENCOMENDAS RECENTES
               </p>
               <Link href="/encomendas" className="text-xs" style={{ color: "var(--accent)" }}>
                 Ver todas →
               </Link>
             </div>
             <div className="flex flex-col gap-2">
-              {recentEncomendas.map((e) => (
-                <Link key={e.id} href={`/encomendas/${e.id}`}
-                  className="flex items-center gap-3 p-3 rounded-xl"
-                  style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                  <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
-                    <Image src={e.product.image} alt={e.product.name} width={36} height={36} className="w-full h-full object-contain" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                      {e.product.name}
-                      {e.quantity > 1 && <span className="ml-1 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>×{e.quantity}</span>}
-                    </p>
-                    <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                      {e.buyer.name}
-                      {e.proposals.length > 0 && ` · ${e.proposals.length} proposta${e.proposals.length > 1 ? "s" : ""}`}
-                    </p>
-                  </div>
-                  {e.maxPrice != null && (
-                    <span className="text-xs font-semibold flex-shrink-0" style={{ color: "var(--warning)" }}>
-                      até R$ {Number(e.maxPrice).toFixed(2)}
-                    </span>
-                  )}
-                </Link>
-              ))}
+              {recentEncomendas.map((e) => {
+                const statusMap: Record<string, { label: string; color: string }> = {
+                  ABERTA:     { label: "Aberta",    color: "var(--success)" },
+                  CONCLUIDA:  { label: "Concluída", color: "var(--accent)"  },
+                  CANCELADA:  { label: "Cancelada", color: "var(--text-tertiary)" },
+                }
+                const s = statusMap[e.status]
+                return (
+                  <Link key={e.id} href={`/encomendas/${e.id}`}
+                    className="flex items-center gap-3 p-3 rounded-xl"
+                    style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                    <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
+                      <Image src={e.product.image} alt={e.product.name} width={36} height={36} className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {e.product.name}
+                        {e.quantity > 1 && <span className="ml-1 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>×{e.quantity}</span>}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                        {e.buyer.name}
+                        {e.maxPrice != null && ` · até R$ ${Number(e.maxPrice).toFixed(2)}`}
+                      </p>
+                    </div>
+                    {s && (
+                      <span className="text-xs font-medium flex-shrink-0" style={{ color: s.color }}>
+                        {s.label}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
             </div>
           </div>
         )}

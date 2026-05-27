@@ -5,15 +5,19 @@ import { sendAdminAlert, sendDiscordDM, embedNovaEncomenda, dmEncomendaCriada } 
 import { notifyAdmins } from "@/lib/notify-admins"
 import { requireDiscord } from "@/lib/require-discord"
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const recentes = searchParams.has("recentes")
+
   const encomendas = await prisma.encomenda.findMany({
-    where: { status: "ABERTA" },
+    where: recentes ? undefined : { status: "ABERTA" },
     include: {
       buyer: { select: { id: true, name: true } },
       product: { select: { id: true, name: true, image: true, category: true } },
       proposals: { where: { status: "PENDENTE" }, select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: recentes ? 5 : undefined,
   })
 
   return NextResponse.json(encomendas)
