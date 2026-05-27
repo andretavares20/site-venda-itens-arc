@@ -7,17 +7,28 @@ import { requireDiscord } from "@/lib/require-discord"
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const recentes = searchParams.has("recentes")
+
+  if (searchParams.has("recentes")) {
+    const encomendas = await prisma.encomenda.findMany({
+      include: {
+        buyer: { select: { id: true, name: true } },
+        product: { select: { id: true, name: true, image: true, category: true } },
+        proposals: { where: { status: "PENDENTE" }, select: { id: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+    return NextResponse.json(encomendas)
+  }
 
   const encomendas = await prisma.encomenda.findMany({
-    where: recentes ? undefined : { status: "ABERTA" },
+    where: { status: "ABERTA" },
     include: {
       buyer: { select: { id: true, name: true } },
       product: { select: { id: true, name: true, image: true, category: true } },
       proposals: { where: { status: "PENDENTE" }, select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
-    take: recentes ? 5 : undefined,
   })
 
   return NextResponse.json(encomendas)
