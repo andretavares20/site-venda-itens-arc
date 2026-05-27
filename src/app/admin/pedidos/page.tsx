@@ -34,7 +34,7 @@ type Order = {
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string; icon: React.ElementType }> = {
   PENDENTE:  { bg: "rgba(255,214,10,0.1)",  color: "var(--warning)", label: "Aguardando pagamento", icon: Clock },
-  PAGO:      { bg: "rgba(0,113,227,0.1)",   color: "var(--accent)",  label: "Pago — entregar item",  icon: DollarSign },
+  PAGO:      { bg: "rgba(0,113,227,0.1)",   color: "var(--accent)",  label: "Pago — aguardando entrega",  icon: DollarSign },
   ENTREGUE:  { bg: "rgba(48,209,88,0.1)",   color: "var(--success)", label: "Entregue",              icon: Package },
   CANCELADO: { bg: "rgba(255,69,58,0.1)",   color: "var(--error)",   label: "Cancelado",             icon: XCircle },
 }
