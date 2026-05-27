@@ -6,9 +6,26 @@ import { useRouter } from "next/navigation"
 import Navbar from "@/components/navbar"
 import DiscordGate from "@/components/discord-gate"
 import Image from "next/image"
+import Link from "next/link"
 import { Search } from "lucide-react"
 
 type Product = { id: string; name: string; image: string; category: string; rarity: string }
+
+type RecentEncomenda = {
+  id: string
+  status: string
+  createdAt: string
+  quantity: number
+  product: { name: string; image: string }
+  proposals: { id: string; status: string }[]
+}
+
+const ENCOMENDA_STATUS: Record<string, { label: string; bg: string; color: string }> = {
+  ABERTA:     { label: "Aberta",     bg: "rgba(48,209,88,0.1)",  color: "var(--success)"       },
+  AGUARDANDO: { label: "Aguardando", bg: "rgba(255,214,10,0.1)", color: "var(--warning)"       },
+  CONCLUIDA:  { label: "Concluída",  bg: "rgba(0,113,227,0.1)", color: "var(--accent)"        },
+  CANCELADA:  { label: "Cancelada",  bg: "var(--surface-2)",    color: "var(--text-tertiary)" },
+}
 
 const rarityColor: Record<string, string> = {
   Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3", Epic: "#bf5af2", Legendary: "#ffd60a",
@@ -33,10 +50,19 @@ export default function NovaEncomendaPage() {
   const [note, setNote] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [recentEncomendas, setRecentEncomendas] = useState<RecentEncomenda[]>([])
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login")
   }, [status, router])
+
+  useEffect(() => {
+    if (status !== "authenticated") return
+    fetch("/api/encomendas/minhas")
+      .then((r) => r.json())
+      .then((data) => setRecentEncomendas(Array.isArray(data) ? data.slice(0, 3) : []))
+      .catch(() => {})
+  }, [status])
 
   useEffect(() => {
     fetch("/api/produtos")
@@ -213,6 +239,48 @@ export default function NovaEncomendaPage() {
             {loading ? "Publicando..." : "Publicar encomenda"}
           </button>
         </div>
+
+        {/* Últimas encomendas */}
+        {recentEncomendas.length > 0 && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>
+                SUAS ÚLTIMAS ENCOMENDAS
+              </p>
+              <Link href="/encomendas" className="text-xs" style={{ color: "var(--accent)" }}>
+                Ver todas →
+              </Link>
+            </div>
+            <div className="flex flex-col gap-2">
+              {recentEncomendas.map((e) => {
+                const badge = ENCOMENDA_STATUS[e.status] ?? { label: e.status, bg: "var(--surface-2)", color: "var(--text-tertiary)" }
+                return (
+                  <Link key={e.id} href={`/encomendas/${e.id}`}
+                    className="flex items-center gap-3 p-3 rounded-xl"
+                    style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                    <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
+                      <Image src={e.product.image} alt={e.product.name} width={36} height={36} className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {e.product.name}
+                        {e.quantity > 1 && <span className="ml-1 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>×{e.quantity}</span>}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                        {new Date(e.createdAt).toLocaleDateString("pt-BR")}
+                        {e.proposals.length > 0 && ` · ${e.proposals.length} proposta${e.proposals.length > 1 ? "s" : ""}`}
+                      </p>
+                    </div>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                      style={{ background: badge.bg, color: badge.color }}>
+                      {badge.label}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </main>
       </DiscordGate>
     </div>
