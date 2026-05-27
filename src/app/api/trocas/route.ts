@@ -28,12 +28,19 @@ export async function GET(req: NextRequest) {
   const proposed = searchParams.get("proposed")
 
   if (searchParams.has("recentes")) {
-    const trades = await prisma.trade.findMany({
-      include,
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    })
-    return NextResponse.json(trades)
+    console.log("[trocas/recentes] iniciando query")
+    try {
+      const trades = await prisma.trade.findMany({
+        include,
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      })
+      console.log(`[trocas/recentes] ok — ${trades.length} trocas`)
+      return NextResponse.json(trades)
+    } catch (e) {
+      console.error("[trocas/recentes] erro na query:", e)
+      return NextResponse.json({ error: "Erro interno" }, { status: 500 })
+    }
   }
 
   const session = await auth()

@@ -141,11 +141,16 @@ export default function NovaTrocaPage() {
   useEffect(() => { if (status === "unauthenticated") router.push("/login") }, [status, router])
 
   useEffect(() => {
+    console.log("[trocas/nova] status:", status)
     if (status !== "authenticated") return
+    console.log("[trocas/nova] fazendo fetch /api/trocas?recentes")
     fetch("/api/trocas?recentes")
-      .then((r) => r.json())
-      .then((data) => setRecentTrocas(Array.isArray(data) ? data.slice(0, 5) : []))
-      .catch(() => {})
+      .then((r) => { console.log("[trocas/nova] response status:", r.status); return r.json() })
+      .then((data) => {
+        console.log("[trocas/nova] data:", data)
+        setRecentTrocas(Array.isArray(data) ? data.slice(0, 5) : [])
+      })
+      .catch((e) => console.error("[trocas/nova] fetch error:", e))
   }, [status])
 
   async function handleSubmit() {
