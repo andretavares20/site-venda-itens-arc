@@ -14,6 +14,7 @@ export default function RegistroPage() {
   const [cpf, setCpf] = useState("")
   const [password, setPassword] = useState("")
   const [showPass, setShowPass] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -29,6 +30,10 @@ export default function RegistroPage() {
     }
     if (!validateCPF(cpf)) {
       setError("CPF inválido. Verifique e tente novamente.")
+      return
+    }
+    if (!acceptedTerms) {
+      setError("Você precisa aceitar os termos de serviço para criar uma conta.")
       return
     }
     setError("")
@@ -118,6 +123,23 @@ export default function RegistroPage() {
               </button>
             </div>
           </div>
+
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-0.5 flex-shrink-0"
+              style={{ accentColor: "var(--accent)", width: 15, height: 15 }}
+            />
+            <span className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              Li e aceito os{" "}
+              <Link href="/termos" target="_blank" className="underline" style={{ color: "var(--accent)" }}>
+                termos de serviço
+              </Link>
+              {" "}do DropBay.
+            </span>
+          </label>
 
           <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
             {loading ? (

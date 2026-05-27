@@ -59,13 +59,18 @@ export default function Footer() {
 
       {/* Copyright */}
       <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <p style={{ color: "#6e6e73", fontSize: "12px" }}>
-          © {new Date().getFullYear()} DropBay. Todos os direitos reservados.
-        </p>
+        <div>
+          <p style={{ color: "#6e6e73", fontSize: "12px" }}>
+            © {new Date().getFullYear()} DropBay. Todos os direitos reservados.
+          </p>
+          <p style={{ color: "#6e6e73", fontSize: "11px", marginTop: "2px" }}>
+            Não afiliada à Embark Studios AB ou Nexon. Arc Raiders é marca registrada de seus respectivos proprietários.
+          </p>
+        </div>
         <div className="flex items-center gap-4 flex-wrap">
           {[
             { label: "Privacidade", href: "/" },
-            { label: "Termos de uso", href: "/" },
+            { label: "Termos de uso", href: "/termos" },
             { label: "Contato", href: "/" },
           ].map(({ label, href }) => (
             <Link key={label} href={href} className="footer-legal">{label}</Link>
