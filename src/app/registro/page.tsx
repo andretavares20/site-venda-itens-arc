@@ -33,7 +33,7 @@ export default function RegistroPage() {
       return
     }
     if (!acceptedTerms) {
-      setError("Você precisa aceitar os Termos de Uso para criar uma conta.")
+      setError("Você precisa aceitar os termos de serviço para criar uma conta.")
       return
     }
     setError("")
@@ -135,9 +135,9 @@ export default function RegistroPage() {
             <span className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               Li e aceito os{" "}
               <Link href="/termos" target="_blank" className="underline" style={{ color: "var(--accent)" }}>
-                Termos de Uso
+                termos de serviço
               </Link>
-              , incluindo o aviso sobre os riscos relacionados às políticas do Arc Raiders.
+              {" "}do DropBay.
             </span>
           </label>
 
