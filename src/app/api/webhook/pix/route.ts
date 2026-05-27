@@ -103,13 +103,20 @@ export async function POST(req: NextRequest) {
               },
             },
           },
+          encomendaProposal: {
+            include: {
+              seller: { select: { id: true, name: true, discordId: true } },
+              encomenda: { include: { product: { select: { name: true } } } },
+            },
+          },
         },
       })
 
       if (fullOrder) {
-        const firstItem = fullOrder.items[0]?.stock
-        const seller = firstItem?.seller
-        const itemName = firstItem?.product.name ?? "item"
+        const fromStock = fullOrder.items[0]?.stock
+        const fromEncomenda = fullOrder.encomendaProposal
+        const seller = fromStock?.seller ?? fromEncomenda?.seller ?? null
+        const itemName = fromStock?.product.name ?? fromEncomenda?.encomenda?.product?.name ?? "item"
         const orderLink = `/pedido/${order.id}`
 
         // Notificação in-app para o comprador

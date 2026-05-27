@@ -29,7 +29,7 @@ type SaleOrder = {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  PAGO:           { label: "Pago — entregar item",  color: "var(--accent)",   icon: Package },
+  PAGO:           { label: "Pago — aguardando entrega",  color: "var(--accent)",   icon: Package },
   ENTREGUE:       { label: "Entregue",               color: "var(--success)",  icon: CheckCircle },
   CANCELADO:      { label: "Cancelado",              color: "var(--error)",    icon: XCircle },
   COM_RECLAMACAO: { label: "Com reclamação",         color: "var(--warning)",  icon: AlertTriangle },

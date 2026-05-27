@@ -207,7 +207,7 @@ export function dmAnuncioAprovado(sellerName: string, itemName: string): string 
 }
 
 export function dmPedidoPago(sellerName: string, itemName: string): string {
-  return `💰 **${sellerName}**, seu item foi vendido!\n\nO item **${itemName}** foi comprado e o pagamento foi confirmado. Nossa equipe vai entrar em contato para combinar a entrega dentro do jogo.\n\nFique de olho nas mensagens! 🎮`
+  return `💰 **${sellerName}**, seu item foi vendido!\n\nO item **${itemName}** foi comprado e o pagamento foi confirmado. Um canal privado foi aberto no Discord com o comprador para vocês combinarem a entrega in-game diretamente.\n\nFique de olho nas mensagens! 🎮`
 }
 
 export function dmEntregaConfirmada(sellerName: string, value: string): string {
