@@ -27,6 +27,19 @@ type CartItem = {
 
 type PriceHistory = { price: number; date: string }
 
+type RecentAnuncio = {
+  id: string
+  status: string
+  createdAt: string
+  items: { product: { name: string; image: string }; quantity: number; price: number }[]
+}
+
+const ANUNCIO_STATUS: Record<string, { label: string; bg: string; color: string }> = {
+  DISPONIVEL: { label: "Disponível",  bg: "rgba(48,209,88,0.1)",  color: "var(--success)" },
+  VENDIDO:    { label: "Vendido",     bg: "rgba(0,113,227,0.1)", color: "var(--accent)"  },
+  CANCELADO:  { label: "Cancelado",   bg: "var(--surface-2)",    color: "var(--text-tertiary)" },
+}
+
 const rarityColor: Record<string, string> = {
   Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3",
   Epic: "#bf5af2", Legendary: "#ffd60a",
@@ -45,6 +58,7 @@ export default function AnunciarPage() {
   const [submitError, setSubmitError] = useState("")
   const [hasPixKey, setHasPixKey] = useState<boolean | null>(null)
   const [rawQty, setRawQty] = useState<Record<string, string>>({})
+  const [recentAnuncios, setRecentAnuncios] = useState<RecentAnuncio[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -67,6 +81,14 @@ export default function AnunciarPage() {
     fetch("/api/usuario/perfil")
       .then((r) => r.json())
       .then((data) => setHasPixKey(!!data.pixKey))
+  }, [status])
+
+  useEffect(() => {
+    if (status !== "authenticated") return
+    fetch("/api/anuncios?mine")
+      .then((r) => r.json())
+      .then((data) => setRecentAnuncios(Array.isArray(data) ? data.slice(0, 3) : []))
+      .catch(() => {})
   }, [status])
 
   useEffect(() => {
@@ -410,6 +432,50 @@ export default function AnunciarPage() {
             </span>
           ) : "Criar anúncio"}
         </button>
+
+        {/* Últimos anúncios */}
+        {recentAnuncios.length > 0 && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>
+                SEUS ÚLTIMOS ANÚNCIOS
+              </p>
+              <Link href="/minha-conta/anuncios" className="text-xs" style={{ color: "var(--accent)" }}>
+                Ver todos →
+              </Link>
+            </div>
+            <div className="flex flex-col gap-2">
+              {recentAnuncios.map((a) => {
+                const badge = ANUNCIO_STATUS[a.status] ?? { label: a.status, bg: "var(--surface-2)", color: "var(--text-tertiary)" }
+                const firstItem = a.items[0]
+                return (
+                  <Link key={a.id} href="/minha-conta/anuncios"
+                    className="flex items-center gap-3 p-3 rounded-xl"
+                    style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                    {firstItem && (
+                      <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
+                        <Image src={firstItem.product.image} alt={firstItem.product.name} width={36} height={36} className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {a.items.map((i) => i.product.name).join(", ")}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                        {new Date(a.createdAt).toLocaleDateString("pt-BR")}
+                        {a.items.length > 1 && ` · ${a.items.length} itens`}
+                      </p>
+                    </div>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                      style={{ background: badge.bg, color: badge.color }}>
+                      {badge.label}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </main>
       </DiscordGate>
     </div>
