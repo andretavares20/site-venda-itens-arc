@@ -31,14 +31,10 @@ type RecentAnuncio = {
   id: string
   status: string
   createdAt: string
+  seller: { name: string }
   items: { product: { name: string; image: string }; quantity: number; price: number }[]
 }
 
-const ANUNCIO_STATUS: Record<string, { label: string; bg: string; color: string }> = {
-  DISPONIVEL: { label: "Disponível",  bg: "rgba(48,209,88,0.1)",  color: "var(--success)" },
-  VENDIDO:    { label: "Vendido",     bg: "rgba(0,113,227,0.1)", color: "var(--accent)"  },
-  CANCELADO:  { label: "Cancelado",   bg: "var(--surface-2)",    color: "var(--text-tertiary)" },
-}
 
 const rarityColor: Record<string, string> = {
   Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3",
@@ -85,9 +81,9 @@ export default function AnunciarPage() {
 
   useEffect(() => {
     if (status !== "authenticated") return
-    fetch("/api/anuncios?mine")
+    fetch("/api/anuncios?recentes")
       .then((r) => r.json())
-      .then((data) => setRecentAnuncios(Array.isArray(data) ? data.slice(0, 3) : []))
+      .then((data) => setRecentAnuncios(Array.isArray(data) ? data.slice(0, 5) : []))
       .catch(() => {})
   }, [status])
 
@@ -433,24 +429,22 @@ export default function AnunciarPage() {
           ) : "Criar anúncio"}
         </button>
 
-        {/* Últimos anúncios */}
+        {/* Anúncios recentes do site */}
         {recentAnuncios.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>
-                SEUS ÚLTIMOS ANÚNCIOS
+                ANÚNCIOS RECENTES
               </p>
-              <Link href="/minha-conta/anuncios" className="text-xs" style={{ color: "var(--accent)" }}>
-                Ver todos →
+              <Link href="/" className="text-xs" style={{ color: "var(--accent)" }}>
+                Ver loja →
               </Link>
             </div>
             <div className="flex flex-col gap-2">
               {recentAnuncios.map((a) => {
-                const badge = ANUNCIO_STATUS[a.status] ?? { label: a.status, bg: "var(--surface-2)", color: "var(--text-tertiary)" }
                 const firstItem = a.items[0]
                 return (
-                  <Link key={a.id} href="/minha-conta/anuncios"
-                    className="flex items-center gap-3 p-3 rounded-xl"
+                  <div key={a.id} className="flex items-center gap-3 p-3 rounded-xl"
                     style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
                     {firstItem && (
                       <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
@@ -462,15 +456,13 @@ export default function AnunciarPage() {
                         {a.items.map((i) => i.product.name).join(", ")}
                       </p>
                       <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                        {new Date(a.createdAt).toLocaleDateString("pt-BR")}
-                        {a.items.length > 1 && ` · ${a.items.length} itens`}
+                        {a.seller.name} · {new Date(a.createdAt).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                      style={{ background: badge.bg, color: badge.color }}>
-                      {badge.label}
+                    <span className="text-xs font-semibold flex-shrink-0" style={{ color: "var(--success)" }}>
+                      R$ {a.items.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}
                     </span>
-                  </Link>
+                  </div>
                 )
               })}
             </div>

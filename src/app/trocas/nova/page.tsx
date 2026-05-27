@@ -16,16 +16,12 @@ type RecentTroca = {
   id: string
   status: string
   createdAt: string
+  user: { name: string }
   offerItems: { product: { name: string; image: string } }[]
+  wantItems: { product: { name: string } }[]
   proposals: { id: string }[]
 }
 
-const TROCA_STATUS: Record<string, { label: string; bg: string; color: string }> = {
-  ABERTA:                   { label: "Aberta",     bg: "rgba(48,209,88,0.1)",   color: "var(--success)"       },
-  AGUARDANDO_CONFIRMACAO:   { label: "Aguardando", bg: "rgba(255,214,10,0.1)", color: "var(--warning)"       },
-  CONCLUIDA:                { label: "Concluída",  bg: "rgba(0,113,227,0.1)",  color: "var(--accent)"        },
-  CANCELADA:                { label: "Cancelada",  bg: "var(--surface-2)",     color: "var(--text-tertiary)" },
-}
 
 const rarityColor: Record<string, string> = {
   Common: "#98989f", Uncommon: "#30d158", Rare: "#0071e3", Epic: "#bf5af2", Legendary: "#ffd60a",
@@ -146,9 +142,9 @@ export default function NovaTrocaPage() {
 
   useEffect(() => {
     if (status !== "authenticated") return
-    fetch("/api/trocas?mine=1")
+    fetch("/api/trocas")
       .then((r) => r.json())
-      .then((data) => setRecentTrocas(Array.isArray(data) ? data.slice(0, 3) : []))
+      .then((data) => setRecentTrocas(Array.isArray(data) ? data.slice(0, 5) : []))
       .catch(() => {})
   }, [status])
 
@@ -239,20 +235,19 @@ export default function NovaTrocaPage() {
           </button>
         </div>
 
-        {/* Últimas trocas */}
+        {/* Trocas abertas recentes do site */}
         {recentTrocas.length > 0 && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold" style={{ color: "var(--text-tertiary)" }}>
-                SUAS ÚLTIMAS TROCAS
+                TROCAS ABERTAS
               </p>
-              <Link href="/minha-conta/trocas" className="text-xs" style={{ color: "var(--accent)" }}>
+              <Link href="/trocas" className="text-xs" style={{ color: "var(--accent)" }}>
                 Ver todas →
               </Link>
             </div>
             <div className="flex flex-col gap-2">
               {recentTrocas.map((t) => {
-                const badge = TROCA_STATUS[t.status] ?? { label: t.status, bg: "var(--surface-2)", color: "var(--text-tertiary)" }
                 const firstItem = t.offerItems[0]
                 return (
                   <Link key={t.id} href={`/trocas/${t.id}`}
@@ -268,14 +263,16 @@ export default function NovaTrocaPage() {
                         {t.offerItems.map((i) => i.product.name).join(", ")}
                       </p>
                       <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                        {new Date(t.createdAt).toLocaleDateString("pt-BR")}
-                        {t.proposals.length > 0 && ` · ${t.proposals.length} proposta${t.proposals.length > 1 ? "s" : ""}`}
+                        {t.user.name}
+                        {t.wantItems.length > 0 && ` · quer: ${t.wantItems.map((i) => i.product.name).join(", ")}`}
                       </p>
                     </div>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                      style={{ background: badge.bg, color: badge.color }}>
-                      {badge.label}
-                    </span>
+                    {t.proposals.length > 0 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                        style={{ background: "rgba(0,113,227,0.1)", color: "var(--accent)" }}>
+                        {t.proposals.length} proposta{t.proposals.length > 1 ? "s" : ""}
+                      </span>
+                    )}
                   </Link>
                 )
               })}

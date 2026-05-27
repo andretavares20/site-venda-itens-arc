@@ -7,10 +7,25 @@ import { sendDiscordDM, sendAdminAlert, dmAnuncioAprovado, embedNovoAnuncio } fr
 import { requireDiscord } from "@/lib/require-discord"
 
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const recentes = searchParams.has("recentes")
+
+  if (recentes) {
+    const listings = await prisma.listing.findMany({
+      where: { status: "DISPONIVEL" },
+      include: {
+        seller: { select: { id: true, name: true } },
+        items: { include: { product: { select: { id: true, name: true, image: true, rarity: true } } } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+    return NextResponse.json(listings)
+  }
+
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
 
-  const { searchParams } = new URL(req.url)
   const mine = searchParams.get("mine")
 
   const where = session.user.role === "ADMIN" && !mine
