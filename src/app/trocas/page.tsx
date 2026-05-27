@@ -36,13 +36,25 @@ async function getTrades(busca?: string) {
   })
 }
 
+async function getRecentTrades() {
+  return prisma.trade.findMany({
+    include: {
+      user: { select: { name: true } },
+      offerItems: { include: { product: { select: { name: true, image: true, rarity: true } } } },
+      wantItems:  { include: { product: { select: { name: true } } } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  })
+}
+
 export default async function TrocasPage({
   searchParams,
 }: {
   searchParams: Promise<{ busca?: string }>
 }) {
   const params = await searchParams
-  const trades = await getTrades(params.busca)
+  const [trades, recentTrades] = await Promise.all([getTrades(params.busca), getRecentTrades()])
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -170,6 +182,51 @@ export default async function TrocasPage({
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+        {/* Atividade recente */}
+        {recentTrades.length > 0 && (
+          <div className="mt-12">
+            <p className="text-xs font-semibold mb-4" style={{ color: "var(--text-tertiary)" }}>
+              ATIVIDADE RECENTE
+            </p>
+            <div className="flex flex-col gap-2">
+              {recentTrades.map((t) => {
+                const statusMap: Record<string, { label: string; color: string }> = {
+                  ABERTA:                 { label: "Aberta",    color: "var(--success)"       },
+                  AGUARDANDO_CONFIRMACAO: { label: "Aguardando", color: "var(--warning)"      },
+                  CONCLUIDA:              { label: "Concluída", color: "var(--accent)"        },
+                  CANCELADA:              { label: "Cancelada", color: "var(--text-tertiary)" },
+                }
+                const s = statusMap[t.status]
+                const firstOffer = t.offerItems[0]
+                return (
+                  <Link key={t.id} href={`/trocas/${t.id}`}
+                    className="flex items-center gap-3 p-3 rounded-xl"
+                    style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                    {firstOffer && (
+                      <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
+                        <Image src={firstOffer.product.image} alt={firstOffer.product.name} width={32} height={32} className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {t.offerItems.map((i) => i.product.name).join(", ")}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                        {t.user.name}
+                        {t.wantItems.length > 0 && ` · quer: ${t.wantItems.map((i) => i.product.name).join(", ")}`}
+                      </p>
+                    </div>
+                    {s && (
+                      <span className="text-xs font-medium flex-shrink-0" style={{ color: s.color }}>
+                        {s.label}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
           </div>
         )}
       </main>

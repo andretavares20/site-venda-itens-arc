@@ -19,15 +19,25 @@ const rarityColor: Record<string, string> = {
 export default async function EncomendasPage() {
   const session = await auth()
 
-  const encomendas = await prisma.encomenda.findMany({
-    where: { status: "ABERTA" },
-    include: {
-      buyer: { select: { id: true, name: true } },
-      product: true,
-      proposals: { where: { status: "PENDENTE" }, select: { id: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  const [encomendas, recentEncomendas] = await Promise.all([
+    prisma.encomenda.findMany({
+      where: { status: "ABERTA" },
+      include: {
+        buyer: { select: { id: true, name: true } },
+        product: true,
+        proposals: { where: { status: "PENDENTE" }, select: { id: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.encomenda.findMany({
+      include: {
+        buyer: { select: { name: true } },
+        product: { select: { name: true, image: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+  ])
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -120,6 +130,45 @@ export default async function EncomendasPage() {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+        {/* Atividade recente */}
+        {recentEncomendas.length > 0 && (
+          <div className="mt-12">
+            <p className="text-xs font-semibold mb-4" style={{ color: "var(--text-tertiary)" }}>
+              ATIVIDADE RECENTE
+            </p>
+            <div className="flex flex-col gap-2">
+              {recentEncomendas.map((e) => {
+                const statusMap: Record<string, { label: string; color: string }> = {
+                  ABERTA:    { label: "Aberta",    color: "var(--success)"       },
+                  CONCLUIDA: { label: "Concluída", color: "var(--accent)"        },
+                  CANCELADA: { label: "Cancelada", color: "var(--text-tertiary)" },
+                }
+                const s = statusMap[e.status]
+                return (
+                  <Link key={e.id} href={`/encomendas/${e.id}`}
+                    className="flex items-center gap-3 p-3 rounded-xl"
+                    style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                    <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "#0d0d0d" }}>
+                      <Image src={e.product.image} alt={e.product.name} width={32} height={32} className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {e.product.name}
+                        {e.quantity > 1 && <span className="ml-1 text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>×{e.quantity}</span>}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>{e.buyer.name}</p>
+                    </div>
+                    {s && (
+                      <span className="text-xs font-medium flex-shrink-0" style={{ color: s.color }}>
+                        {s.label}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
           </div>
         )}
       </main>
