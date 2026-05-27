@@ -144,14 +144,23 @@ async function createDMChannel(discordId: string): Promise<string | null> {
 export async function sendDiscordDM(discordId: string, message: string): Promise<boolean> {
   try {
     const channelId = await createDMChannel(discordId)
-    if (!channelId) return false
+    if (!channelId) {
+      console.error(`[Discord] sendDiscordDM failed: createDMChannel returned null for discordId=${discordId}`)
+      return false
+    }
     const res = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
       method: "POST",
       headers: botHeaders(),
       body: JSON.stringify({ content: message }),
     })
-    return res.ok
-  } catch {
+    if (!res.ok) {
+      const body = await res.text()
+      console.error(`[Discord] sendDiscordDM failed: status=${res.status} discordId=${discordId} body=${body}`)
+      return false
+    }
+    return true
+  } catch (e) {
+    console.error(`[Discord] sendDiscordDM exception: discordId=${discordId}`, e)
     return false
   }
 }
@@ -268,6 +277,10 @@ export function dmAguardandoRecolhimento(userName: string): string {
 
 export function dmTrocaAnunciada(userName: string): string {
   return `🔄 Olá, **${userName}**!\n\nSua troca foi anunciada na **DropBay**. Assim que outro jogador fizer uma proposta, você receberá uma notificação por aqui.\n\nFique atento! 🎮`
+}
+
+export function dmNovaPropostaEncomenda(buyerName: string, sellerName: string, itemName: string, price: number): string {
+  return `🔔 Olá, **${buyerName}**!\n\nVocê recebeu uma nova proposta para sua encomenda de **${itemName}**!\n\n**${sellerName}** está oferecendo por **R$ ${price.toFixed(2)}** por unidade.\n\nAcesse o site para ver os detalhes e aceitar ou recusar a proposta. 🎮`
 }
 
 export function dmEncomendaCriada(userName: string, itemName: string): string {
