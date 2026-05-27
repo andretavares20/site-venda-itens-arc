@@ -182,6 +182,16 @@ export default function NotificationBell() {
 
             </div>
           )}
+
+          <div style={{ borderTop: "1px solid var(--border)" }}>
+            <Link href="/minha-conta/notificacoes" onClick={() => setOpen(false)}
+              className="flex items-center justify-center w-full py-3 text-xs font-medium transition-colors"
+              style={{ color: "var(--accent)", textDecoration: "none" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+              Ver todas as notificações
+            </Link>
+          </div>
         </div>
       )}
     </div>
