@@ -4,11 +4,11 @@ import Footer from "@/components/footer"
 import Link from "next/link"
 
 const BUY_STEPS = [
-  { n: "01", title: "O vendedor cria um anúncio",        desc: "O player anuncia seu item na DropBay com o preço desejado. O anúncio fica disponível imediatamente na loja." },
-  { n: "02", title: "O comprador realiza o pagamento",    desc: "O comprador encontra o item e efetua o pagamento de forma segura pela plataforma. O valor fica retido até a entrega ser confirmada." },
-  { n: "03", title: "Vendedor e comprador se encontram",  desc: "Após o pagamento, ambos recebem uma notificação e entram em contato pelo Discord para combinar a entrega do item in-game." },
-  { n: "04", title: "Entrega realizada in-game",          desc: "Os jogadores se encontram dentro de ARC Raiders e o item é entregue diretamente pelo vendedor ao comprador." },
-  { n: "05", title: "Comprador confirma a entrega",       desc: "Após receber o item, o comprador confirma a entrega no site. O valor é então liberado ao vendedor." },
+  { n: "01", title: "Jogador publica o item",              desc: "O player informa o item disponível e o preço desejado. A oferta aparece imediatamente para toda a comunidade." },
+  { n: "02", title: "Outro jogador realiza o pagamento",  desc: "O interessado encontra a oferta e efetua o pagamento de forma segura pela plataforma. O valor fica retido até a entrega ser confirmada." },
+  { n: "03", title: "Os jogadores se conectam",           desc: "Após o pagamento, ambos recebem uma notificação e entram em contato pelo Discord para combinar a entrega do item in-game." },
+  { n: "04", title: "Entrega realizada in-game",          desc: "Os dois se encontram dentro de ARC Raiders e o item é entregue diretamente entre os jogadores." },
+  { n: "05", title: "Entrega confirmada",                 desc: "Após receber o item, o jogador confirma a entrega no site. O valor é então liberado para quem entregou." },
 ]
 
 const TRADE_STEPS = [
@@ -20,15 +20,15 @@ const TRADE_STEPS = [
 ]
 
 const ORDER_STEPS = [
-  { n: "01", title: "O comprador cria uma encomenda",     desc: "O player informa o item que busca, a quantidade desejada e o preço máximo que está disposto a pagar (opcional)." },
-  { n: "02", title: "Um vendedor faz uma proposta",       desc: "Vendedores que possuem o item encontram a encomenda e enviam uma proposta de preço." },
-  { n: "03", title: "O comprador aceita e paga",          desc: "O comprador escolhe a melhor oferta e realiza o pagamento. O valor fica retido até a entrega ser confirmada." },
-  { n: "04", title: "Combinam a entrega via Discord",     desc: "Comprador e vendedor entram em contato pelo Discord para combinar a entrega do item in-game." },
-  { n: "05", title: "Pagamento liberado ao vendedor",     desc: "Após o comprador confirmar o recebimento no site, o valor é liberado ao vendedor." },
+  { n: "01", title: "Jogador cria uma encomenda",         desc: "O player informa o item que busca, a quantidade desejada e o preço máximo que está disposto a pagar (opcional)." },
+  { n: "02", title: "Outro jogador faz uma proposta",    desc: "Quem possui o item encontra a encomenda e envia uma proposta de preço." },
+  { n: "03", title: "Encomenda aceita e paga",           desc: "O jogador escolhe a melhor oferta e realiza o pagamento. O valor fica retido até a entrega ser confirmada." },
+  { n: "04", title: "Combinam a entrega via Discord",    desc: "Os dois entram em contato pelo Discord para combinar a entrega do item in-game." },
+  { n: "05", title: "Valor liberado após confirmação",   desc: "Após confirmar o recebimento no site, o valor é liberado para quem fez a entrega." },
 ]
 
 const GUARANTEES = [
-  "Pagamento retido em custódia até a confirmação da entrega",
+  "Pagamento protegido até a confirmação da entrega entre os jogadores",
   "Notificações automáticas por Discord em cada etapa",
   "Histórico de todas as transações acessível na sua conta",
   "Suporte da equipe DropBay em caso de disputa ou problema",
@@ -95,7 +95,7 @@ export default function ComoFuncionaPage() {
             </h1>
             <p className="mx-auto"
               style={{ color: "var(--text-secondary)", maxWidth: "500px", lineHeight: 1.6, fontSize: "17px" }}>
-              A DropBay conecta compradores e vendedores de ARC Raiders de forma segura. As trocas acontecem diretamente entre os jogadores via Discord — sem intermediários na entrega.
+              A DropBay conecta jogadores de ARC Raiders de forma segura. Negociações, trocas e encomendas acontecem diretamente entre os jogadores via Discord.
             </p>
           </div>
         </section>
@@ -105,14 +105,14 @@ export default function ComoFuncionaPage() {
           <div className="max-w-3xl mx-auto px-6 py-16">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
-              Marketplace
+              Negociação
             </p>
             <h2 className="font-bold tracking-tight mb-2"
               style={{ color: "#1d1d1f", fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-              Compra de Itens.
+              Negociação de Itens.
             </h2>
             <p style={{ color: "#6e6e73", fontSize: "15px", lineHeight: 1.6, marginBottom: "32px" }}>
-              Compre itens de outros jogadores com pagamento seguro. A entrega é combinada diretamente via Discord.
+              Jogadores conectados diretamente para negociar itens com pagamento seguro. A entrega é combinada via Discord.
             </p>
             <StepList steps={BUY_STEPS} dark={false} />
             <div className="mt-10">
@@ -162,7 +162,7 @@ export default function ComoFuncionaPage() {
               Encomendas.
             </h2>
             <p style={{ color: "#6e6e73", fontSize: "15px", lineHeight: 1.6, marginBottom: "32px" }}>
-              Não encontrou o item que procura na loja? Crie uma encomenda e deixe os vendedores virem até você.
+              Não encontrou o item que procura? Crie uma encomenda e deixe outros jogadores virem até você.
             </p>
             <StepList steps={ORDER_STEPS} dark={false} />
             <div className="mt-10">
@@ -187,7 +187,7 @@ export default function ComoFuncionaPage() {
               Como garantimos segurança.
             </h2>
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "17px", lineHeight: 1.6, marginBottom: "32px", maxWidth: "540px" }}>
-              Mesmo com entrega direta entre jogadores, a DropBay mantém mecanismos de proteção em toda transação:
+              As negociações acontecem diretamente entre jogadores. A DropBay mantém mecanismos de proteção em cada etapa:
             </p>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "14px" }}>
               {GUARANTEES.map((g, i) => (
@@ -216,7 +216,7 @@ export default function ComoFuncionaPage() {
             </h2>
             <p style={{ color: "#6e6e73", fontSize: "16px", lineHeight: 1.7, maxWidth: "540px" }}>
               A DropBay não possui afiliação oficial com ARC Raiders ou com seus desenvolvedores.
-              Somos uma plataforma criada pela comunidade para facilitar trades entre jogadores de forma segura.
+              Somos uma plataforma comunitária criada para conectar jogadores de Arc Raiders de forma segura.
             </p>
           </div>
         </section>

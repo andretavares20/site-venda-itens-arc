@@ -58,7 +58,7 @@ export async function sendAdminNewListingEmail(params: {
         </div>
         <div style="padding:20px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);">
           <p style="color:#636366;font-size:11px;margin:0;">
-            © ${new Date().getFullYear()} DropBay · Marketplace de itens Arc Raiders
+            © ${new Date().getFullYear()} DropBay · Comunidade Arc Raiders
           </p>
         </div>
       </div>
@@ -104,7 +104,7 @@ export async function sendPasswordResetEmail(to: string, name: string, token: st
           </div>
           <div style="padding:20px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);">
             <p style="color:#636366;font-size:11px;margin:0;">
-              © ${new Date().getFullYear()} DropBay · Marketplace de itens Arc Raiders
+              © ${new Date().getFullYear()} DropBay · Comunidade Arc Raiders
             </p>
           </div>
         </div>
@@ -145,7 +145,7 @@ export async function sendVerificationEmail(to: string, name: string, token: str
           </div>
           <div style="padding:20px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);">
             <p style="color:#636366;font-size:11px;margin:0;">
-              © ${new Date().getFullYear()} DropBay · Marketplace de itens Arc Raiders
+              © ${new Date().getFullYear()} DropBay · Comunidade Arc Raiders
             </p>
           </div>
         </div>

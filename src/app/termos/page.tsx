@@ -25,8 +25,8 @@ export default function TermosPage() {
               1. Sobre a DropBay
             </h2>
             <p className="leading-relaxed">
-              A DropBay é uma plataforma independente de marketplace que conecta jogadores de Arc Raiders para a
-              negociação de itens in-game. A DropBay <strong style={{ color: "var(--text-primary)" }}>não é afiliada,
+              A DropBay é uma plataforma comunitária independente que conecta jogadores de Arc Raiders para
+              negociação de itens, trocas e encontro de grupos. A DropBay <strong style={{ color: "var(--text-primary)" }}>não é afiliada,
               patrocinada, endossada ou associada</strong> à Embark Studios AB, à Nexon Co., Ltd. ou a qualquer
               empresa do grupo Nexon. Arc Raiders é uma marca registrada de seus respectivos proprietários.
             </p>

@@ -21,9 +21,9 @@ const TIERS = [
     tag: "Trader Verificado",
     description: "Vendedores ativos e confiáveis verificados pela DropBay.",
     benefits: [
-      "Anúncios em destaque no marketplace",
-      "Selo oficial de trader verificado no perfil",
-      "Maior visibilidade e confiança para compradores",
+      "Ofertas em destaque na plataforma",
+      "Selo oficial de jogador verificado no perfil",
+      "Maior visibilidade e confiança na comunidade",
     ],
     dark: true,
     image: "/deserto.jpeg",

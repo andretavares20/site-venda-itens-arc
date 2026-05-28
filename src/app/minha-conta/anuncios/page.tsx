@@ -102,7 +102,7 @@ useEffect(() => {
           <div>
             <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Meus anúncios</h1>
             <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-              Gerencie os itens que você colocou à venda
+              Gerencie as ofertas que você publicou
             </p>
           </div>
           <Link href="/anunciar" className="btn-primary text-sm">
