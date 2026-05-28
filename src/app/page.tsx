@@ -76,7 +76,7 @@ export default async function Home() {
           <div className="relative pt-20 pb-6 px-4">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "var(--text-secondary)", letterSpacing: "0.12em" }}>
-              Marketplace de itens · Arc Raiders
+              Comunidade Arc Raiders
             </p>
             <h1 className="font-bold tracking-tight mb-4"
               style={{ color: "var(--text-primary)", fontSize: "clamp(3rem, 7vw, 5.5rem)", letterSpacing: "-0.04em", lineHeight: 1.0 }}>
@@ -84,7 +84,7 @@ export default async function Home() {
             </h1>
             <p className="mb-8"
               style={{ color: "var(--text-secondary)", lineHeight: 1.6, fontSize: "17px", whiteSpace: "nowrap" }}>
-              Compre, venda e troque itens in-game com segurança.
+              Conecte-se com jogadores, negocie itens e encontre seu grupo.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <Link href="/loja"
@@ -95,7 +95,7 @@ export default async function Home() {
               <Link href="/anunciar"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
                 style={{ background: "transparent", color: "var(--accent)", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,113,227,0.5)" }}>
-                Anunciar item
+                Oferecer item
               </Link>
             </div>
           </div>
@@ -177,20 +177,20 @@ export default async function Home() {
           <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
               style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
-              Para vendedores
+              Para jogadores
             </p>
             <h2 className="font-bold tracking-tight mb-3"
               style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-              Venda seus itens.
+              Ofereça seus itens.
             </h2>
             <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
-              Anuncie seus itens com segurança. Taxa de apenas 10% sobre cada venda concluída.
+              Publique seus itens e conecte-se com outros jogadores. Taxa de apenas 10% sobre cada negociação concluída.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
               <Link href="/anunciar"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
                 style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
-                Começar a vender
+                Publicar item
               </Link>
               <Link href="/minha-conta/anuncios"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"

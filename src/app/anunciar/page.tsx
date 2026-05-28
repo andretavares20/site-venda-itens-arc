@@ -168,7 +168,7 @@ export default function AnunciarPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>Criar anúncio</h1>
           <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-            Anuncie seus itens de Arc Raiders. Taxa de 10% sobre o valor vendido.
+            Publique seus itens e conecte-se com outros jogadores. Taxa de 10% sobre cada negociação concluída.
           </p>
         </div>
 
@@ -184,7 +184,7 @@ export default function AnunciarPage() {
                 Chave PIX não configurada
               </p>
               <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                Configure sua chave PIX antes de anunciar para receber pagamentos quando seus itens forem vendidos.
+                Configure sua chave PIX antes de publicar para receber pagamentos quando suas negociações forem concluídas.
               </p>
             </div>
             <Link

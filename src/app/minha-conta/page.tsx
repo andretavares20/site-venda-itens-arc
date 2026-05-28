@@ -105,7 +105,7 @@ export default function MinhaContaPage() {
             { href: "/minha-conta/vendas", label: "Minhas vendas", desc: "Pedidos onde você é vendedor" },
             { href: "/minha-conta/trocas", label: "Minhas trocas", desc: "Trocas que você anunciou" },
             { href: "/minha-conta/encomendas", label: "Encomendas", desc: "Suas encomendas e propostas" },
-            { href: "/anunciar", label: "Novo anúncio", desc: "Anuncie um item" },
+            { href: "/anunciar", label: "Novo anúncio", desc: "Publique um item" },
           ].map(({ href, label, desc }) => (
             <Link key={href} href={href}
               className="flex flex-col gap-1 p-4 rounded-2xl transition-all"

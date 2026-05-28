@@ -230,7 +230,7 @@ export function embedNovoAnuncio(params: {
       { name: "Itens", value: items.map((i) => `• ${i.name} x${i.quantity} — R$ ${i.price.toFixed(2)}`).join("\n") },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Marketplace Arc Raiders" },
+    footer: { text: "DropBay · Comunidade Arc Raiders" },
   }
 }
 
@@ -255,7 +255,7 @@ export function embedNovaTroca(params: {
       { name: "Itens de B", value: proposerItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "—" },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Marketplace Arc Raiders" },
+    footer: { text: "DropBay · Comunidade Arc Raiders" },
   }
 }
 
@@ -309,7 +309,7 @@ export function embedNovaTrocaAnunciada(params: {
       { name: "Quer", value: wantItems.map((i) => `• ${i.name} x${i.quantity}`).join("\n") || "Qualquer coisa" },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Marketplace Arc Raiders" },
+    footer: { text: "DropBay · Comunidade Arc Raiders" },
   }
 }
 
@@ -333,7 +333,7 @@ export function embedNovaEncomenda(params: {
       { name: "Preço máximo", value: maxPrice ? `R$ ${maxPrice.toFixed(2)}` : "Não informado", inline: true },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Marketplace Arc Raiders" },
+    footer: { text: "DropBay · Comunidade Arc Raiders" },
   }
 }
 
@@ -356,7 +356,7 @@ export function embedCancelamentoPendente(params: {
       { name: "Situação",  value: "O vendedor solicitou cancelamento, mas há um pedido pago em aberto. A administração precisa intervir (reembolso ao comprador ou entrega do item)." },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Marketplace Arc Raiders" },
+    footer: { text: "DropBay · Comunidade Arc Raiders" },
   }
 }
 
@@ -381,6 +381,6 @@ export function embedPedidoPago(params: {
       { name: "💰 Total",      value: `R$ ${total.toFixed(2)}`, inline: true },
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "DropBay · Marketplace Arc Raiders" },
+    footer: { text: "DropBay · Comunidade Arc Raiders" },
   }
 }

@@ -39,7 +39,7 @@ export default async function EncomendasPage() {
           <div>
             <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Encomendas</h1>
             <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-              Compradores procurando itens — faça uma proposta e venda
+              Jogadores procurando itens — faça uma proposta e conecte-se
             </p>
           </div>
           {session && (
