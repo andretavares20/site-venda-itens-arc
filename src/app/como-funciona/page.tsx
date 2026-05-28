@@ -28,7 +28,7 @@ const ORDER_STEPS = [
 ]
 
 const GUARANTEES = [
-  "Pagamento retido em custódia até a confirmação da entrega",
+  "Pagamento protegido até a confirmação da entrega entre os jogadores",
   "Notificações automáticas por Discord em cada etapa",
   "Histórico de todas as transações acessível na sua conta",
   "Suporte da equipe DropBay em caso de disputa ou problema",
@@ -187,7 +187,7 @@ export default function ComoFuncionaPage() {
               Como garantimos segurança.
             </h2>
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "17px", lineHeight: 1.6, marginBottom: "32px", maxWidth: "540px" }}>
-              Mesmo com entrega direta entre jogadores, a DropBay mantém mecanismos de proteção em toda transação:
+              As negociações acontecem diretamente entre jogadores. A DropBay mantém mecanismos de proteção em cada etapa:
             </p>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "14px" }}>
               {GUARANTEES.map((g, i) => (

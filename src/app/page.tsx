@@ -219,7 +219,7 @@ export default async function Home() {
             </h2>
             <p className="mb-10 mx-auto"
               style={{ color: "rgba(255,255,255,0.5)", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
-              Cada negociação passa pela nossa equipe. Entenda como funciona a custódia de itens na DropBay.
+              Negociações diretas entre jogadores, com pagamento protegido até a entrega ser confirmada.
             </p>
             <Link href="/como-funciona"
               className="inline-flex items-center justify-center rounded-full font-medium text-sm"
