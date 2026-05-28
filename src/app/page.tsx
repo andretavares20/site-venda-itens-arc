@@ -132,7 +132,7 @@ export default async function Home() {
             </div>
           </div>
           <div className="mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
+            <div style={{ maskImage: "linear-gradient(to bottom, black 80%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 80%, transparent 100%)" }}>
               <img src="/epicos.png" alt="Épicos e Lendários" className="w-full object-contain" style={{ maxHeight: "480px" }} />
             </div>
           </div>
