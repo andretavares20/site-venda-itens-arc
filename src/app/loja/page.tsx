@@ -64,9 +64,12 @@ async function getStockItems(category?: string, busca?: string, rarity?: string)
       hasVerifiedTrader: g.hasVerifiedTrader,
     }))
     .sort((a, b) => {
+      const aBlueprint = a.product.category === "Blueprint"
+      const bBlueprint = b.product.category === "Blueprint"
+      if (aBlueprint && !bBlueprint) return -1
+      if (!aBlueprint && bBlueprint) return 1
       const rarityDiff = (RARITY_ORDER[a.product.rarity] ?? 5) - (RARITY_ORDER[b.product.rarity] ?? 5)
       if (rarityDiff !== 0) return rarityDiff
-      // Dentro da mesma raridade: Verified Traders primeiro
       return (b.hasVerifiedTrader ? 1 : 0) - (a.hasVerifiedTrader ? 1 : 0)
     })
 }
