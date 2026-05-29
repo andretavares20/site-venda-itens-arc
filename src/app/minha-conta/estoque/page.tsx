@@ -45,7 +45,10 @@ function statusInfo(item: StockItem) {
   if (item.listing?.status === "CANCELAMENTO_SOLICITADO") {
     return { label: "Cancelamento pendente", color: "var(--warning)", bg: "rgba(255,214,10,0.1)" }
   }
-  if (!item.active || item.quantity === 0) {
+  if (!item.active) {
+    return { label: "Inativo", color: "var(--text-tertiary)", bg: "var(--surface-2)" }
+  }
+  if (item.quantity === 0) {
     return { label: "Esgotado", color: "var(--error)", bg: "rgba(255,69,58,0.1)" }
   }
   return { label: "Disponível", color: "var(--success)", bg: "rgba(48,209,88,0.1)" }

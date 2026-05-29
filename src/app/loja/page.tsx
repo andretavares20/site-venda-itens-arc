@@ -6,6 +6,8 @@ import { Plus } from "lucide-react"
 import Footer from "@/components/footer"
 import LojaFiltros from "./loja-filtros"
 
+export const dynamic = "force-dynamic"
+
 async function getStockItems(category?: string, busca?: string, rarity?: string) {
   const stocks = await prisma.stock.findMany({
     where: {
