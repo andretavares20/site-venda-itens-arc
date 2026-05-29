@@ -49,8 +49,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     prisma.user.findUnique({ where: { id: listing.sellerId }, select: { discordId: true, name: true } })
       .then((seller) => {
         if (seller?.discordId) {
-          const itemName = listing.items[0] ? `item do anúncio #${id.slice(-8).toUpperCase()}` : "seu item"
-          sendDiscordDM(seller.discordId, dmAnuncioAprovado(seller.name ?? "Vendedor", itemName)).catch(() => {})
+          const itemNames = updated.items.map((i) => i.product.name).join(", ") || "seus itens"
+          sendDiscordDM(seller.discordId, dmAnuncioAprovado(seller.name ?? "Vendedor", itemNames)).catch(() => {})
         }
       }).catch(() => {})
   }

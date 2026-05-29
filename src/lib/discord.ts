@@ -202,8 +202,8 @@ export function dmAnuncioRecebido(sellerName: string): string {
   return `👋 Olá, **${sellerName}**!\n\nSeu anúncio foi recebido pela **DropBay** e está em análise. Em breve ficará visível na loja para os compradores.\n\nFique atento às mensagens por aqui! 🎮`
 }
 
-export function dmAnuncioAprovado(sellerName: string, itemName: string): string {
-  return `✅ Boa notícia, **${sellerName}**!\n\nSeu item **${itemName}** foi recebido pela equipe DropBay e já está disponível no marketplace.\n\nAssim que houver uma venda, entraremos em contato para combinar os detalhes. 🚀`
+export function dmAnuncioAprovado(sellerName: string, itemNames: string): string {
+  return `✅ Boa notícia, **${sellerName}**!\n\nSeu anúncio com **${itemNames}** já está disponível na plataforma.\n\nAssim que houver interesse, o outro jogador entrará em contato diretamente pelo Discord. 🚀`
 }
 
 export function dmPedidoPago(sellerName: string, itemName: string): string {

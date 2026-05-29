@@ -86,8 +86,7 @@ export async function POST(req: NextRequest) {
   })
 
   const sellerName   = session.user.name ?? "Vendedor"
-  const itemNames    = listing.items.map((i) => i.product.name).join(", ")
-  const firstItemName = listing.items[0]?.product.name ?? "item"
+  const itemNames = listing.items.map((i) => i.product.name).join(", ")
 
   // Notificação in-app para admins
   await notifyAdmins(
@@ -105,7 +104,7 @@ export async function POST(req: NextRequest) {
 
   // DM ao vendedor — fire-and-forget aceitável
   if (seller?.discordId) {
-    sendDiscordDM(seller.discordId, dmAnuncioAprovado(sellerName, firstItemName)).catch(() => {})
+    sendDiscordDM(seller.discordId, dmAnuncioAprovado(sellerName, itemNames)).catch(() => {})
   }
 
   // Alerta no canal admin — await para Vercel não matar antes de completar
