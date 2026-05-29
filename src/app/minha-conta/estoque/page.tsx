@@ -6,7 +6,9 @@ import { useEffect, useState, useRef } from "react"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Package, TrendingUp, ShoppingBag, Archive, Search } from "lucide-react"
+import { ArrowLeft, Package, TrendingUp, ShoppingBag, Archive, Search, Trash2 } from "lucide-react"
+import Dialog from "@/components/dialog"
+import { toast } from "@/lib/toast-store"
 
 type StockItem = {
   id: string
@@ -59,6 +61,8 @@ export default function MeuEstoquePage() {
   const [filterStatus, setFilterStatus] = useState("")
   const [filterCategory, setFilterCategory] = useState("")
   const [page, setPage] = useState(1)
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null)
+  const [removing, setRemoving] = useState(false)
   const PER_PAGE = 15
   const [rarityOpen, setRarityOpen] = useState(false)
   const [statusOpen, setStatusOpen] = useState(false)
@@ -87,6 +91,20 @@ export default function MeuEstoquePage() {
       .then(r => r.json())
       .then(data => { setItems(data); setLoading(false) })
   }, [status])
+
+  async function handleRemove(id: string) {
+    setRemoving(true)
+    const res = await fetch(`/api/minha-conta/estoque/${id}`, { method: "DELETE" })
+    setRemoving(false)
+    setConfirmRemoveId(null)
+    if (!res.ok) {
+      const data = await res.json()
+      toast(data.error ?? "Erro ao remover item.")
+      return
+    }
+    setItems((prev) => prev.filter((i) => i.id !== id))
+    toast("Item removido do estoque.")
+  }
 
   if (status === "loading" || status === "unauthenticated") return null
 
@@ -271,7 +289,7 @@ export default function MeuEstoquePage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ background: "var(--surface-1)", borderBottom: "1px solid var(--border)" }}>
-                    {["Item", "Raridade", "Categoria", "Qtd", "Preço", "Status"].map(h => (
+                    {["Item", "Raridade", "Categoria", "Qtd", "Preço", "Status", ""].map(h => (
                       <th key={h} className="text-left px-4 py-3 font-medium text-xs"
                         style={{ color: "var(--text-secondary)" }}>{h}</th>
                     ))}
@@ -314,6 +332,19 @@ export default function MeuEstoquePage() {
                             style={{ background: s.bg, color: s.color }}>
                             {s.label}
                           </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.active && item.quantity > 0 && item.listing?.status !== "CANCELAMENTO_SOLICITADO" && (
+                            <button
+                              onClick={() => setConfirmRemoveId(item.id)}
+                              className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors"
+                              style={{ color: "var(--text-tertiary)", border: "1px solid var(--border)" }}
+                              onMouseEnter={e => { e.currentTarget.style.color = "var(--error)"; e.currentTarget.style.borderColor = "var(--error)" }}
+                              onMouseLeave={e => { e.currentTarget.style.color = "var(--text-tertiary)"; e.currentTarget.style.borderColor = "var(--border)" }}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     )
@@ -365,6 +396,26 @@ export default function MeuEstoquePage() {
           </>
         )}
       </main>
+
+      <Dialog
+        open={!!confirmRemoveId}
+        title="Remover item do estoque?"
+        message="O item será removido permanentemente do seu estoque. Esta ação não pode ser desfeita."
+        onClose={() => setConfirmRemoveId(null)}
+        actions={[
+          {
+            label: "Remover",
+            variant: "destructive",
+            loading: removing,
+            onClick: () => confirmRemoveId && handleRemove(confirmRemoveId),
+          },
+          {
+            label: "Cancelar",
+            variant: "cancel",
+            onClick: () => setConfirmRemoveId(null),
+          },
+        ]}
+      />
     </div>
   )
 }
