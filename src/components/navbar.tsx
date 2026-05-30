@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { ShoppingCart, User, Shield, LogOut, Menu, X, Search } from "lucide-react"
+import { ShoppingCart, User, Shield, LogOut, Menu, X, Search, ChevronDown } from "lucide-react"
 import { useCart, cartCount } from "@/store/cart"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
@@ -18,6 +18,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [servicesOpen, setServicesOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [categories, setCategories] = useState<string[]>([])
   const searchRef = useRef<HTMLInputElement>(null)
@@ -119,26 +120,45 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/anunciar" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
-              Anunciar
-            </Link>
-            <Link href="/trocas" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
-              Trocas
-            </Link>
-            <Link href="/encomendas" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
-              Encomendas
-            </Link>
-            <Link href="/loja" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
-              Loja
-            </Link>
+            {/* Dropdown Serviços */}
+            <div
+              className="relative"
+              onMouseEnter={() => setServicesOpen(true)}
+              onMouseLeave={() => setServicesOpen(false)}
+            >
+              <button
+                className="flex items-center gap-1 text-sm transition-colors"
+                style={{ color: servicesOpen ? "var(--text-primary)" : "var(--text-secondary)", background: "none", border: "none", cursor: "pointer" }}
+              >
+                Serviços <ChevronDown size={12} style={{ transition: "transform 0.15s", transform: servicesOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+              </button>
+              {servicesOpen && (
+                <div className="absolute top-full left-1/2 pt-3" style={{ transform: "translateX(-50%)", zIndex: 60 }}>
+                  <div className="rounded-2xl py-1.5 min-w-[160px]" style={{ background: "var(--surface-1)", border: "1px solid var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}>
+                    {[
+                      { href: "/anunciar",  label: "Anunciar" },
+                      { href: "/trocas",    label: "Trocas" },
+                      { href: "/encomendas",label: "Encomendas" },
+                      { href: "/loja",      label: "Loja" },
+                      { href: "/squad",     label: "Squad" },
+                    ].map(({ href, label }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        onClick={() => setServicesOpen(false)}
+                        className="block px-4 py-2 text-sm transition-colors"
+                        style={{ color: "var(--text-secondary)" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}
+                      >
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Link href="/nossos-parceiros" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
               onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
               onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
@@ -234,10 +254,11 @@ export default function Navbar() {
 
         {menuOpen && (
           <div className="md:hidden px-4 pb-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--border)" }}>
-            <Link href="/" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Loja</Link>
             <Link href="/anunciar" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Anunciar</Link>
             <Link href="/trocas" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Trocas</Link>
             <Link href="/encomendas" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Encomendas</Link>
+            <Link href="/loja" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Loja</Link>
+            <Link href="/squad" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Squad</Link>
             <Link href="/nossos-parceiros" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Parceiros</Link>
             <Link href="/parceiros" className="py-2 text-sm font-medium" style={{ color: "var(--accent)" }} onClick={() => setMenuOpen(false)}>Quero ser parceiro</Link>
             <button onClick={() => { setMenuOpen(false); setSearchOpen(true) }}
