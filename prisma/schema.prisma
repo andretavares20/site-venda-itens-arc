@@ -36,6 +36,8 @@ model User {
   encomendaProposals   EncomendaProposal[]
   complaints           Complaint[]
   resolvedComplaints   Complaint[]         @relation("ComplaintResolver")
+  activitySlots        ActivitySlot[]
+  activityMemberships  ActivitySlotMember[]
 }
 
 enum Role {
@@ -382,6 +384,57 @@ model Coupon {
   rider             User     @relation(fields: [riderId], references: [id])
   active            Boolean  @default(true)
   createdAt         DateTime @default(now())
+}
+
+// ─── Atividades / LFG ────────────────────────────────────────────
+
+model WeeklyChallenge {
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  active      Boolean        @default(true)
+  slots       ActivitySlot[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model ActivitySlot {
+  id          String               @id @default(cuid())
+  userId      String
+  user        User                 @relation(fields: [userId], references: [id])
+  activity    ActivityType
+  challengeId String?
+  challenge   WeeklyChallenge?     @relation(fields: [challengeId], references: [id])
+  scheduledAt DateTime?
+  status      SlotStatus           @default(ABERTO)
+  members     ActivitySlotMember[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+model ActivitySlotMember {
+  id       String       @id @default(cuid())
+  slotId   String
+  slot     ActivitySlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User         @relation(fields: [userId], references: [id])
+  joinedAt DateTime     @default(now())
+
+  @@unique([slotId, userId])
+}
+
+enum ActivityType {
+  SUBIR_LEVEL
+  FARM_XP
+  COLECOES
+  DESAFIOS_SEMANAIS
+  PROJETOS
+}
+
+enum SlotStatus {
+  ABERTO
+  CHEIO
+  CANCELADO
 }
 
 // ─── Parceiros ───────────────────────────────────────────────────

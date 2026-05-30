@@ -139,6 +139,11 @@ export default function Navbar() {
               onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
               Loja
             </Link>
+            <Link href="/atividades" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
+              Atividades
+            </Link>
             <Link href="/nossos-parceiros" className="text-sm transition-colors" style={{ color: "var(--text-secondary)" }}
               onMouseEnter={e => (e.currentTarget.style.color = "var(--text-primary)")}
               onMouseLeave={e => (e.currentTarget.style.color = "var(--text-secondary)")}>
@@ -238,6 +243,7 @@ export default function Navbar() {
             <Link href="/anunciar" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Anunciar</Link>
             <Link href="/trocas" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Trocas</Link>
             <Link href="/encomendas" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Encomendas</Link>
+            <Link href="/atividades" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Atividades</Link>
             <Link href="/nossos-parceiros" className="py-2 text-sm" style={{ color: "var(--text-secondary)" }} onClick={() => setMenuOpen(false)}>Parceiros</Link>
             <Link href="/parceiros" className="py-2 text-sm font-medium" style={{ color: "var(--accent)" }} onClick={() => setMenuOpen(false)}>Quero ser parceiro</Link>
             <button onClick={() => { setMenuOpen(false); setSearchOpen(true) }}
