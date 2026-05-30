@@ -403,6 +403,8 @@ model ActivitySlot {
   userId      String
   user        User                 @relation(fields: [userId], references: [id])
   activity    ActivityType
+  subActivity String?
+  targetLevel Int?
   challengeId String?
   challenge   WeeklyChallenge?     @relation(fields: [challengeId], references: [id])
   scheduledAt DateTime?

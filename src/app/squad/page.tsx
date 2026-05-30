@@ -18,6 +18,8 @@ type Slot = {
   userId: string
   user: { id: string; name: string; discordId: string | null }
   activity: string
+  subActivity: string | null
+  targetLevel: number | null
   challengeId: string | null
   challenge: { id: string; title: string } | null
   scheduledAt: string | null
@@ -33,23 +35,48 @@ type Challenge = {
 }
 
 const ACTIVITIES = [
-  { value: "SUBIR_LEVEL",    label: "Subir level",        emoji: "⬆️", description: "Bancadas e galinha" },
-  { value: "FARM_XP",        label: "Farm de XP",          emoji: "⚡", description: null },
-  { value: "COLECOES",       label: "Coletâneas",          emoji: "📚", description: "Concluir coletâneas" },
-  { value: "DESAFIOS_SEMANAIS", label: "Desafios semanais", emoji: "🎯", description: null },
-  { value: "PROJETOS",       label: "Projetos",            emoji: "🔧", description: "Concluir projetos" },
+  { value: "SUBIR_LEVEL",       label: "Subir level",        emoji: "⬆️", description: "Sucatinha e bancadas" },
+  { value: "FARM_XP",           label: "Farm de XP",          emoji: "⚡", description: null },
+  { value: "COLECOES",          label: "Coletâneas",          emoji: "📚", description: "Concluir coletâneas" },
+  { value: "DESAFIOS_SEMANAIS", label: "Desafios semanais",   emoji: "🎯", description: null },
+  { value: "PROJETOS",          label: "Projetos",            emoji: "🔧", description: "Concluir projetos" },
+]
+
+const BENCHES = [
+  { value: "SUCATINHA",              label: "Sucatinha",                maxLevel: 5 },
+  { value: "ARMEIRO",                label: "Armeiro",                  maxLevel: 4 },
+  { value: "BANCADA_EQUIPAMENTOS",   label: "Bancada de Equipamentos",  maxLevel: 4 },
+  { value: "ESTACAO_EXPLOSIVOS",     label: "Estação de Explosivos",    maxLevel: 4 },
+  { value: "ESTACAO_UTILIDADES",     label: "Estação de Utilidades",    maxLevel: 4 },
+  { value: "LABORATORIO_MEDICO",     label: "Laboratório Médico",       maxLevel: 4 },
+  { value: "REFINADOR",              label: "Refinador",                maxLevel: 4 },
 ]
 
 const ACTIVITY_MAP = Object.fromEntries(ACTIVITIES.map((a) => [a.value, a]))
+const BENCH_MAP    = Object.fromEntries(BENCHES.map((b) => [b.value, b]))
 
-export default function AtividadesPage() {
+const EMPTY_FORM = { activity: "SUBIR_LEVEL", subActivity: "", targetLevel: 0, challengeId: "", time: "" }
+
+function slotSubtitle(slot: Slot): string {
+  const activity = ACTIVITY_MAP[slot.activity]
+  let label = `${activity?.emoji ?? ""} ${activity?.label ?? slot.activity}`
+  if (slot.activity === "SUBIR_LEVEL" && slot.subActivity) {
+    const bench = BENCH_MAP[slot.subActivity]
+    label += ` · ${bench?.label ?? slot.subActivity}`
+    if (slot.targetLevel) label += ` → Nível ${slot.targetLevel}`
+  }
+  if (slot.challenge) label += ` — ${slot.challenge.title}`
+  return label
+}
+
+export default function SquadPage() {
   const { data: session } = useSession()
   const [slots, setSlots] = useState<Slot[]>([])
   const [challenges, setChallenges] = useState<Challenge[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("TODOS")
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ activity: "SUBIR_LEVEL", challengeId: "", time: "" })
+  const [form, setForm] = useState(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
@@ -83,7 +110,9 @@ export default function AtividadesPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        activity: form.activity,
+        activity:    form.activity,
+        subActivity: form.subActivity || undefined,
+        targetLevel: form.targetLevel || undefined,
         challengeId: form.challengeId || undefined,
         scheduledAt,
       }),
@@ -95,7 +124,7 @@ export default function AtividadesPage() {
       return
     }
     setShowModal(false)
-    setForm({ activity: "SUBIR_LEVEL", challengeId: "", time: "" })
+    setForm(EMPTY_FORM)
     toast.success("Você está disponível!")
     load()
   }
@@ -128,6 +157,12 @@ export default function AtividadesPage() {
     toast.success("Você saiu do grupo")
     load()
   }
+
+  const selectedBench = BENCH_MAP[form.subActivity]
+  const isSubmitDisabled =
+    submitting ||
+    (form.activity === "DESAFIOS_SEMANAIS" && !form.challengeId) ||
+    (form.activity === "SUBIR_LEVEL" && (!form.subActivity || !form.targetLevel))
 
   const filtered = activeTab === "TODOS" ? slots : slots.filter((s) => s.activity === activeTab)
 
@@ -194,11 +229,10 @@ export default function AtividadesPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filtered.map((slot) => {
-                const isOwner = session?.user.id === slot.userId
-                const isMember = slot.members.some((m) => m.userId === session?.user?.id)
+                const isOwner     = session?.user.id === slot.userId
+                const isMember    = slot.members.some((m) => m.userId === session?.user?.id)
                 const totalMembers = 1 + slot.members.length
-                const isFull = slot.status === "CHEIO"
-                const activity = ACTIVITY_MAP[slot.activity]
+                const isFull      = slot.status === "CHEIO"
 
                 return (
                   <div
@@ -224,13 +258,12 @@ export default function AtividadesPage() {
                           )}
                         </p>
                         <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
-                          {activity?.emoji} {activity?.label}
-                          {slot.challenge && ` — ${slot.challenge.title}`}
+                          {slotSubtitle(slot)}
                         </p>
                       </div>
                     </div>
 
-                    {/* Members count */}
+                    {/* Time + squad dots */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-secondary)" }}>
                         <Clock size={11} />
@@ -300,15 +333,16 @@ export default function AtividadesPage() {
         </section>
       </main>
 
-      {/* Modal criar slot */}
+      {/* Modal */}
       {showModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.6)" }}
+          onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-6"
-            style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}
+            className="w-full max-w-sm rounded-2xl p-6 overflow-y-auto"
+            style={{ background: "var(--surface-1)", border: "1px solid var(--border)", maxHeight: "90vh" }}
           >
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -320,12 +354,13 @@ export default function AtividadesPage() {
             </div>
 
             <div className="flex flex-col gap-4">
-              {/* Activity */}
+
+              {/* Atividade */}
               <div className="flex flex-col gap-1.5">
                 {ACTIVITIES.map((a) => (
                   <button
                     key={a.value}
-                    onClick={() => setForm((f) => ({ ...f, activity: a.value, challengeId: "" }))}
+                    onClick={() => setForm((f) => ({ ...f, activity: a.value, subActivity: "", targetLevel: 0, challengeId: "" }))}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-left transition-all"
                     style={{
                       background: form.activity === a.value ? "rgba(0,113,227,0.12)" : "var(--surface-2)",
@@ -336,15 +371,63 @@ export default function AtividadesPage() {
                     <span className="text-base">{a.emoji}</span>
                     <div>
                       <p className="font-medium leading-none">{a.label}</p>
-                      {a.description && (
-                        <p className="text-xs mt-0.5 opacity-60">{a.description}</p>
-                      )}
+                      {a.description && <p className="text-xs mt-0.5 opacity-60">{a.description}</p>}
                     </div>
                   </button>
                 ))}
               </div>
 
-              {/* Challenge select */}
+              {/* Subir level — seleção de bancada */}
+              {form.activity === "SUBIR_LEVEL" && (
+                <div>
+                  <label className="text-xs font-medium mb-2 block" style={{ color: "var(--text-secondary)" }}>
+                    Bancada
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {BENCHES.map((b) => (
+                      <button
+                        key={b.value}
+                        onClick={() => setForm((f) => ({ ...f, subActivity: b.value, targetLevel: 0 }))}
+                        className="px-3 py-2 rounded-xl text-xs font-medium text-left transition-all"
+                        style={{
+                          background: form.subActivity === b.value ? "rgba(0,113,227,0.12)" : "var(--surface-2)",
+                          border: `1px solid ${form.subActivity === b.value ? "var(--accent)" : "transparent"}`,
+                          color: form.subActivity === b.value ? "var(--accent)" : "var(--text-primary)",
+                        }}
+                      >
+                        {b.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Subir level — seleção de nível */}
+              {form.activity === "SUBIR_LEVEL" && form.subActivity && (
+                <div>
+                  <label className="text-xs font-medium mb-2 block" style={{ color: "var(--text-secondary)" }}>
+                    Nível alvo
+                  </label>
+                  <div className="flex gap-2">
+                    {Array.from({ length: selectedBench?.maxLevel ?? 4 }, (_, i) => i + 1).map((lvl) => (
+                      <button
+                        key={lvl}
+                        onClick={() => setForm((f) => ({ ...f, targetLevel: lvl }))}
+                        className="w-10 h-10 rounded-xl text-sm font-bold transition-all"
+                        style={{
+                          background: form.targetLevel === lvl ? "var(--accent)" : "var(--surface-2)",
+                          color: form.targetLevel === lvl ? "#fff" : "var(--text-primary)",
+                          border: `1px solid ${form.targetLevel === lvl ? "var(--accent)" : "transparent"}`,
+                        }}
+                      >
+                        {lvl}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Desafios semanais */}
               {form.activity === "DESAFIOS_SEMANAIS" && (
                 <div>
                   <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>
@@ -369,7 +452,7 @@ export default function AtividadesPage() {
                 </div>
               )}
 
-              {/* Time */}
+              {/* Horário */}
               <div>
                 <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>
                   Horário <span style={{ color: "var(--text-tertiary)" }}>(opcional)</span>
@@ -389,7 +472,7 @@ export default function AtividadesPage() {
               </button>
               <button
                 onClick={createSlot}
-                disabled={submitting || (form.activity === "DESAFIOS_SEMANAIS" && !form.challengeId)}
+                disabled={isSubmitDisabled}
                 className="btn-primary flex-1 text-sm"
               >
                 {submitting ? "Publicando..." : "Publicar"}

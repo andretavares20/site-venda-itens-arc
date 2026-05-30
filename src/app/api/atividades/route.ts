@@ -26,17 +26,22 @@ export async function POST(req: NextRequest) {
   const discordErr = await requireDiscord(session.user.id)
   if (discordErr) return discordErr
 
-  const { activity, challengeId, scheduledAt } = await req.json()
+  const { activity, subActivity, targetLevel, challengeId, scheduledAt } = await req.json()
 
   if (!activity) return NextResponse.json({ error: "Selecione uma atividade" }, { status: 400 })
   if (activity === "DESAFIOS_SEMANAIS" && !challengeId) {
     return NextResponse.json({ error: "Selecione um desafio" }, { status: 400 })
+  }
+  if (activity === "SUBIR_LEVEL" && (!subActivity || !targetLevel)) {
+    return NextResponse.json({ error: "Selecione a bancada e o nível alvo" }, { status: 400 })
   }
 
   const slot = await prisma.activitySlot.create({
     data: {
       userId: session.user.id,
       activity,
+      subActivity: subActivity || null,
+      targetLevel: targetLevel || null,
       challengeId: challengeId || null,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
     },
