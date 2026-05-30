@@ -403,9 +403,10 @@ model ActivitySlot {
   userId      String
   user        User                 @relation(fields: [userId], references: [id])
   activity    ActivityType
-  subActivity String?
-  targetLevel Int?
-  challengeId String?
+  subActivity      String?
+  targetLevel      Int?
+  discordChannelId String?
+  challengeId      String?
   challenge   WeeklyChallenge?     @relation(fields: [challengeId], references: [id])
   scheduledAt DateTime?
   status      SlotStatus           @default(ABERTO)
