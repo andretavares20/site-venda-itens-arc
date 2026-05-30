@@ -88,7 +88,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     for (const item of listing.items) {
       await prisma.stock.updateMany({
         where: { productId: item.productId, sellerId: listing.sellerId },
-        data: { active: false },
+        data: { active: false, quantity: 0 },
       })
     }
   }
