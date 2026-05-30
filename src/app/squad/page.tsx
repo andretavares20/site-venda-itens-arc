@@ -141,9 +141,9 @@ export default function AtividadesPage() {
           <div className="max-w-5xl mx-auto px-4 py-6">
             <div className="flex items-end justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Atividades</h1>
+                <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Squad</h1>
                 <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                  Encontre jogadores para fazer atividades juntos
+                  Encontre companheiros para suas atividades in-game
                 </p>
               </div>
               {session && (

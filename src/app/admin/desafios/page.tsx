@@ -76,7 +76,7 @@ export default function AdminDesafios() {
         <div>
           <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Desafios semanais</h1>
           <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-            Desafios ativos aparecem como opção na tela de Atividades
+            Desafios ativos aparecem como opção na tela de Squad
           </p>
         </div>
         <button onClick={openCreate} className="btn-primary flex items-center gap-2 text-sm">
