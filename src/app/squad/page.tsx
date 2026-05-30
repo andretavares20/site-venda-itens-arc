@@ -120,12 +120,12 @@ export default function SquadPage() {
     setSubmitting(false)
     if (!res.ok) {
       const d = await res.json().catch(() => ({}))
-      toast.error(d.error ?? "Erro ao publicar")
+      toast(d.error ?? "Erro ao publicar", "error")
       return
     }
     setShowModal(false)
     setForm(EMPTY_FORM)
-    toast.success("Você está disponível!")
+    toast("Você está disponível!")
     load()
   }
 
@@ -133,7 +133,7 @@ export default function SquadPage() {
     setActionLoading(id)
     await fetch(`/api/atividades/${id}`, { method: "DELETE" })
     setActionLoading(null)
-    toast.success("Grupo fechado")
+    toast("Grupo fechado")
     load()
   }
 
@@ -143,10 +143,10 @@ export default function SquadPage() {
     setActionLoading(null)
     if (!res.ok) {
       const d = await res.json().catch(() => ({}))
-      toast.error(d.error ?? "Erro ao entrar no grupo")
+      toast(d.error ?? "Erro ao entrar no grupo", "error")
       return
     }
-    toast.success("Entrou no grupo! Verifique seu Discord.")
+    toast("Entrou no grupo! Verifique seu Discord.")
     load()
   }
 
@@ -154,7 +154,7 @@ export default function SquadPage() {
     setActionLoading(id)
     await fetch(`/api/atividades/${id}/sair`, { method: "DELETE" })
     setActionLoading(null)
-    toast.success("Você saiu do grupo")
+    toast("Você saiu do grupo")
     load()
   }
 
