@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import { Clock, Plus, X } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast-store"
 
 type SlotMember = {
   id: string
