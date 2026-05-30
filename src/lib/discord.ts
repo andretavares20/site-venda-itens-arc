@@ -64,6 +64,14 @@ export async function createPrivateChannel(params: {
   return channel.id as string
 }
 
+export async function addMemberToDiscordChannel(channelId: string, discordId: string): Promise<void> {
+  await fetch(`${DISCORD_API}/channels/${channelId}/permissions/${discordId}`, {
+    method: "PUT",
+    headers: botHeaders(),
+    body: JSON.stringify({ allow: CHANNEL_PERMS, type: 1 }),
+  }).catch(() => {})
+}
+
 export async function deleteDiscordChannel(channelId: string): Promise<void> {
   await fetch(`${DISCORD_API}/channels/${channelId}`, {
     method: "DELETE",
@@ -379,6 +387,47 @@ export function embedPedidoPago(params: {
       { name: "🏪 Vendedor",   value: sellerDiscord ? `<@${sellerDiscord}> (${sellerName})` : sellerName, inline: true },
       { name: "🎮 Item",       value: itemName },
       { name: "💰 Total",      value: `R$ ${total.toFixed(2)}`, inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+    footer: { text: "DropBay · Comunidade Arc Raiders" },
+  }
+}
+
+export function embedSquadCriado(params: {
+  activity: string
+  subActivity: string | null
+  targetLevel: number | null
+  members: { name: string; discordId: string | null }[]
+}): Embed {
+  const { activity, subActivity, targetLevel, members } = params
+
+  const ACTIVITY_LABELS: Record<string, string> = {
+    SUBIR_LEVEL: "Subir level", FARM_XP: "Farm de XP", COLECOES: "Concluir coletâneas",
+    DESAFIOS_SEMANAIS: "Desafios semanais", PROJETOS: "Concluir projetos",
+  }
+  const BENCH_LABELS: Record<string, string> = {
+    SUCATINHA: "Sucatinha", ARMEIRO: "Armeiro", BANCADA_EQUIPAMENTOS: "Bancada de Equipamentos",
+    ESTACAO_EXPLOSIVOS: "Estação de Explosivos", ESTACAO_UTILIDADES: "Estação de Utilidades",
+    LABORATORIO_MEDICO: "Laboratório Médico", REFINADOR: "Refinador",
+  }
+
+  let activityLabel = ACTIVITY_LABELS[activity] ?? activity
+  if (subActivity) activityLabel += ` · ${BENCH_LABELS[subActivity] ?? subActivity}`
+  if (targetLevel) activityLabel += ` → Nível ${targetLevel}`
+
+  const memberList = members
+    .map((m) => (m.discordId ? `<@${m.discordId}> (${m.name})` : m.name))
+    .join("\n")
+
+  return {
+    color: 0x5865F2,
+    title: "🎮 Canal de Squad criado",
+    description:
+      "Usem este canal para combinar os detalhes da atividade in-game.\n\n" +
+      "> Quando terminarem, podem ignorar este canal.",
+    fields: [
+      { name: "Atividade", value: activityLabel },
+      { name: "Membros",   value: memberList || "—" },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: "DropBay · Comunidade Arc Raiders" },
