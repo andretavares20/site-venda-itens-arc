@@ -40,7 +40,12 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   if (paidOrderItem) {
     await prisma.listing.update({ where: { id }, data: { status: "CANCELAMENTO_SOLICITADO" } })
-    await prisma.stock.updateMany({ where: { listingId: id }, data: { active: false } })
+    for (const item of listing.items) {
+      await prisma.stock.updateMany({
+        where: { productId: item.productId, sellerId: listing.sellerId },
+        data: { quantity: { decrement: item.quantity } },
+      })
+    }
 
     const buyer  = paidOrderItem.order.buyer
     const seller = listing.seller
@@ -73,7 +78,12 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   // Cancelamento imediato
   await prisma.listing.update({ where: { id }, data: { status: "CANCELADO" } })
-  await prisma.stock.updateMany({ where: { listingId: id }, data: { active: false } })
+  for (const item of listing.items) {
+    await prisma.stock.updateMany({
+      where: { productId: item.productId, sellerId: listing.sellerId },
+      data: { quantity: { decrement: item.quantity } },
+    })
+  }
 
   return NextResponse.json({ type: "imediato" })
 }
