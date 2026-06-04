@@ -45,7 +45,7 @@ async function getOpenSquads() {
       members: { select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
-    take: 4,
+    take: 6,
   }) as Promise<any[]>
 }
 
@@ -89,12 +89,12 @@ async function getPartners() {
   }))
 }
 
-const activityLabels: Record<string, string> = {
-  SUBIR_LEVEL: "Subir Level",
-  FARM_XP: "Farm XP",
-  COLECOES: "Coleções",
-  DESAFIOS_SEMANAIS: "Desafios Semanais",
-  PROJETOS: "Projetos",
+const activityMeta: Record<string, { label: string; emoji: string }> = {
+  SUBIR_LEVEL:       { label: "Subir Level",       emoji: "⬆️" },
+  FARM_XP:           { label: "Farm XP",           emoji: "⚡" },
+  COLECOES:          { label: "Coleções",          emoji: "📚" },
+  DESAFIOS_SEMANAIS: { label: "Desafios Semanais", emoji: "🎯" },
+  PROJETOS:          { label: "Projetos",          emoji: "🔧" },
 }
 
 // ── alternating section colors ────────────────────────────────────
@@ -121,7 +121,7 @@ export default async function Home() {
   const visibleSections = ([
     recentListings.length > 0  ? "listings"   : null,
     openTrades.length > 0      ? "trades"      : null,
-    openSquads.length > 0      ? "squads"      : null,
+    "squads",
     openEncomendas.length > 0  ? "encomendas"  : null,
   ].filter(Boolean)) as SectionKey[]
 
@@ -253,47 +253,107 @@ export default async function Home() {
           </section>
         )}
 
-        {/* Squads buscando membros */}
-        {openSquads.length > 0 && (
-          <section style={{ background: pal.squads.bg, padding: "60px 0" }}>
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="flex items-end justify-between mb-6">
-                <div>
-                  <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
-                    style={{ color: pal.squads.label, letterSpacing: "0.12em" }}>
-                    Squad
-                  </p>
-                  <h2 className="font-bold tracking-tight"
-                    style={{ color: pal.squads.title, fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-                    Buscando membros.
-                  </h2>
-                </div>
-                <Link href="/squad" className="flex items-center gap-1 text-sm font-medium mb-1"
+        {/* Squad — sempre visível */}
+        <section style={{ background: pal.squads.bg, padding: "60px 0" }}>
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
+                  style={{ color: pal.squads.label, letterSpacing: "0.12em" }}>
+                  Comunidade
+                </p>
+                <h2 className="font-bold tracking-tight"
+                  style={{ color: pal.squads.title, fontSize: "clamp(2rem, 4vw, 3rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                  Encontre seu grupo.
+                </h2>
+                <p className="mt-2 text-sm" style={{ color: pal.squads.sub, maxWidth: "360px", lineHeight: 1.6 }}>
+                  Jogadores disponíveis para jogar agora. Entre em um grupo ou publique sua disponibilidade.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 mb-1 flex-shrink-0">
+                <Link href="/squad" className="flex items-center gap-1 text-sm font-medium"
                   style={{ color: pal.squads.link }}>
-                  Ver squads <ArrowRight size={14} />
+                  Ver todos <ArrowRight size={14} />
+                </Link>
+                <Link href="/squad"
+                  className="inline-flex items-center justify-center rounded-full text-sm font-medium"
+                  style={{ background: pal.squads.title, color: pal.squads.bg, padding: "0.5rem 1.25rem" }}>
+                  Estou disponível
                 </Link>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {openSquads.map((slot: any) => (
-                  <Link key={slot.id} href="/squad"
-                    className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                    style={{ background: pal.squads.cardBg, border: `1px solid ${pal.squads.cardBorder}` }}>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full w-fit"
-                      style={{ background: "rgba(0,113,227,0.15)", color: "#0071e3", border: "1px solid rgba(0,113,227,0.25)" }}>
-                      {activityLabels[slot.activity] ?? slot.activity}
-                    </span>
-                    <p className="text-xs font-medium truncate" style={{ color: pal.squads.text }}>
-                      {slot.user.name}
-                    </p>
-                    <p className="text-xs" style={{ color: pal.squads.sub }}>
-                      {slot.members.length + 1} participante{slot.members.length + 1 !== 1 ? "s" : ""}
-                    </p>
-                  </Link>
-                ))}
-              </div>
             </div>
-          </section>
-        )}
+
+            {openSquads.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 rounded-2xl gap-4"
+                style={{ background: pal.squads.cardBg, border: `1px solid ${pal.squads.cardBorder}` }}>
+                <p className="text-3xl">🎮</p>
+                <div className="text-center">
+                  <p className="font-semibold mb-1" style={{ color: pal.squads.text }}>
+                    Nenhum jogador online agora
+                  </p>
+                  <p className="text-sm" style={{ color: pal.squads.sub }}>
+                    Seja o primeiro a se colocar disponível
+                  </p>
+                </div>
+                <Link href="/squad"
+                  className="inline-flex items-center justify-center rounded-full text-sm font-medium"
+                  style={{ background: "var(--accent)", color: "#fff", padding: "0.5rem 1.5rem" }}>
+                  Estou disponível
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {openSquads.map((slot: any) => {
+                  const meta = activityMeta[slot.activity]
+                  const totalMembers = 1 + slot.members.length
+                  return (
+                    <Link key={slot.id} href="/squad"
+                      className="flex flex-col gap-4 p-5 rounded-2xl hover:opacity-90 transition-opacity"
+                      style={{ background: pal.squads.cardBg, border: `1px solid ${pal.squads.cardBorder}` }}>
+
+                      {/* Avatar + nome */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                          style={{ background: "var(--accent)", color: "#fff" }}>
+                          {slot.user.name[0].toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate" style={{ color: pal.squads.text }}>
+                            {slot.user.name}
+                          </p>
+                          <p className="text-xs" style={{ color: pal.squads.sub }}>
+                            {meta?.emoji} {meta?.label ?? slot.activity}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Horário + dots de vagas */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs" style={{ color: pal.squads.sub }}>
+                          {slot.scheduledAt
+                            ? new Date(slot.scheduledAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                            : "Disponível hoje"}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {[0, 1, 2].map((i) => (
+                            <div key={i} className="w-2.5 h-2.5 rounded-full"
+                              style={{
+                                background: i < totalMembers ? "var(--accent)" : "rgba(255,255,255,0.12)",
+                                border: "1px solid rgba(255,255,255,0.08)",
+                              }} />
+                          ))}
+                          <span className="text-xs ml-0.5" style={{ color: pal.squads.sub }}>
+                            {totalMembers}/3
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* Encomendas abertas */}
         {openEncomendas.length > 0 && (
