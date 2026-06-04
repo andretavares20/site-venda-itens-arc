@@ -434,7 +434,7 @@ export default function AdminPedidos() {
                     <div className="rounded-xl p-4 flex flex-col gap-2"
                       style={{ background: "rgba(191,90,242,0.06)", border: "1px solid rgba(191,90,242,0.2)" }}>
                       <p className="text-xs font-semibold" style={{ color: "#bf5af2" }}>
-                        ⚡ Comissão do rider pendente · R$ {Number(selected.riderCommission).toFixed(2)}
+                        Comissão do rider pendente · R$ {Number(selected.riderCommission).toFixed(2)}
                       </p>
                       <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                         Cupom: {selected.couponCode} · {selected.rider?.name ?? "Rider"}

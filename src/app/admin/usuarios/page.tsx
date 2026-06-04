@@ -10,9 +10,9 @@ type User = { id: string; name: string; email: string; tier: UserTier | null; cr
 
 const TIER_OPTIONS: { value: UserTier | ""; label: string }[] = [
   { value: "", label: "Sem tier" },
-  { value: "PARTNER", label: "🛰 DropBay Partner" },
-  { value: "VERIFIED_TRADER", label: "✓ Verified Trader" },
-  { value: "ELITE_RIDER", label: "⚡ Elite Rider" },
+  { value: "PARTNER", label: "DropBay Partner" },
+  { value: "VERIFIED_TRADER", label: "Verified Trader" },
+  { value: "ELITE_RIDER", label: "Elite Rider" },
 ]
 
 export default function AdminUsuarios() {

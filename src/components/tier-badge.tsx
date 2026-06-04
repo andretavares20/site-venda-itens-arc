@@ -1,9 +1,9 @@
 type UserTier = "PARTNER" | "VERIFIED_TRADER" | "ELITE_RIDER"
 
-const TIER_CONFIG: Record<UserTier, { label: string; emoji: string; color: string; bg: string }> = {
-  PARTNER:         { label: "DropBay Partner",  emoji: "🛰",  color: "#0071e3", bg: "rgba(0,113,227,0.12)" },
-  VERIFIED_TRADER: { label: "Verified Trader",  emoji: "✓",  color: "#30d158", bg: "rgba(48,209,88,0.12)" },
-  ELITE_RIDER:     { label: "Elite Rider",      emoji: "⚡", color: "#bf5af2", bg: "rgba(191,90,242,0.12)" },
+const TIER_CONFIG: Record<UserTier, { label: string; color: string; bg: string }> = {
+  PARTNER:         { label: "DropBay Partner",  color: "#0071e3", bg: "rgba(0,113,227,0.12)" },
+  VERIFIED_TRADER: { label: "Verified Trader",  color: "#30d158", bg: "rgba(48,209,88,0.12)" },
+  ELITE_RIDER:     { label: "Elite Rider",      color: "#bf5af2", bg: "rgba(191,90,242,0.12)" },
 }
 
 export function TierBadge({ tier, size = "sm" }: { tier: UserTier | null | undefined; size?: "xs" | "sm" | "md" }) {
@@ -17,11 +17,10 @@ export function TierBadge({ tier, size = "sm" }: { tier: UserTier | null | undef
   const s = styles[size]
   return (
     <span
-      className={`inline-flex items-center font-semibold rounded-full whitespace-nowrap ${s.px} ${s.py} ${s.gap}`}
+      className={`inline-flex items-center font-semibold rounded-full whitespace-nowrap ${s.px} ${s.py}`}
       style={{ background: cfg.bg, color: cfg.color, fontSize: s.fontSize }}
     >
-      <span>{cfg.emoji}</span>
-      <span>{cfg.label}</span>
+      {cfg.label}
     </span>
   )
 }

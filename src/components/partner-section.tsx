@@ -5,7 +5,7 @@ import { DISCORD_URL } from "@/lib/constants"
 
 const TIERS = [
   {
-    icon: "🛰",
+    icon: "",
     name: "DropBay Partners",
     tag: "PARCEIRO OFICIAL",
     description: "Parceiros oficiais da comunidade DropBay.",
@@ -20,7 +20,7 @@ const TIERS = [
     premium: false,
   },
   {
-    icon: "🔒",
+    icon: "",
     name: "Verified Traders",
     tag: "TRADER VERIFICADO",
     description: "Vendedores verificados pela DropBay.",
@@ -36,7 +36,7 @@ const TIERS = [
     premium: false,
   },
   {
-    icon: "⚡",
+    icon: "",
     name: "Elite Riders",
     tag: "ELITE · EXCLUSIVO",
     description: "Criadores oficiais patrocinados pela DropBay.",

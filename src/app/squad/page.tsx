@@ -35,11 +35,11 @@ type Challenge = {
 }
 
 const ACTIVITIES = [
-  { value: "SUBIR_LEVEL",       label: "Subir level",        emoji: "⬆️", description: "Sucatinha e bancadas" },
-  { value: "FARM_XP",           label: "Farm de XP",          emoji: "⚡", description: null },
-  { value: "COLECOES",          label: "Coletâneas",          emoji: "📚", description: "Concluir coletâneas" },
-  { value: "DESAFIOS_SEMANAIS", label: "Desafios semanais",   emoji: "🎯", description: null },
-  { value: "PROJETOS",          label: "Projetos",            emoji: "🔧", description: "Concluir projetos" },
+  { value: "SUBIR_LEVEL",       label: "Subir level",        emoji: "", description: "Sucatinha e bancadas" },
+  { value: "FARM_XP",           label: "Farm de XP",          emoji: "", description: null },
+  { value: "COLECOES",          label: "Coletâneas",          emoji: "", description: "Concluir coletâneas" },
+  { value: "DESAFIOS_SEMANAIS", label: "Desafios semanais",   emoji: "", description: null },
+  { value: "PROJETOS",          label: "Projetos",            emoji: "", description: "Concluir projetos" },
 ]
 
 const BENCHES = [
@@ -218,7 +218,7 @@ export default function SquadPage() {
             <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Carregando...</p>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-2xl mb-2">🎮</p>
+
               <p className="text-xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
                 Nenhum jogador disponível
               </p>
