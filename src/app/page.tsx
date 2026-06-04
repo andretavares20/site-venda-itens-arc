@@ -90,11 +90,11 @@ async function getPartners() {
 }
 
 const activityMeta: Record<string, { label: string; emoji: string }> = {
-  SUBIR_LEVEL:       { label: "Subir Level",       emoji: "⬆️" },
-  FARM_XP:           { label: "Farm XP",           emoji: "⚡" },
-  COLECOES:          { label: "Coleções",          emoji: "📚" },
-  DESAFIOS_SEMANAIS: { label: "Desafios Semanais", emoji: "🎯" },
-  PROJETOS:          { label: "Projetos",          emoji: "🔧" },
+  SUBIR_LEVEL:       { label: "Subir Level",       emoji: "" },
+  FARM_XP:           { label: "Farm XP",           emoji: "" },
+  COLECOES:          { label: "Coleções",          emoji: "" },
+  DESAFIOS_SEMANAIS: { label: "Desafios Semanais", emoji: "" },
+  PROJETOS:          { label: "Projetos",          emoji: "" },
 }
 
 // ── rarity colors ────────────────────────────────────────────────
@@ -312,7 +312,6 @@ export default async function Home() {
             {openSquads.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 rounded-2xl gap-4"
                 style={{ background: pal.squads.cardBg, border: `1px solid ${pal.squads.cardBorder}` }}>
-                <p className="text-3xl">🎮</p>
                 <div className="text-center">
                   <p className="font-semibold mb-1" style={{ color: pal.squads.text }}>
                     Nenhum jogador online agora
@@ -348,7 +347,7 @@ export default async function Home() {
                             {slot.user.name}
                           </p>
                           <p className="text-xs" style={{ color: pal.squads.sub }}>
-                            {meta?.emoji} {meta?.label ?? slot.activity}
+                            {meta?.label ?? slot.activity}
                           </p>
                         </div>
                       </div>
