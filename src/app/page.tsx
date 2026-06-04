@@ -26,7 +26,7 @@ async function getOpenTrades() {
     where: { status: "ABERTA" },
     include: {
       offerItems: {
-        include: { product: { select: { image: true, name: true } } },
+        include: { product: { select: { image: true, name: true, rarity: true } } },
         take: 3,
       },
       user: { select: { name: true } },
@@ -95,6 +95,24 @@ const activityMeta: Record<string, { label: string; emoji: string }> = {
   COLECOES:          { label: "Coleções",          emoji: "📚" },
   DESAFIOS_SEMANAIS: { label: "Desafios Semanais", emoji: "🎯" },
   PROJETOS:          { label: "Projetos",          emoji: "🔧" },
+}
+
+// ── rarity colors ────────────────────────────────────────────────
+
+const RARITY_ORDER: Record<string, number> = { Common: 0, Uncommon: 1, Rare: 2, Epic: 3, Legendary: 4 }
+
+const rarityStyle: Record<string, { border: string; glow: string }> = {
+  Common:    { border: "rgba(152,152,159,0.4)",  glow: "rgba(152,152,159,0.08)" },
+  Uncommon:  { border: "rgba(48,209,88,0.5)",    glow: "rgba(48,209,88,0.14)"   },
+  Rare:      { border: "rgba(0,113,227,0.6)",    glow: "rgba(0,113,227,0.18)"   },
+  Epic:      { border: "rgba(191,90,242,0.65)",  glow: "rgba(191,90,242,0.2)"   },
+  Legendary: { border: "rgba(255,214,10,0.7)",   glow: "rgba(255,214,10,0.2)"   },
+}
+
+function topRarity(items: { product: { rarity: string } }[]): string {
+  return items.reduce((best, item) =>
+    (RARITY_ORDER[item.product.rarity] ?? 0) > (RARITY_ORDER[best] ?? 0) ? item.product.rarity : best
+  , "Common")
 }
 
 // ── alternating section colors ────────────────────────────────────
@@ -225,29 +243,37 @@ export default async function Home() {
                 </Link>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {openTrades.map((trade) => (
-                  <Link key={trade.id} href={`/trocas/${trade.id}`}
-                    className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                    style={{ background: pal.trades.cardBg, border: `1px solid ${pal.trades.cardBorder}` }}>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {trade.offerItems.map((item, i) => (
-                        <div key={i} className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
-                          style={{ background: "#1a1a1a" }}>
-                          <img src={item.product.image} alt={item.product.name}
-                            className="w-full h-full object-contain p-1" />
-                        </div>
-                      ))}
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium truncate" style={{ color: pal.trades.text }}>
-                        {trade.user.name}
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: pal.trades.sub }}>
-                        {trade._count.proposals} proposta{trade._count.proposals !== 1 ? "s" : ""}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
+                {openTrades.map((trade) => {
+                  const top = topRarity(trade.offerItems)
+                  const rs = rarityStyle[top] ?? rarityStyle.Common
+                  return (
+                    <Link key={trade.id} href={`/trocas/${trade.id}`}
+                      className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                      style={{
+                        background: `radial-gradient(ellipse at 50% 0%, ${rs.glow} 0%, ${pal.trades.cardBg} 65%)`,
+                        border: `1px solid ${rs.border}`,
+                        boxShadow: `0 0 12px ${rs.glow}`,
+                      }}>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {trade.offerItems.map((item, i) => (
+                          <div key={i} className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
+                            style={{ background: "#1a1a1a" }}>
+                            <img src={item.product.image} alt={item.product.name}
+                              className="w-full h-full object-contain p-1" />
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium truncate" style={{ color: pal.trades.text }}>
+                          {trade.user.name}
+                        </p>
+                        <p className="text-xs mt-0.5" style={{ color: pal.trades.sub }}>
+                          {trade._count.proposals} proposta{trade._count.proposals !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           </section>
