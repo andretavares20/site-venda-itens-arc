@@ -403,29 +403,29 @@ export default async function Home() {
           </section>
         )}
 
-        {/* Trocas diretas — preto */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
+        {/* Trocas diretas — branco */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
           <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
               Gratuito
             </p>
             <h2 className="font-bold tracking-tight mb-3"
-              style={{ color: "#f5f5f7", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
               Trocas diretas.
             </h2>
-            <p className="mb-8 mx-auto" style={{ color: "rgba(255,255,255,0.5)", maxWidth: "380px", fontSize: "17px", lineHeight: 1.6 }}>
+            <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "380px", fontSize: "17px", lineHeight: 1.6 }}>
               Troque itens diretamente com outros jogadores. Sem taxas, sem intermediários.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
               <Link href="/trocas"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                style={{ background: "#f5f5f7", color: "#000", padding: "0.6rem 1.75rem" }}>
+                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
                 Ver trocas
               </Link>
               <Link href="/trocas/nova"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                style={{ background: "transparent", color: "#f5f5f7", padding: "0.6rem 1.75rem", border: "1px solid rgba(255,255,255,0.25)" }}>
+                style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
                 Criar troca
               </Link>
             </div>
@@ -437,24 +437,24 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Trades seguras — branco */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
+        {/* Trades seguras — preto */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
           <div className="max-w-4xl mx-auto px-4 py-20">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
               Transparência
             </p>
             <h2 className="font-bold tracking-tight mb-4"
-              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              style={{ color: "#f5f5f7", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
               Trades seguras.
             </h2>
             <p className="mb-10 mx-auto"
-              style={{ color: "#6e6e73", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
+              style={{ color: "rgba(255,255,255,0.5)", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
               Negociações diretas entre jogadores, com pagamento protegido até a entrega ser confirmada.
             </p>
             <Link href="/como-funciona"
               className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-              style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
+              style={{ background: "#f5f5f7", color: "#000", padding: "0.6rem 1.75rem" }}>
               Como funciona
             </Link>
           </div>

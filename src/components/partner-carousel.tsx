@@ -46,12 +46,12 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
   const p = partners[current]
 
   return (
-    <section style={{ background: "#000", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+    <section style={{ background: "#f5f5f7", borderTop: "1px solid rgba(0,0,0,0.06)" }}>
       <style>{`
         @keyframes pc-fade { from { opacity: 0; transform: scale(1.015); } to { opacity: 1; transform: scale(1); } }
         @keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .pc-slide { animation: pc-fade 0.4s ease; }
-        .pc-btn:hover { background: rgba(255,255,255,0.12) !important; }
+        .pc-btn:hover { background: rgba(0,0,0,0.1) !important; }
         .pc-twitch:hover { background: rgba(145,71,255,0.25) !important; }
         .pc-dot-btn:hover { opacity: 1 !important; }
         .live-dot { animation: live-pulse 1.6s ease-in-out infinite; }
@@ -59,11 +59,11 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
 
       <div className="max-w-6xl mx-auto px-6 pt-16 pb-4 text-center">
         <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
-          style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "0.14em" }}>
+          style={{ color: "#6e6e73", letterSpacing: "0.14em" }}>
           Parceiros DropBay
         </p>
         <h2 className="font-bold tracking-tight mb-12"
-          style={{ color: "#f5f5f7", fontSize: "clamp(2rem, 4vw, 3.2rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+          style={{ color: "#1d1d1f", fontSize: "clamp(2rem, 4vw, 3.2rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
           Nossos Criadores.
         </h2>
       </div>
@@ -140,11 +140,11 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
             {/* Setas */}
             <div className="flex gap-2">
               <button onClick={prev} className="pc-btn w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.1)", transition: "background 0.15s" }}>
+                style={{ background: "rgba(0,0,0,0.06)", color: "rgba(0,0,0,0.5)", border: "1px solid rgba(0,0,0,0.1)", transition: "background 0.15s" }}>
                 <ChevronLeft size={16} />
               </button>
               <button onClick={next} className="pc-btn w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.1)", transition: "background 0.15s" }}>
+                style={{ background: "rgba(0,0,0,0.06)", color: "rgba(0,0,0,0.5)", border: "1px solid rgba(0,0,0,0.1)", transition: "background 0.15s" }}>
                 <ChevronRight size={16} />
               </button>
             </div>
@@ -156,7 +156,7 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
                   style={{
                     width: i === current ? "20px" : "6px",
                     height: "6px",
-                    background: i === current ? "#9147ff" : "rgba(255,255,255,0.25)",
+                    background: i === current ? "#9147ff" : "rgba(0,0,0,0.2)",
                     opacity: i === current ? 1 : 0.6,
                     transition: "all 0.3s",
                     border: "none",
@@ -168,9 +168,9 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
 
             {/* Link ver todos */}
             <Link href="/nossos-parceiros" className="text-xs font-medium"
-              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.04em", transition: "color 0.15s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}>
+              style={{ color: "rgba(0,0,0,0.4)", letterSpacing: "0.04em", transition: "color 0.15s" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "rgba(0,0,0,0.8)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(0,0,0,0.4)")}>
               Ver todos →
             </Link>
           </div>
