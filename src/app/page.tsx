@@ -108,19 +108,13 @@ export default async function Home() {
     getPartners(),
   ])
 
-  const hasActivity =
-    recentListings.length > 0 ||
-    openTrades.length > 0 ||
-    openSquads.length > 0 ||
-    openEncomendas.length > 0
-
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
 
       <main className="pt-14">
 
-        {/* Hero */}
+        {/* Hero — escuro */}
         <section className="relative overflow-hidden text-center" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="relative pt-20 pb-6 px-4">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
@@ -148,185 +142,211 @@ export default async function Home() {
               </Link>
             </div>
           </div>
-
           <HeroVideo />
         </section>
 
-        {/* Atividade da comunidade */}
-        {hasActivity && (
-          <section style={{ padding: "60px 0 20px" }}>
-            <div className="max-w-6xl mx-auto px-4 flex flex-col gap-12">
-
-              {/* Anúncios recentes */}
-              {recentListings.length > 0 && (
+        {/* Anúncios recentes — branco */}
+        {recentListings.length > 0 && (
+          <section style={{ background: "#f5f5f7", padding: "60px 0" }}>
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex items-end justify-between mb-6">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                      Anúncios recentes
-                    </h2>
-                    <Link href="/loja" className="text-xs font-medium flex items-center gap-1"
-                      style={{ color: "var(--text-secondary)" }}>
-                      Ver todos <ArrowRight size={12} />
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                    {recentListings.map((s) => (
-                      <ProductCard
-                        key={s.id}
-                        id={s.id}
-                        name={s.product.name}
-                        slug={s.product.slug}
-                        price={Number(s.price)}
-                        image={s.product.image}
-                        category={s.product.category}
-                        rarity={s.product.rarity}
-                        stock={s.quantity}
-                        listingItemId={s.id}
-                      />
-                    ))}
-                  </div>
+                  <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
+                    style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+                    Loja
+                  </p>
+                  <h2 className="font-bold tracking-tight"
+                    style={{ color: "#1d1d1f", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                    Anúncios recentes.
+                  </h2>
                 </div>
-              )}
-
-              {/* Trocas abertas */}
-              {openTrades.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                      Trocas abertas
-                    </h2>
-                    <Link href="/trocas" className="text-xs font-medium flex items-center gap-1"
-                      style={{ color: "var(--text-secondary)" }}>
-                      Ver todas <ArrowRight size={12} />
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {openTrades.map((trade) => (
-                      <Link key={trade.id} href={`/trocas/${trade.id}`}
-                        className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                        <div className="flex gap-1.5 flex-wrap">
-                          {trade.offerItems.map((item, i) => (
-                            <div key={i} className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
-                              style={{ background: "#0d0d0d" }}>
-                              <img src={item.product.image} alt={item.product.name}
-                                className="w-full h-full object-contain p-1" />
-                            </div>
-                          ))}
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                            {trade.user.name}
-                          </p>
-                          <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                            {trade._count.proposals} proposta{trade._count.proposals !== 1 ? "s" : ""}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Squads buscando membros */}
-              {openSquads.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                      Squads buscando membros
-                    </h2>
-                    <Link href="/squad" className="text-xs font-medium flex items-center gap-1"
-                      style={{ color: "var(--text-secondary)" }}>
-                      Ver squads <ArrowRight size={12} />
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {openSquads.map((slot: any) => (
-                      <Link key={slot.id} href="/squad"
-                        className="flex flex-col gap-2 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full w-fit"
-                          style={{ background: "rgba(0,113,227,0.12)", color: "var(--accent)", border: "1px solid rgba(0,113,227,0.2)" }}>
-                          {activityLabels[slot.activity] ?? slot.activity}
-                        </span>
-                        <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                          {slot.user.name}
-                        </p>
-                        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                          {slot.members.length + 1} participante{slot.members.length + 1 !== 1 ? "s" : ""}
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Encomendas abertas */}
-              {openEncomendas.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                      Encomendas abertas
-                    </h2>
-                    <Link href="/encomendas" className="text-xs font-medium flex items-center gap-1"
-                      style={{ color: "var(--text-secondary)" }}>
-                      Ver todas <ArrowRight size={12} />
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {openEncomendas.map((enc) => (
-                      <Link key={enc.id} href={`/encomendas/${enc.id}`}
-                        className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
-                        <div className="w-10 h-10 rounded-lg overflow-hidden"
-                          style={{ background: "#0d0d0d" }}>
-                          <img src={enc.product.image} alt={enc.product.name}
-                            className="w-full h-full object-contain p-1" />
-                        </div>
-                        <div className="flex flex-col gap-1 flex-1">
-                          <p className="text-xs font-medium line-clamp-2" style={{ color: "var(--text-primary)" }}>
-                            {enc.product.name}
-                          </p>
-                          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                            x{enc.quantity}
-                          </p>
-                        </div>
-                        <p className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
-                          {enc.maxPrice ? `até R$ ${Number(enc.maxPrice).toFixed(0)}` : "Preço aberto"}
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+                <Link href="/loja" className="flex items-center gap-1 text-sm font-medium mb-1"
+                  style={{ color: "#1d1d1f" }}>
+                  Ver todos <ArrowRight size={14} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                {recentListings.map((s) => (
+                  <ProductCard
+                    key={s.id}
+                    id={s.id}
+                    name={s.product.name}
+                    slug={s.product.slug}
+                    price={Number(s.price)}
+                    image={s.product.image}
+                    category={s.product.category}
+                    rarity={s.product.rarity}
+                    stock={s.quantity}
+                    listingItemId={s.id}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         )}
 
-        {/* Trocas diretas */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
+        {/* Trocas abertas — preto */}
+        {openTrades.length > 0 && (
+          <section style={{ background: "#000", padding: "60px 0" }}>
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex items-end justify-between mb-6">
+                <div>
+                  <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
+                    style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+                    Trocas
+                  </p>
+                  <h2 className="font-bold tracking-tight"
+                    style={{ color: "#f5f5f7", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                    Trocas abertas.
+                  </h2>
+                </div>
+                <Link href="/trocas" className="flex items-center gap-1 text-sm font-medium mb-1"
+                  style={{ color: "rgba(255,255,255,0.6)" }}>
+                  Ver todas <ArrowRight size={14} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {openTrades.map((trade) => (
+                  <Link key={trade.id} href={`/trocas/${trade.id}`}
+                    className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                    style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {trade.offerItems.map((item, i) => (
+                        <div key={i} className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
+                          style={{ background: "#1a1a1a" }}>
+                          <img src={item.product.image} alt={item.product.name}
+                            className="w-full h-full object-contain p-1" />
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium truncate" style={{ color: "#f5f5f7" }}>
+                        {trade.user.name}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        {trade._count.proposals} proposta{trade._count.proposals !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Squads buscando membros — branco */}
+        {openSquads.length > 0 && (
+          <section style={{ background: "#f5f5f7", padding: "60px 0" }}>
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex items-end justify-between mb-6">
+                <div>
+                  <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
+                    style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+                    Squad
+                  </p>
+                  <h2 className="font-bold tracking-tight"
+                    style={{ color: "#1d1d1f", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                    Buscando membros.
+                  </h2>
+                </div>
+                <Link href="/squad" className="flex items-center gap-1 text-sm font-medium mb-1"
+                  style={{ color: "#1d1d1f" }}>
+                  Ver squads <ArrowRight size={14} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {openSquads.map((slot: any) => (
+                  <Link key={slot.id} href="/squad"
+                    className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                    style={{ background: "#0d0d0d", border: "1px solid rgba(0,0,0,0.12)" }}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full w-fit"
+                      style={{ background: "rgba(0,113,227,0.15)", color: "#0071e3", border: "1px solid rgba(0,113,227,0.25)" }}>
+                      {activityLabels[slot.activity] ?? slot.activity}
+                    </span>
+                    <p className="text-xs font-medium truncate" style={{ color: "#f5f5f7" }}>
+                      {slot.user.name}
+                    </p>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      {slot.members.length + 1} participante{slot.members.length + 1 !== 1 ? "s" : ""}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Encomendas abertas — preto */}
+        {openEncomendas.length > 0 && (
+          <section style={{ background: "#000", padding: "60px 0" }}>
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex items-end justify-between mb-6">
+                <div>
+                  <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
+                    style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+                    Encomendas
+                  </p>
+                  <h2 className="font-bold tracking-tight"
+                    style={{ color: "#f5f5f7", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                    Encomendas abertas.
+                  </h2>
+                </div>
+                <Link href="/encomendas" className="flex items-center gap-1 text-sm font-medium mb-1"
+                  style={{ color: "rgba(255,255,255,0.6)" }}>
+                  Ver todas <ArrowRight size={14} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {openEncomendas.map((enc) => (
+                  <Link key={enc.id} href={`/encomendas/${enc.id}`}
+                    className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                    style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div className="w-10 h-10 rounded-lg overflow-hidden"
+                      style={{ background: "#1a1a1a" }}>
+                      <img src={enc.product.image} alt={enc.product.name}
+                        className="w-full h-full object-contain p-1" />
+                    </div>
+                    <div className="flex flex-col gap-1 flex-1">
+                      <p className="text-xs font-medium line-clamp-2" style={{ color: "#f5f5f7" }}>
+                        {enc.product.name}
+                      </p>
+                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                        x{enc.quantity}
+                      </p>
+                    </div>
+                    <p className="text-xs font-semibold" style={{ color: "#f5f5f7" }}>
+                      {enc.maxPrice ? `até R$ ${Number(enc.maxPrice).toFixed(0)}` : "Preço aberto"}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Trocas diretas — branco */}
+        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
           <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
               Gratuito
             </p>
             <h2 className="font-bold tracking-tight mb-3"
-              style={{ color: "#f5f5f7", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
               Trocas diretas.
             </h2>
-            <p className="mb-8 mx-auto" style={{ color: "rgba(255,255,255,0.5)", maxWidth: "380px", fontSize: "17px", lineHeight: 1.6 }}>
+            <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "380px", fontSize: "17px", lineHeight: 1.6 }}>
               Troque itens diretamente com outros jogadores. Sem taxas, sem intermediários.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
               <Link href="/trocas"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                style={{ background: "#f5f5f7", color: "#000", padding: "0.6rem 1.75rem" }}>
+                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
                 Ver trocas
               </Link>
               <Link href="/trocas/nova"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                style={{ background: "transparent", color: "#f5f5f7", padding: "0.6rem 1.75rem", border: "1px solid rgba(255,255,255,0.25)" }}>
+                style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
                 Criar troca
               </Link>
             </div>
@@ -338,7 +358,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Trades seguras */}
+        {/* Trades seguras — preto */}
         <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
           <div className="max-w-4xl mx-auto px-4 py-20">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
