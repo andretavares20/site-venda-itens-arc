@@ -60,7 +60,7 @@ export default function PartnerCarousel({ partners }: { partners: Partner[] }) {
       <div className="max-w-6xl mx-auto px-6 pt-16 pb-4 text-center">
         <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
           style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "0.14em" }}>
-          Parceiros da semana
+          Parceiros DropBay
         </p>
         <h2 className="font-bold tracking-tight mb-12"
           style={{ color: "#f5f5f7", fontSize: "clamp(2rem, 4vw, 3.2rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>

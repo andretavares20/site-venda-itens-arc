@@ -1,39 +1,64 @@
 import Navbar from "@/components/navbar"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
-import Carousel from "@/components/carousel"
 import HeroVideo from "@/components/hero-video"
 import Footer from "@/components/footer"
 import PartnerCarousel from "@/components/partner-carousel"
+import ProductCard from "@/components/product-card"
 import { extractTwitchUsername, getLiveUsernames } from "@/lib/twitch"
+import { ArrowRight } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
-const GRID_CATEGORIES = [
-  { category: "Assault Rifle", title: "Assault Rifles",  sub: "As melhores armas do jogo.",       dark: true,  slug: "Temporal IV"  },
-  { category: "Pistol",        title: "Pistols",         sub: "Compactas, precisas e letais.",     dark: false, slug: "Venator IV" },
-  { category: "Modification",  title: "Modificações",    sub: "Eleve seu equipamento ao limite.",  dark: false, slug: "Cinético" },
-  { category: "Sniper Rifle",  title: "Sniper Rifles",   sub: "Alcance. Precisão. Domínio.",       dark: true,  slug: null },
-  { category: "Quick Use",     title: "Uso Rápido",      sub: "Itens essenciais para sobreviver.", dark: true,  slug: "Mosquetão" },
-  { category: "SMG",           title: "SMGs",            sub: "Cadência alta. Dano garantido.",    dark: false, slug: null },
-]
+// ── data helpers ─────────────────────────────────────────────────
 
-async function getGridItems() {
-  const results = await Promise.all(
-    GRID_CATEGORIES.map(async (g) => {
-      const item = await prisma.product.findFirst({
-        where: {
-          active: true,
-          category: g.category,
-          ...(g.slug ? { name: { contains: g.slug, mode: "insensitive" } } : {}),
-        },
-        select: { image: true, slug: true },
-        orderBy: { rarity: "desc" },
-      })
-      return { ...g, image: item?.image ?? null }
-    })
-  )
-  return results
+async function getRecentListings() {
+  return prisma.stock.findMany({
+    where: { active: true, quantity: { gt: 0 }, product: { active: true } },
+    include: { product: true },
+    orderBy: { createdAt: "desc" },
+    take: 6,
+  })
+}
+
+async function getOpenTrades() {
+  return prisma.trade.findMany({
+    where: { status: "ABERTA" },
+    include: {
+      offerItems: {
+        include: { product: { select: { image: true, name: true } } },
+        take: 3,
+      },
+      user: { select: { name: true } },
+      _count: { select: { proposals: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 4,
+  })
+}
+
+async function getOpenSquads() {
+  return (prisma as any).activitySlot.findMany({
+    where: { status: "ABERTO" },
+    include: {
+      user: { select: { name: true } },
+      members: { select: { id: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 4,
+  }) as Promise<any[]>
+}
+
+async function getOpenEncomendas() {
+  return prisma.encomenda.findMany({
+    where: { status: "ABERTA" },
+    include: {
+      product: { select: { image: true, name: true } },
+      buyer: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 4,
+  })
 }
 
 type PartnerRow = {
@@ -64,13 +89,37 @@ async function getPartners() {
   }))
 }
 
+const activityLabels: Record<string, string> = {
+  SUBIR_LEVEL: "Subir Level",
+  FARM_XP: "Farm XP",
+  COLECOES: "Coleções",
+  DESAFIOS_SEMANAIS: "Desafios Semanais",
+  PROJETOS: "Projetos",
+}
+
+// ── page ─────────────────────────────────────────────────────────
+
 export default async function Home() {
-  const [gridItems, partners] = await Promise.all([getGridItems(), getPartners()])
+  const [recentListings, openTrades, openSquads, openEncomendas, partners] = await Promise.all([
+    getRecentListings(),
+    getOpenTrades(),
+    getOpenSquads(),
+    getOpenEncomendas(),
+    getPartners(),
+  ])
+
+  const hasActivity =
+    recentListings.length > 0 ||
+    openTrades.length > 0 ||
+    openSquads.length > 0 ||
+    openEncomendas.length > 0
+
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <Navbar />
 
       <main className="pt-14">
+
         {/* Hero */}
         <section className="relative overflow-hidden text-center" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="relative pt-20 pb-6 px-4">
@@ -100,45 +149,162 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Vídeo hero */}
           <HeroVideo />
         </section>
 
-        {/* Seção 2 — Épicos e Lendários (fundo branco, letra preta) */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
-          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
-            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
-              Os mais raros
-            </p>
-            <h2 className="font-bold tracking-tight mb-3"
-              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-              Épicos e Lendários.
-            </h2>
-            <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "360px", fontSize: "17px", lineHeight: 1.6 }}>
-              Os itens mais raros de Arc Raiders, verificados e prontos para entrega.
-            </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
-              <Link href="/loja?raridade=Legendary"
-                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
-                Ver lendários
-              </Link>
-              <Link href="/loja?raridade=Epic"
-                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
-                Ver épicos
-              </Link>
-            </div>
-          </div>
-          <div className="mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 80%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 80%, transparent 100%)" }}>
-              <img src="/epicos.png" alt="Épicos e Lendários" className="w-full object-contain" style={{ maxHeight: "480px" }} />
-            </div>
-          </div>
-        </section>
+        {/* Atividade da comunidade */}
+        {hasActivity && (
+          <section style={{ padding: "60px 0 20px" }}>
+            <div className="max-w-6xl mx-auto px-4 flex flex-col gap-12">
 
-        {/* Seção 3 — Trocas (fundo preto, letra branca) */}
+              {/* Anúncios recentes */}
+              {recentListings.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+                      Anúncios recentes
+                    </h2>
+                    <Link href="/loja" className="text-xs font-medium flex items-center gap-1"
+                      style={{ color: "var(--text-secondary)" }}>
+                      Ver todos <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {recentListings.map((s) => (
+                      <ProductCard
+                        key={s.id}
+                        id={s.id}
+                        name={s.product.name}
+                        slug={s.product.slug}
+                        price={Number(s.price)}
+                        image={s.product.image}
+                        category={s.product.category}
+                        rarity={s.product.rarity}
+                        stock={s.quantity}
+                        listingItemId={s.id}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Trocas abertas */}
+              {openTrades.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+                      Trocas abertas
+                    </h2>
+                    <Link href="/trocas" className="text-xs font-medium flex items-center gap-1"
+                      style={{ color: "var(--text-secondary)" }}>
+                      Ver todas <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {openTrades.map((trade) => (
+                      <Link key={trade.id} href={`/trocas/${trade.id}`}
+                        className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {trade.offerItems.map((item, i) => (
+                            <div key={i} className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
+                              style={{ background: "#0d0d0d" }}>
+                              <img src={item.product.image} alt={item.product.name}
+                                className="w-full h-full object-contain p-1" />
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                            {trade.user.name}
+                          </p>
+                          <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                            {trade._count.proposals} proposta{trade._count.proposals !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Squads buscando membros */}
+              {openSquads.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+                      Squads buscando membros
+                    </h2>
+                    <Link href="/squad" className="text-xs font-medium flex items-center gap-1"
+                      style={{ color: "var(--text-secondary)" }}>
+                      Ver squads <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {openSquads.map((slot: any) => (
+                      <Link key={slot.id} href="/squad"
+                        className="flex flex-col gap-2 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full w-fit"
+                          style={{ background: "rgba(0,113,227,0.12)", color: "var(--accent)", border: "1px solid rgba(0,113,227,0.2)" }}>
+                          {activityLabels[slot.activity] ?? slot.activity}
+                        </span>
+                        <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                          {slot.user.name}
+                        </p>
+                        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                          {slot.members.length + 1} participante{slot.members.length + 1 !== 1 ? "s" : ""}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Encomendas abertas */}
+              {openEncomendas.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+                      Encomendas abertas
+                    </h2>
+                    <Link href="/encomendas" className="text-xs font-medium flex items-center gap-1"
+                      style={{ color: "var(--text-secondary)" }}>
+                      Ver todas <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {openEncomendas.map((enc) => (
+                      <Link key={enc.id} href={`/encomendas/${enc.id}`}
+                        className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                        style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+                        <div className="w-10 h-10 rounded-lg overflow-hidden"
+                          style={{ background: "#0d0d0d" }}>
+                          <img src={enc.product.image} alt={enc.product.name}
+                            className="w-full h-full object-contain p-1" />
+                        </div>
+                        <div className="flex flex-col gap-1 flex-1">
+                          <p className="text-xs font-medium line-clamp-2" style={{ color: "var(--text-primary)" }}>
+                            {enc.product.name}
+                          </p>
+                          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                            x{enc.quantity}
+                          </p>
+                        </div>
+                        <p className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
+                          {enc.maxPrice ? `até R$ ${Number(enc.maxPrice).toFixed(0)}` : "Preço aberto"}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </section>
+        )}
+
+        {/* Trocas diretas */}
         <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
           <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
@@ -172,41 +338,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Seção 4 — Venda seus itens (fundo branco, letra preta) */}
-        <section className="relative overflow-hidden text-center" style={{ background: "#f5f5f7" }}>
-          <div className="max-w-4xl mx-auto px-4 pt-16 pb-0">
-            <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
-              style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
-              Para jogadores
-            </p>
-            <h2 className="font-bold tracking-tight mb-3"
-              style={{ color: "#1d1d1f", fontSize: "clamp(2.2rem, 5vw, 3.8rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-              Ofereça seus itens.
-            </h2>
-            <p className="mb-8 mx-auto" style={{ color: "#6e6e73", maxWidth: "400px", fontSize: "17px", lineHeight: 1.6 }}>
-              Publique seus itens e conecte-se com outros jogadores. Taxa de apenas 10% sobre cada negociação concluída.
-            </p>
-            <div className="flex items-center justify-center gap-4 flex-wrap mb-10">
-              <Link href="/anunciar"
-                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                style={{ background: "#1d1d1f", color: "#fff", padding: "0.6rem 1.75rem" }}>
-                Publicar item
-              </Link>
-              <Link href="/minha-conta/anuncios"
-                className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                style={{ background: "transparent", color: "#1d1d1f", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,0,0,0.25)" }}>
-                Meus anúncios
-              </Link>
-            </div>
-          </div>
-          <div className="mx-auto" style={{ maxWidth: "900px" }}>
-            <div style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
-              <img src="/venda.png" alt="Venda seus itens" className="w-full object-cover" style={{ maxHeight: "480px", objectPosition: "top center" }} />
-            </div>
-          </div>
-        </section>
-
-        {/* Seção — Como funciona */}
+        {/* Trades seguras */}
         <section className="relative overflow-hidden text-center" style={{ background: "#000" }}>
           <div className="max-w-4xl mx-auto px-4 py-20">
             <p className="text-xs font-semibold mb-3 tracking-widest uppercase"
@@ -231,57 +363,7 @@ export default async function Home() {
 
       </main>
 
-        {/* Grade 2x3 estilo Apple — fundo branco na página, cards pretos se destacam */}
-        <section style={{ background: "#FFFFFF", padding: "12px", paddingTop: "60px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-
-            {gridItems.map((card: typeof GRID_CATEGORIES[number] & { image: string | null }, i: number) => {
-              const dark = card.dark
-              const textColor = dark ? "#f5f5f7" : "#1d1d1f"
-              const subColor  = dark ? "rgba(255,255,255,0.5)" : "#6e6e73"
-              const bg        = dark ? "#000000" : "#F5F5F7"
-              const btnBg     = dark ? "#f5f5f7" : "#1d1d1f"
-              const btnColor  = dark ? "#000" : "#fff"
-              return (
-                <div key={i} className="relative overflow-hidden flex flex-col items-center justify-between text-center"
-                  style={{ background: bg, height: "420px", padding: "32px 24px 32px" }}>
-
-                  {/* Texto */}
-                  <div>
-                    <h3 className="font-bold tracking-tight mb-3"
-                      style={{ color: textColor, fontSize: "clamp(1.8rem, 3vw, 2.6rem)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
-                      {card.title}
-                    </h3>
-                    <p className="mx-auto" style={{ color: subColor, fontSize: "15px", lineHeight: 1.5, maxWidth: "260px" }}>
-                      {card.sub}
-                    </p>
-                  </div>
-
-                  {/* Imagem */}
-                  {card.image && (
-                    <div className="flex items-center justify-center w-full">
-                      <img src={card.image} alt={card.title}
-                        className="object-contain"
-                        style={{ maxHeight: "160px", maxWidth: "180px" }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Botão */}
-                  <Link href={`/loja?categoria=${encodeURIComponent(card.category)}`}
-                    className="inline-flex items-center justify-center rounded-full font-medium text-sm"
-                    style={{ background: btnBg, color: btnColor, padding: "0.5rem 1.5rem" }}>
-                    Ver itens
-                  </Link>
-                </div>
-              )
-            })}
-
-          </div>
-        </section>
-
-        {/* Parceiros */}
-        {partners.length > 0 && <PartnerCarousel partners={partners} />}
+      {partners.length > 0 && <PartnerCarousel partners={partners} />}
 
       <Footer />
     </div>
