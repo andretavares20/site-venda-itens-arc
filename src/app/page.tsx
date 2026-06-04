@@ -53,7 +53,7 @@ async function getOpenEncomendas() {
   return prisma.encomenda.findMany({
     where: { status: "ABERTA" },
     include: {
-      product: { select: { image: true, name: true } },
+      product: { select: { image: true, name: true, rarity: true } },
       buyer: { select: { name: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -408,28 +408,35 @@ export default async function Home() {
                 </Link>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {openEncomendas.map((enc) => (
-                  <Link key={enc.id} href={`/encomendas/${enc.id}`}
-                    className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                    style={{ background: pal.encomendas.cardBg, border: `1px solid ${pal.encomendas.cardBorder}` }}>
-                    <div className="w-10 h-10 rounded-lg overflow-hidden"
-                      style={{ background: "#1a1a1a" }}>
-                      <img src={enc.product.image} alt={enc.product.name}
-                        className="w-full h-full object-contain p-1" />
-                    </div>
-                    <div className="flex flex-col gap-1 flex-1">
-                      <p className="text-xs font-medium line-clamp-2" style={{ color: pal.encomendas.text }}>
-                        {enc.product.name}
+                {openEncomendas.map((enc) => {
+                  const rs = rarityStyle[enc.product.rarity] ?? rarityStyle.Common
+                  return (
+                    <Link key={enc.id} href={`/encomendas/${enc.id}`}
+                      className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                      style={{
+                        background: `radial-gradient(ellipse at 50% 0%, ${rs.glow} 0%, ${pal.encomendas.cardBg} 65%)`,
+                        border: `1px solid ${rs.border}`,
+                        boxShadow: `0 0 12px ${rs.glow}`,
+                      }}>
+                      <div className="w-10 h-10 rounded-lg overflow-hidden"
+                        style={{ background: "#1a1a1a" }}>
+                        <img src={enc.product.image} alt={enc.product.name}
+                          className="w-full h-full object-contain p-1" />
+                      </div>
+                      <div className="flex flex-col gap-1 flex-1">
+                        <p className="text-xs font-medium line-clamp-2" style={{ color: pal.encomendas.text }}>
+                          {enc.product.name}
+                        </p>
+                        <p className="text-xs" style={{ color: pal.encomendas.sub }}>
+                          x{enc.quantity}
+                        </p>
+                      </div>
+                      <p className="text-xs font-semibold" style={{ color: pal.encomendas.text }}>
+                        {enc.maxPrice ? `até R$ ${Number(enc.maxPrice).toFixed(0)}` : "Preço aberto"}
                       </p>
-                      <p className="text-xs" style={{ color: pal.encomendas.sub }}>
-                        x{enc.quantity}
-                      </p>
-                    </div>
-                    <p className="text-xs font-semibold" style={{ color: pal.encomendas.text }}>
-                      {enc.maxPrice ? `até R$ ${Number(enc.maxPrice).toFixed(0)}` : "Preço aberto"}
-                    </p>
-                  </Link>
-                ))}
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           </section>
