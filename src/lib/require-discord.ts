@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db"
 import { NextResponse } from "next/server"
 
 export async function requireDiscord(userId: string): Promise<NextResponse | null> {
+  if (process.env.NODE_ENV === "development") return null
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { discordId: true },
