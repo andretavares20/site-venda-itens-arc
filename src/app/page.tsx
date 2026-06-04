@@ -277,9 +277,9 @@ export default async function Home() {
                     <Link key={trade.id} href={`/trocas/${trade.id}`}
                       className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
                       style={{
-                        background: `radial-gradient(ellipse at 50% 0%, ${rs.glow} 0%, ${pal.trades.cardBg} 65%)`,
+                        background: pal.trades.cardBg,
                         border: `1px solid ${rs.border}`,
-                        boxShadow: `0 0 12px ${rs.glow}`,
+                        boxShadow: `0 0 10px ${rs.glow}`,
                       }}>
                       <div className="flex gap-1.5 flex-wrap">
                         {trade.offerItems.map((item, i) => (
