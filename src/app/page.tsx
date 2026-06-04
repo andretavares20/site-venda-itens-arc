@@ -82,20 +82,20 @@ export default async function Home() {
               style={{ color: "var(--text-primary)", fontSize: "clamp(3rem, 7vw, 5.5rem)", letterSpacing: "-0.04em", lineHeight: 1.0 }}>
               DropBay.
             </h1>
-            <p className="mb-8"
-              style={{ color: "var(--text-secondary)", lineHeight: 1.6, fontSize: "17px", whiteSpace: "nowrap" }}>
-              Conecte-se com jogadores, negocie itens e encontre seu grupo.
+            <p className="mb-8 mx-auto"
+              style={{ color: "var(--text-secondary)", lineHeight: 1.6, fontSize: "17px", maxWidth: "460px" }}>
+              Onde os jogadores de Arc Raiders se encontram.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <Link href="/loja"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
                 style={{ background: "var(--accent)", color: "#fff", padding: "0.6rem 1.75rem" }}>
-                Ver itens
+                Explorar
               </Link>
-              <Link href="/anunciar"
+              <Link href="/squad"
                 className="inline-flex items-center justify-center rounded-full font-medium text-sm"
                 style={{ background: "transparent", color: "var(--accent)", padding: "0.6rem 1.75rem", border: "1px solid rgba(0,113,227,0.5)" }}>
-                Oferecer item
+                Entrar no Squad
               </Link>
             </div>
           </div>
