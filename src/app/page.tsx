@@ -97,6 +97,16 @@ const activityLabels: Record<string, string> = {
   PROJETOS: "Projetos",
 }
 
+// ── alternating section colors ────────────────────────────────────
+
+type SectionKey = "listings" | "trades" | "squads" | "encomendas"
+
+function buildPalette(visible: SectionKey[]) {
+  const white = { bg: "#f5f5f7", title: "#1d1d1f", label: "#6e6e73", link: "#1d1d1f", cardBg: "#0d0d0d", cardBorder: "rgba(0,0,0,0.12)", text: "#f5f5f7", sub: "rgba(255,255,255,0.4)" }
+  const black = { bg: "#000",     title: "#f5f5f7", label: "rgba(255,255,255,0.4)", link: "rgba(255,255,255,0.6)", cardBg: "#111", cardBorder: "rgba(255,255,255,0.08)", text: "#f5f5f7", sub: "rgba(255,255,255,0.4)" }
+  return Object.fromEntries(visible.map((key, i) => [key, i % 2 === 0 ? white : black])) as Record<SectionKey, typeof white>
+}
+
 // ── page ─────────────────────────────────────────────────────────
 
 export default async function Home() {
@@ -107,6 +117,15 @@ export default async function Home() {
     getOpenEncomendas(),
     getPartners(),
   ])
+
+  const visibleSections = ([
+    recentListings.length > 0  ? "listings"   : null,
+    openTrades.length > 0      ? "trades"      : null,
+    openSquads.length > 0      ? "squads"      : null,
+    openEncomendas.length > 0  ? "encomendas"  : null,
+  ].filter(Boolean)) as SectionKey[]
+
+  const pal = buildPalette(visibleSections)
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -145,23 +164,23 @@ export default async function Home() {
           <HeroVideo />
         </section>
 
-        {/* Anúncios recentes — branco */}
+        {/* Anúncios recentes */}
         {recentListings.length > 0 && (
-          <section style={{ background: "#f5f5f7", padding: "60px 0" }}>
+          <section style={{ background: pal.listings.bg, padding: "60px 0" }}>
             <div className="max-w-6xl mx-auto px-4">
               <div className="flex items-end justify-between mb-6">
                 <div>
                   <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
-                    style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+                    style={{ color: pal.listings.label, letterSpacing: "0.12em" }}>
                     Loja
                   </p>
                   <h2 className="font-bold tracking-tight"
-                    style={{ color: "#1d1d1f", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                    style={{ color: pal.listings.title, fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
                     Anúncios recentes.
                   </h2>
                 </div>
                 <Link href="/loja" className="flex items-center gap-1 text-sm font-medium mb-1"
-                  style={{ color: "#1d1d1f" }}>
+                  style={{ color: pal.listings.link }}>
                   Ver todos <ArrowRight size={14} />
                 </Link>
               </div>
@@ -185,23 +204,23 @@ export default async function Home() {
           </section>
         )}
 
-        {/* Trocas abertas — preto */}
+        {/* Trocas abertas */}
         {openTrades.length > 0 && (
-          <section style={{ background: "#000", padding: "60px 0" }}>
+          <section style={{ background: pal.trades.bg, padding: "60px 0" }}>
             <div className="max-w-6xl mx-auto px-4">
               <div className="flex items-end justify-between mb-6">
                 <div>
                   <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
-                    style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+                    style={{ color: pal.trades.label, letterSpacing: "0.12em" }}>
                     Trocas
                   </p>
                   <h2 className="font-bold tracking-tight"
-                    style={{ color: "#f5f5f7", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                    style={{ color: pal.trades.title, fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
                     Trocas abertas.
                   </h2>
                 </div>
                 <Link href="/trocas" className="flex items-center gap-1 text-sm font-medium mb-1"
-                  style={{ color: "rgba(255,255,255,0.6)" }}>
+                  style={{ color: pal.trades.link }}>
                   Ver todas <ArrowRight size={14} />
                 </Link>
               </div>
@@ -209,7 +228,7 @@ export default async function Home() {
                 {openTrades.map((trade) => (
                   <Link key={trade.id} href={`/trocas/${trade.id}`}
                     className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                    style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    style={{ background: pal.trades.cardBg, border: `1px solid ${pal.trades.cardBorder}` }}>
                     <div className="flex gap-1.5 flex-wrap">
                       {trade.offerItems.map((item, i) => (
                         <div key={i} className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
@@ -220,10 +239,10 @@ export default async function Home() {
                       ))}
                     </div>
                     <div>
-                      <p className="text-xs font-medium truncate" style={{ color: "#f5f5f7" }}>
+                      <p className="text-xs font-medium truncate" style={{ color: pal.trades.text }}>
                         {trade.user.name}
                       </p>
-                      <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <p className="text-xs mt-0.5" style={{ color: pal.trades.sub }}>
                         {trade._count.proposals} proposta{trade._count.proposals !== 1 ? "s" : ""}
                       </p>
                     </div>
@@ -234,23 +253,23 @@ export default async function Home() {
           </section>
         )}
 
-        {/* Squads buscando membros — branco */}
+        {/* Squads buscando membros */}
         {openSquads.length > 0 && (
-          <section style={{ background: "#f5f5f7", padding: "60px 0" }}>
+          <section style={{ background: pal.squads.bg, padding: "60px 0" }}>
             <div className="max-w-6xl mx-auto px-4">
               <div className="flex items-end justify-between mb-6">
                 <div>
                   <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
-                    style={{ color: "#6e6e73", letterSpacing: "0.12em" }}>
+                    style={{ color: pal.squads.label, letterSpacing: "0.12em" }}>
                     Squad
                   </p>
                   <h2 className="font-bold tracking-tight"
-                    style={{ color: "#1d1d1f", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                    style={{ color: pal.squads.title, fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
                     Buscando membros.
                   </h2>
                 </div>
                 <Link href="/squad" className="flex items-center gap-1 text-sm font-medium mb-1"
-                  style={{ color: "#1d1d1f" }}>
+                  style={{ color: pal.squads.link }}>
                   Ver squads <ArrowRight size={14} />
                 </Link>
               </div>
@@ -258,15 +277,15 @@ export default async function Home() {
                 {openSquads.map((slot: any) => (
                   <Link key={slot.id} href="/squad"
                     className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                    style={{ background: "#0d0d0d", border: "1px solid rgba(0,0,0,0.12)" }}>
+                    style={{ background: pal.squads.cardBg, border: `1px solid ${pal.squads.cardBorder}` }}>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full w-fit"
                       style={{ background: "rgba(0,113,227,0.15)", color: "#0071e3", border: "1px solid rgba(0,113,227,0.25)" }}>
                       {activityLabels[slot.activity] ?? slot.activity}
                     </span>
-                    <p className="text-xs font-medium truncate" style={{ color: "#f5f5f7" }}>
+                    <p className="text-xs font-medium truncate" style={{ color: pal.squads.text }}>
                       {slot.user.name}
                     </p>
-                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    <p className="text-xs" style={{ color: pal.squads.sub }}>
                       {slot.members.length + 1} participante{slot.members.length + 1 !== 1 ? "s" : ""}
                     </p>
                   </Link>
@@ -276,23 +295,23 @@ export default async function Home() {
           </section>
         )}
 
-        {/* Encomendas abertas — preto */}
+        {/* Encomendas abertas */}
         {openEncomendas.length > 0 && (
-          <section style={{ background: "#000", padding: "60px 0" }}>
+          <section style={{ background: pal.encomendas.bg, padding: "60px 0" }}>
             <div className="max-w-6xl mx-auto px-4">
               <div className="flex items-end justify-between mb-6">
                 <div>
                   <p className="text-xs font-semibold mb-2 tracking-widest uppercase"
-                    style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}>
+                    style={{ color: pal.encomendas.label, letterSpacing: "0.12em" }}>
                     Encomendas
                   </p>
                   <h2 className="font-bold tracking-tight"
-                    style={{ color: "#f5f5f7", fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+                    style={{ color: pal.encomendas.title, fontSize: "clamp(1.8rem, 3vw, 2.4rem)", letterSpacing: "-0.03em", lineHeight: 1.05 }}>
                     Encomendas abertas.
                   </h2>
                 </div>
                 <Link href="/encomendas" className="flex items-center gap-1 text-sm font-medium mb-1"
-                  style={{ color: "rgba(255,255,255,0.6)" }}>
+                  style={{ color: pal.encomendas.link }}>
                   Ver todas <ArrowRight size={14} />
                 </Link>
               </div>
@@ -300,21 +319,21 @@ export default async function Home() {
                 {openEncomendas.map((enc) => (
                   <Link key={enc.id} href={`/encomendas/${enc.id}`}
                     className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
-                    style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    style={{ background: pal.encomendas.cardBg, border: `1px solid ${pal.encomendas.cardBorder}` }}>
                     <div className="w-10 h-10 rounded-lg overflow-hidden"
                       style={{ background: "#1a1a1a" }}>
                       <img src={enc.product.image} alt={enc.product.name}
                         className="w-full h-full object-contain p-1" />
                     </div>
                     <div className="flex flex-col gap-1 flex-1">
-                      <p className="text-xs font-medium line-clamp-2" style={{ color: "#f5f5f7" }}>
+                      <p className="text-xs font-medium line-clamp-2" style={{ color: pal.encomendas.text }}>
                         {enc.product.name}
                       </p>
-                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <p className="text-xs" style={{ color: pal.encomendas.sub }}>
                         x{enc.quantity}
                       </p>
                     </div>
-                    <p className="text-xs font-semibold" style={{ color: "#f5f5f7" }}>
+                    <p className="text-xs font-semibold" style={{ color: pal.encomendas.text }}>
                       {enc.maxPrice ? `até R$ ${Number(enc.maxPrice).toFixed(0)}` : "Preço aberto"}
                     </p>
                   </Link>
