@@ -46,9 +46,34 @@ export default function PerfilPage() {
     const file = e.target.files?.[0]
     if (!file) return
     setUploadingAvatar(true)
-    const fd = new FormData()
-    fd.append("file", file)
-    const res = await fetch("/api/usuario/avatar", { method: "POST", body: fd })
+
+    // redimensiona para 256×256 no canvas antes de enviar
+    const dataUrl = await new Promise<string>((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        const img = new window.Image()
+        img.onload = () => {
+          const SIZE = 256
+          const canvas = document.createElement("canvas")
+          canvas.width = SIZE
+          canvas.height = SIZE
+          const ctx = canvas.getContext("2d")!
+          const ratio = Math.min(SIZE / img.width, SIZE / img.height)
+          const w = img.width * ratio
+          const h = img.height * ratio
+          ctx.drawImage(img, (SIZE - w) / 2, (SIZE - h) / 2, w, h)
+          resolve(canvas.toDataURL("image/jpeg", 0.85))
+        }
+        img.src = ev.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    })
+
+    const res = await fetch("/api/usuario/avatar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dataUrl }),
+    })
     setUploadingAvatar(false)
     if (!res.ok) {
       const d = await res.json().catch(() => ({}))
