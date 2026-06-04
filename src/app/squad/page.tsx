@@ -120,7 +120,12 @@ export default function SquadPage() {
     setSubmitting(false)
     if (!res.ok) {
       const d = await res.json().catch(() => ({}))
-      toast(d.error ?? "Erro ao publicar", "error")
+      if (d.code === "DISCORD_REQUIRED") {
+        setShowModal(false)
+        toast("Conecte seu Discord em Minha Conta → Perfil para usar o Squad.", "error")
+      } else {
+        toast(d.error ?? "Erro ao publicar", "error")
+      }
       return
     }
     setShowModal(false)
