@@ -41,7 +41,7 @@ async function getOpenSquads() {
   return (prisma as any).activitySlot.findMany({
     where: { status: "ABERTO" },
     include: {
-      user: { select: { name: true } },
+      user: { select: { name: true, avatarUrl: true } },
       members: { select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -338,9 +338,16 @@ export default async function Home() {
 
                       {/* Avatar + nome */}
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                          style={{ background: "var(--accent)", color: "#fff" }}>
-                          {slot.user.name[0].toUpperCase()}
+                        <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                          {slot.user.avatarUrl ? (
+                            <img src={slot.user.avatarUrl} alt={slot.user.name}
+                              className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold"
+                              style={{ background: "var(--accent)", color: "#fff" }}>
+                              {slot.user.name[0].toUpperCase()}
+                            </div>
+                          )}
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium text-sm truncate" style={{ color: pal.squads.text }}>

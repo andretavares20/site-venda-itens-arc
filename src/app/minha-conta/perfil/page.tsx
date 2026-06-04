@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
-import { ArrowLeft, CheckCircle, User, Key } from "lucide-react"
+import { ArrowLeft, CheckCircle, User, Key, Camera } from "lucide-react"
 import { useSearchParams } from "next/navigation"
+import { useRef } from "react"
 
 export default function PerfilPage() {
   const { data: session, status } = useSession()
@@ -19,6 +20,9 @@ export default function PerfilPage() {
   const [loadingPix, setLoadingPix] = useState(false)
   const [loadingName, setLoadingName] = useState(false)
   const [discordId, setDiscordId] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
   const searchParams = useSearchParams()
   const discordStatus = searchParams.get("discord")
 
@@ -34,8 +38,26 @@ export default function PerfilPage() {
       .then((data) => {
         if (data.pixKey) setPixKey(data.pixKey)
         if (data.discordId) setDiscordId(data.discordId)
+        if (data.avatarUrl) setAvatarUrl(data.avatarUrl)
       })
   }, [status, session])
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    const fd = new FormData()
+    fd.append("file", file)
+    const res = await fetch("/api/usuario/avatar", { method: "POST", body: fd })
+    setUploadingAvatar(false)
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      alert(d.error ?? "Erro ao enviar imagem")
+      return
+    }
+    const { url } = await res.json()
+    setAvatarUrl(url)
+  }
 
   async function saveName() {
     setLoadingName(true)
@@ -76,9 +98,45 @@ export default function PerfilPage() {
           <ArrowLeft size={15} /> Minha conta
         </Link>
 
-        <h1 className="text-2xl font-bold mb-8" style={{ color: "var(--text-primary)" }}>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>
           Meu perfil
         </h1>
+
+        {/* Avatar */}
+        <div className="flex items-center gap-4 mb-8">
+          <button
+            onClick={() => avatarInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="relative flex-shrink-0 rounded-full overflow-hidden"
+            style={{ width: 72, height: 72 }}
+          >
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl font-bold"
+                style={{ background: "var(--accent)", color: "#fff" }}>
+                {session?.user.name?.[0]?.toUpperCase()}
+              </div>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 hover:opacity-100 transition-opacity"
+              style={{ background: "rgba(0,0,0,0.5)" }}>
+              {uploadingAvatar
+                ? <span className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                : <Camera size={18} color="#fff" />}
+            </div>
+          </button>
+          <div>
+            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Foto de perfil</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>JPG, PNG ou WEBP · máx. 2MB</p>
+          </div>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+        </div>
 
         {/* Info da conta */}
         <div className="rounded-2xl p-5 mb-4" style={{ background: "var(--surface-1)", border: "1px solid var(--border)" }}>

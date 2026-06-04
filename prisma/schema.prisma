@@ -21,6 +21,7 @@ model User {
   verificationToken    String?     @unique
   verificationExpires  DateTime?
   discordId            String?
+  avatarUrl            String?
   adminNotifSeenAt     DateTime?
   createdAt            DateTime    @default(now())
   orders          Order[]
