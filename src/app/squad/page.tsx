@@ -409,7 +409,7 @@ export default function SquadPage() {
                     Nível alvo
                   </label>
                   <div className="flex gap-2">
-                    {Array.from({ length: selectedBench?.maxLevel ?? 4 }, (_, i) => i + 1).map((lvl) => (
+                    {Array.from({ length: (selectedBench?.maxLevel ?? 4) - 1 }, (_, i) => i + 2).map((lvl) => (
                       <button
                         key={lvl}
                         onClick={() => setForm((f) => ({ ...f, targetLevel: lvl }))}
