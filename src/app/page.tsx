@@ -275,26 +275,29 @@ export default async function Home() {
                   const rs = rarityStyle[top] ?? rarityStyle.Common
                   return (
                     <Link key={trade.id} href={`/trocas/${trade.id}`}
-                      className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                      className="flex flex-col overflow-hidden rounded-2xl hover:opacity-90 transition-opacity"
                       style={{
-                        background: pal.trades.cardBg,
+                        background: "#0d0d0d",
                         border: `1px solid ${rs.border}`,
-                        boxShadow: `0 0 10px ${rs.glow}`,
+                        boxShadow: `0 4px 20px rgba(0,0,0,0.15), 0 0 0 0px ${rs.border}`,
                       }}>
-                      <div className="flex gap-1.5 flex-wrap">
+                      {/* Área de imagens com glow de raridade */}
+                      <div className="relative flex items-center justify-center gap-2 px-4 py-5"
+                        style={{ background: `radial-gradient(ellipse at 50% 60%, ${rs.glow} 0%, #0d0d0d 70%)` }}>
                         {trade.offerItems.map((item, i) => (
-                          <div key={i} className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
-                            style={{ background: "#1a1a1a" }}>
+                          <div key={i} className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0"
+                            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                             <img src={item.product.image} alt={item.product.name}
-                              className="w-full h-full object-contain p-1" />
+                              className="w-full h-full object-contain p-1.5" />
                           </div>
                         ))}
                       </div>
-                      <div>
-                        <p className="text-xs font-medium truncate" style={{ color: pal.trades.text }}>
+                      {/* Info */}
+                      <div className="px-4 pb-4 pt-3">
+                        <p className="text-sm font-medium truncate" style={{ color: "#f5f5f7" }}>
                           {trade.user.name}
                         </p>
-                        <p className="text-xs mt-0.5" style={{ color: pal.trades.sub }}>
+                        <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
                           {trade._count.proposals} proposta{trade._count.proposals !== 1 ? "s" : ""}
                         </p>
                       </div>
