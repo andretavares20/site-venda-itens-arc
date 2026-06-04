@@ -6,34 +6,39 @@ import { ShoppingCart } from "lucide-react"
 import { useCart } from "@/store/cart"
 import { useState } from "react"
 
-const rarityStyle: Record<string, { border: string; glow: string; gradient: string; label: string }> = {
+const rarityStyle: Record<string, { border: string; glow: string; bgGlow: string; gradient: string; label: string }> = {
   Common:    {
     border: "rgba(152,152,159,0.4)",
     glow: "rgba(152,152,159,0)",
+    bgGlow: "rgba(152,152,159,0.06)",
     gradient: "rgba(0,0,0,0.5)",
     label: "#98989f",
   },
   Uncommon:  {
     border: "rgba(48,209,88,0.5)",
     glow: "rgba(48,209,88,0.1)",
+    bgGlow: "rgba(48,209,88,0.14)",
     gradient: "rgba(0,0,0,0.5)",
     label: "#30d158",
   },
   Rare:      {
     border: "rgba(0,113,227,0.6)",
     glow: "rgba(0,113,227,0.1)",
+    bgGlow: "rgba(0,113,227,0.18)",
     gradient: "rgba(0,0,0,0.5)",
     label: "#0071e3",
   },
   Epic:      {
     border: "rgba(191,90,242,0.65)",
     glow: "rgba(191,90,242,0.1)",
+    bgGlow: "rgba(191,90,242,0.2)",
     gradient: "rgba(0,0,0,0.5)",
     label: "#bf5af2",
   },
   Legendary: {
     border: "rgba(255,214,10,0.7)",
     glow: "rgba(255,214,10,0.1)",
+    bgGlow: "rgba(255,214,10,0.2)",
     gradient: "rgba(0,0,0,0.5)",
     label: "#ffd60a",
   },
@@ -94,7 +99,9 @@ export default function ProductCard({ id, name, slug, price, image, rarity, stoc
             linear-gradient(90deg, rgba(30,100,200,0.15) 1px, transparent 1px)
           `,
           backgroundSize: "24px 24px",
-        } : { background: "#0d0d0d" }}
+        } : {
+          background: `radial-gradient(ellipse at 50% 85%, ${rs.bgGlow} 0%, #0d0d0d 70%)`,
+        }}
       >
         <Image
           src={image}
