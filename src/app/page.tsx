@@ -101,12 +101,12 @@ const activityMeta: Record<string, { label: string; emoji: string }> = {
 
 const RARITY_ORDER: Record<string, number> = { Common: 0, Uncommon: 1, Rare: 2, Epic: 3, Legendary: 4 }
 
-const rarityStyle: Record<string, { border: string; glow: string }> = {
-  Common:    { border: "rgba(152,152,159,0.4)",  glow: "rgba(152,152,159,0.08)" },
-  Uncommon:  { border: "rgba(48,209,88,0.5)",    glow: "rgba(48,209,88,0.14)"   },
-  Rare:      { border: "rgba(0,113,227,0.6)",    glow: "rgba(0,113,227,0.18)"   },
-  Epic:      { border: "rgba(191,90,242,0.65)",  glow: "rgba(191,90,242,0.2)"   },
-  Legendary: { border: "rgba(255,214,10,0.7)",   glow: "rgba(255,214,10,0.2)"   },
+const rarityStyle: Record<string, { border: string; glow: string; glowStrong: string }> = {
+  Common:    { border: "rgba(152,152,159,0.4)",  glow: "rgba(152,152,159,0.08)", glowStrong: "rgba(152,152,159,0.22)" },
+  Uncommon:  { border: "rgba(48,209,88,0.5)",    glow: "rgba(48,209,88,0.14)",   glowStrong: "rgba(48,209,88,0.32)"   },
+  Rare:      { border: "rgba(0,113,227,0.6)",    glow: "rgba(0,113,227,0.18)",   glowStrong: "rgba(0,113,227,0.38)"   },
+  Epic:      { border: "rgba(191,90,242,0.65)",  glow: "rgba(191,90,242,0.2)",   glowStrong: "rgba(191,90,242,0.42)"  },
+  Legendary: { border: "rgba(255,214,10,0.7)",   glow: "rgba(255,214,10,0.2)",   glowStrong: "rgba(255,214,10,0.44)"  },
 }
 
 function topRarity(items: { product: { rarity: string } }[]): string {
@@ -442,28 +442,33 @@ export default async function Home() {
                   const rs = rarityStyle[enc.product.rarity] ?? rarityStyle.Common
                   return (
                     <Link key={enc.id} href={`/encomendas/${enc.id}`}
-                      className="flex flex-col gap-3 p-4 rounded-2xl hover:opacity-80 transition-opacity"
+                      className="flex flex-col overflow-hidden rounded-2xl hover:opacity-90 transition-opacity"
                       style={{
-                        background: `radial-gradient(ellipse at 50% 0%, ${rs.glow} 0%, ${pal.encomendas.cardBg} 65%)`,
+                        background: "#0d0d0d",
                         border: `1px solid ${rs.border}`,
-                        boxShadow: `0 0 12px ${rs.glow}`,
+                        boxShadow: `0 4px 20px rgba(0,0,0,0.15)`,
                       }}>
-                      <div className="w-10 h-10 rounded-lg overflow-hidden"
-                        style={{ background: "#1a1a1a" }}>
-                        <img src={enc.product.image} alt={enc.product.name}
-                          className="w-full h-full object-contain p-1" />
+                      {/* Área de imagem com glow de raridade */}
+                      <div className="flex items-center justify-center px-4 py-6"
+                        style={{ background: `radial-gradient(ellipse at 50% 65%, ${rs.glowStrong} 0%, #0d0d0d 68%)` }}>
+                        <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                          <img src={enc.product.image} alt={enc.product.name}
+                            className="w-full h-full object-contain p-2" />
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-1 flex-1">
-                        <p className="text-xs font-medium line-clamp-2" style={{ color: pal.encomendas.text }}>
+                      {/* Info */}
+                      <div className="px-4 pb-4 pt-3 flex flex-col gap-1">
+                        <p className="text-sm font-medium line-clamp-2 leading-tight" style={{ color: "#f5f5f7" }}>
                           {enc.product.name}
                         </p>
-                        <p className="text-xs" style={{ color: pal.encomendas.sub }}>
+                        <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
                           x{enc.quantity}
                         </p>
+                        <p className="text-xs font-semibold mt-1" style={{ color: "rgba(255,255,255,0.7)" }}>
+                          {enc.maxPrice ? `até R$ ${Number(enc.maxPrice).toFixed(0)}` : "Preço aberto"}
+                        </p>
                       </div>
-                      <p className="text-xs font-semibold" style={{ color: pal.encomendas.text }}>
-                        {enc.maxPrice ? `até R$ ${Number(enc.maxPrice).toFixed(0)}` : "Preço aberto"}
-                      </p>
                     </Link>
                   )
                 })}
