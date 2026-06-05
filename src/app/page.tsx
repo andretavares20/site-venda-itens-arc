@@ -440,6 +440,9 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* Nossos criadores */}
+        {partners.length > 0 && <PartnerCarousel partners={partners} />}
+
         {/* Encomendas abertas */}
         {openEncomendas.length > 0 && (
           <section style={{ background: pal.encomendas.bg, padding: "60px 0" }}>
@@ -501,8 +504,6 @@ export default async function Home() {
         )}
 
       </main>
-
-      {partners.length > 0 && <PartnerCarousel partners={partners} />}
 
       <Footer />
     </div>
