@@ -123,8 +123,8 @@ const BLACK = { bg: "#000",    title: "#f5f5f7", label: "rgba(255,255,255,0.4)",
 const pal = {
   listings:   WHITE,
   trades:     WHITE,
-  squads:     BLACK,
-  encomendas: WHITE,
+  squads:     WHITE,
+  encomendas: BLACK,
 }
 
 // ── page ─────────────────────────────────────────────────────────
