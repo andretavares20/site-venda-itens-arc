@@ -33,19 +33,19 @@ const COLUMNS = [
 
 export default function Footer() {
   return (
-    <footer style={{ background: "#000", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+    <footer style={{ background: "#f5f5f7", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
       <style>{`
-        .footer-link { color: rgba(255,255,255,0.4); font-size: 12px; display: block; margin-bottom: 8px; text-decoration: none; transition: color 0.15s; }
-        .footer-link:hover { color: #f5f5f7; }
-        .footer-legal { color: rgba(255,255,255,0.4); font-size: 12px; text-decoration: none; transition: color 0.15s; }
-        .footer-legal:hover { color: #f5f5f7; }
+        .footer-link { color: rgba(0,0,0,0.4); font-size: 12px; display: block; margin-bottom: 8px; text-decoration: none; transition: color 0.15s; }
+        .footer-link:hover { color: #1d1d1f; }
+        .footer-legal { color: rgba(0,0,0,0.4); font-size: 12px; text-decoration: none; transition: color 0.15s; }
+        .footer-legal:hover { color: #1d1d1f; }
       `}</style>
 
       {/* Colunas */}
       <div className="max-w-5xl mx-auto px-6 py-10 flex flex-wrap justify-center gap-24">
         {COLUMNS.map((col) => (
           <div key={col.title} style={{ minWidth: "120px" }}>
-            <p className="font-semibold mb-3" style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
+            <p className="font-semibold mb-3" style={{ color: "rgba(0,0,0,0.5)", fontSize: "12px" }}>
               {col.title}
             </p>
             {col.links.map(({ label, href }) => (
@@ -55,15 +55,15 @@ export default function Footer() {
         ))}
       </div>
 
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+      <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }} />
 
       {/* Copyright */}
       <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
-          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>
+          <p style={{ color: "rgba(0,0,0,0.35)", fontSize: "12px" }}>
             © {new Date().getFullYear()} DropBay. Todos os direitos reservados.
           </p>
-          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "11px", marginTop: "2px" }}>
+          <p style={{ color: "rgba(0,0,0,0.25)", fontSize: "11px", marginTop: "2px" }}>
             Não afiliada à Embark Studios AB ou Nexon. Arc Raiders é marca registrada de seus respectivos proprietários.
           </p>
         </div>

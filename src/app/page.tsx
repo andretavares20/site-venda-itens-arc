@@ -124,7 +124,7 @@ const pal = {
   listings:   WHITE,
   trades:     WHITE,
   squads:     WHITE,
-  encomendas: BLACK,
+  encomendas: WHITE,
 }
 
 // ── page ─────────────────────────────────────────────────────────
