@@ -11,6 +11,8 @@ import { useSearchParams } from "next/navigation"
 const CONT = 320
 const RADIUS = 140
 
+type ImgBounds = { x1: number; y1: number; x2: number; y2: number }
+
 export default function PerfilPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -31,6 +33,7 @@ export default function PerfilPage() {
   const cropImgRef = useRef<HTMLImageElement>(null)
   const dragging = useRef(false)
   const dragOrigin = useRef({ mx: 0, my: 0, cx: 0, cy: 0 })
+  const imgBounds = useRef<ImgBounds | null>(null)
   const searchParams = useSearchParams()
   const discordStatus = searchParams.get("discord")
 
@@ -56,6 +59,7 @@ export default function PerfilPage() {
     e.target.value = ""
     const reader = new FileReader()
     reader.onload = (ev) => {
+      imgBounds.current = null
       setCropSrc(ev.target?.result as string)
       setCropPos({ x: CONT / 2, y: CONT / 2 })
     }
@@ -66,9 +70,10 @@ export default function PerfilPage() {
     if (!dragging.current) return
     const dx = clientX - dragOrigin.current.mx
     const dy = clientY - dragOrigin.current.my
+    const b = imgBounds.current ?? { x1: RADIUS, y1: RADIUS, x2: CONT - RADIUS, y2: CONT - RADIUS }
     setCropPos({
-      x: Math.max(RADIUS, Math.min(CONT - RADIUS, dragOrigin.current.cx + dx)),
-      y: Math.max(RADIUS, Math.min(CONT - RADIUS, dragOrigin.current.cy + dy)),
+      x: Math.max(b.x1, Math.min(b.x2, dragOrigin.current.cx + dx)),
+      y: Math.max(b.y1, Math.min(b.y2, dragOrigin.current.cy + dy)),
     })
   }, [])
 
@@ -387,6 +392,23 @@ export default function PerfilPage() {
                 alt=""
                 draggable={false}
                 style={{ width: CONT, height: CONT, objectFit: "contain", display: "block", userSelect: "none" }}
+                onLoad={() => {
+                  const img = cropImgRef.current
+                  if (!img) return
+                  const scale = Math.min(CONT / img.naturalWidth, CONT / img.naturalHeight)
+                  const dispW = img.naturalWidth * scale
+                  const dispH = img.naturalHeight * scale
+                  const offX = (CONT - dispW) / 2
+                  const offY = (CONT - dispH) / 2
+                  const r = Math.min(RADIUS, dispW / 2, dispH / 2)
+                  imgBounds.current = {
+                    x1: offX + r,
+                    y1: offY + r,
+                    x2: offX + dispW - r,
+                    y2: offY + dispH - r,
+                  }
+                  setCropPos({ x: offX + dispW / 2, y: offY + dispH / 2 })
+                }}
               />
 
               {/* Dark overlay with circular hole via box-shadow */}
