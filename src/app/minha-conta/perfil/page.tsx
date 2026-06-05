@@ -2,12 +2,14 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
-import { ArrowLeft, CheckCircle, User, Key, Camera } from "lucide-react"
+import { ArrowLeft, CheckCircle, User, Key, Camera, X } from "lucide-react"
 import { useSearchParams } from "next/navigation"
-import { useRef } from "react"
+
+const CONT = 320
+const RADIUS = 140
 
 export default function PerfilPage() {
   const { data: session, status } = useSession()
@@ -22,7 +24,13 @@ export default function PerfilPage() {
   const [discordId, setDiscordId] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [cropSrc, setCropSrc] = useState<string | null>(null)
+  const [cropPos, setCropPos] = useState({ x: CONT / 2, y: CONT / 2 })
+  const [isDragging, setIsDragging] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
+  const cropImgRef = useRef<HTMLImageElement>(null)
+  const dragging = useRef(false)
+  const dragOrigin = useRef({ mx: 0, my: 0, cx: 0, cy: 0 })
   const searchParams = useSearchParams()
   const discordStatus = searchParams.get("discord")
 
@@ -42,32 +50,78 @@ export default function PerfilPage() {
       })
   }, [status, session])
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setUploadingAvatar(true)
+    e.target.value = ""
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      setCropSrc(ev.target?.result as string)
+      setCropPos({ x: CONT / 2, y: CONT / 2 })
+    }
+    reader.readAsDataURL(file)
+  }
 
-    // redimensiona para 256×256 no canvas antes de enviar
-    const dataUrl = await new Promise<string>((resolve) => {
-      const reader = new FileReader()
-      reader.onload = (ev) => {
-        const img = new window.Image()
-        img.onload = () => {
-          const SIZE = 256
-          const canvas = document.createElement("canvas")
-          canvas.width = SIZE
-          canvas.height = SIZE
-          const ctx = canvas.getContext("2d")!
-          const ratio = Math.min(SIZE / img.width, SIZE / img.height)
-          const w = img.width * ratio
-          const h = img.height * ratio
-          ctx.drawImage(img, (SIZE - w) / 2, (SIZE - h) / 2, w, h)
-          resolve(canvas.toDataURL("image/jpeg", 0.85))
-        }
-        img.src = ev.target?.result as string
-      }
-      reader.readAsDataURL(file)
+  const onMove = useCallback((clientX: number, clientY: number) => {
+    if (!dragging.current) return
+    const dx = clientX - dragOrigin.current.mx
+    const dy = clientY - dragOrigin.current.my
+    setCropPos({
+      x: Math.max(RADIUS, Math.min(CONT - RADIUS, dragOrigin.current.cx + dx)),
+      y: Math.max(RADIUS, Math.min(CONT - RADIUS, dragOrigin.current.cy + dy)),
     })
+  }, [])
+
+  useEffect(() => {
+    if (!cropSrc) return
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX, e.clientY)
+    const onMouseUp = () => { dragging.current = false; setIsDragging(false) }
+    const onTouchMove = (e: TouchEvent) => { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY) }
+    const onTouchEnd = () => { dragging.current = false; setIsDragging(false) }
+    window.addEventListener("mousemove", onMouseMove)
+    window.addEventListener("mouseup", onMouseUp)
+    window.addEventListener("touchmove", onTouchMove, { passive: false })
+    window.addEventListener("touchend", onTouchEnd)
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove)
+      window.removeEventListener("mouseup", onMouseUp)
+      window.removeEventListener("touchmove", onTouchMove)
+      window.removeEventListener("touchend", onTouchEnd)
+    }
+  }, [cropSrc, onMove])
+
+  function startDrag(clientX: number, clientY: number) {
+    dragging.current = true
+    setIsDragging(true)
+    dragOrigin.current = { mx: clientX, my: clientY, cx: cropPos.x, cy: cropPos.y }
+  }
+
+  async function confirmCrop() {
+    const img = cropImgRef.current
+    if (!img) return
+
+    const natW = img.naturalWidth
+    const natH = img.naturalHeight
+    const scale = Math.min(CONT / natW, CONT / natH)
+    const dispW = natW * scale
+    const dispH = natH * scale
+    const offX = (CONT - dispW) / 2
+    const offY = (CONT - dispH) / 2
+
+    const origCX = (cropPos.x - offX) / scale
+    const origCY = (cropPos.y - offY) / scale
+    const origR = RADIUS / scale
+
+    const SIZE = 256
+    const canvas = document.createElement("canvas")
+    canvas.width = SIZE
+    canvas.height = SIZE
+    const ctx = canvas.getContext("2d")!
+    ctx.drawImage(img, origCX - origR, origCY - origR, origR * 2, origR * 2, 0, 0, SIZE, SIZE)
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85)
+
+    setCropSrc(null)
+    setUploadingAvatar(true)
 
     const res = await fetch("/api/usuario/avatar", {
       method: "POST",
@@ -159,7 +213,7 @@ export default function PerfilPage() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={handleAvatarChange}
+            onChange={handleFileSelect}
           />
         </div>
 
@@ -290,6 +344,110 @@ export default function PerfilPage() {
           </div>
         </div>
       </main>
+
+      {/* Crop modal */}
+      {cropSrc && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.85)" }}
+        >
+          <div className="flex flex-col gap-5 w-full rounded-2xl p-6"
+            style={{ maxWidth: 380, background: "var(--surface-1)", border: "1px solid var(--border)" }}>
+
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+                  Ajuste sua foto
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                  Arraste o círculo para posicionar
+                </p>
+              </div>
+              <button
+                onClick={() => setCropSrc(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full transition-colors"
+                style={{ color: "var(--text-secondary)" }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-2)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Crop area */}
+            <div
+              className="relative overflow-hidden rounded-xl mx-auto select-none"
+              style={{ width: CONT, height: CONT, background: "#000", flexShrink: 0 }}
+            >
+              {/* Photo */}
+              <img
+                ref={cropImgRef}
+                src={cropSrc}
+                alt=""
+                draggable={false}
+                style={{ width: CONT, height: CONT, objectFit: "contain", display: "block", userSelect: "none" }}
+              />
+
+              {/* Dark overlay with circular hole via box-shadow */}
+              <div
+                onMouseDown={(e) => { e.preventDefault(); startDrag(e.clientX, e.clientY) }}
+                onTouchStart={(e) => { startDrag(e.touches[0].clientX, e.touches[0].clientY) }}
+                style={{
+                  position: "absolute",
+                  left: cropPos.x - RADIUS,
+                  top: cropPos.y - RADIUS,
+                  width: RADIUS * 2,
+                  height: RADIUS * 2,
+                  borderRadius: "50%",
+                  boxShadow: "0 0 0 9999px rgba(0,0,0,0.6)",
+                  border: "2px solid rgba(255,255,255,0.85)",
+                  cursor: isDragging ? "grabbing" : "grab",
+                  touchAction: "none",
+                }}
+              />
+
+              {/* Crosshair guides */}
+              <svg
+                style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+                width={CONT}
+                height={CONT}
+              >
+                <line
+                  x1={cropPos.x} y1={cropPos.y - RADIUS + 10}
+                  x2={cropPos.x} y2={cropPos.y + RADIUS - 10}
+                  stroke="rgba(255,255,255,0.25)" strokeWidth="1"
+                />
+                <line
+                  x1={cropPos.x - RADIUS + 10} y1={cropPos.y}
+                  x2={cropPos.x + RADIUS - 10} y2={cropPos.y}
+                  stroke="rgba(255,255,255,0.25)" strokeWidth="1"
+                />
+              </svg>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCropSrc(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                style={{ background: "var(--surface-2)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+                onMouseEnter={(e) => e.currentTarget.style.color = "var(--text-primary)"}
+                onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-secondary)"}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmCrop}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ background: "var(--accent)", color: "#fff" }}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
