@@ -165,8 +165,14 @@ export default function Navbar() {
                           <div className="flex-shrink-0 rounded-xl overflow-hidden"
                             style={{
                               width: 40, height: 40,
-                              background: rb.bg,
                               border: `1px solid ${rb.border}`,
+                              ...(s.category === "Blueprint" ? {
+                                background: "#071428",
+                                backgroundImage: "linear-gradient(rgba(30,100,200,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(30,100,200,0.15) 1px, transparent 1px)",
+                                backgroundSize: "10px 10px",
+                              } : {
+                                background: rb.bg,
+                              }),
                             }}>
                             <img src={s.image} alt={s.name} className="w-full h-full object-contain p-1.5" />
                           </div>
