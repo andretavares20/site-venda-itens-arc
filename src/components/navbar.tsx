@@ -146,39 +146,48 @@ export default function Navbar() {
                   </p>
                 ) : (
                   <>
-                    {suggestions.map((s, i) => (
-                      <button key={s.slug} onClick={() => goSuggestion(s)}
-                        onMouseEnter={() => setSelectedIdx(i)}
-                        onMouseLeave={() => setSelectedIdx(-1)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left"
-                        style={{
-                          background: selectedIdx === i ? "rgba(255,255,255,0.08)" : "transparent",
-                          border: "none", cursor: "pointer", transition: "background 0.12s",
-                        }}>
-                        <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0"
-                          style={{ background: "#1a1a1a" }}>
-                          <img src={s.image} alt={s.name} className="w-full h-full object-contain p-1" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: "rgba(255,255,255,0.9)" }}>
-                            {s.name}
-                          </p>
-                          <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{s.category}</p>
-                        </div>
-                        {(() => {
-                          const rb = RARITY_BADGE[s.rarity] ?? RARITY_BADGE.Common
-                          return (
-                            <span className="flex-shrink-0" style={{
-                              fontSize: "10px", fontWeight: 600, letterSpacing: "0.04em",
-                              color: rb.color, background: rb.bg, border: `1px solid ${rb.border}`,
-                              borderRadius: "6px", padding: "2px 7px",
+                    {suggestions.map((s, i) => {
+                      const rb = RARITY_BADGE[s.rarity] ?? RARITY_BADGE.Common
+                      const active = selectedIdx === i
+                      return (
+                        <button key={s.slug} onClick={() => goSuggestion(s)}
+                          onMouseEnter={() => setSelectedIdx(i)}
+                          onMouseLeave={() => setSelectedIdx(-1)}
+                          className="w-full flex items-center gap-3 text-left overflow-hidden"
+                          style={{
+                            background: active ? "rgba(255,255,255,0.06)" : "transparent",
+                            border: "none", cursor: "pointer", transition: "background 0.12s",
+                            borderRadius: "12px", padding: "8px 10px 8px 0",
+                            borderLeft: `3px solid ${active ? rb.color : "transparent"}`,
+                            paddingLeft: "10px",
+                          }}>
+                          {/* Ícone com borda de raridade */}
+                          <div className="flex-shrink-0 rounded-xl overflow-hidden"
+                            style={{
+                              width: 40, height: 40,
+                              background: rb.bg,
+                              border: `1px solid ${rb.border}`,
                             }}>
-                              {s.rarity}
-                            </span>
-                          )
-                        })()}
-                      </button>
-                    ))}
+                            <img src={s.image} alt={s.name} className="w-full h-full object-contain p-1.5" />
+                          </div>
+                          {/* Nome + categoria */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate" style={{ color: "rgba(255,255,255,0.92)" }}>
+                              {s.name}
+                            </p>
+                            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{s.category}</p>
+                          </div>
+                          {/* Badge de raridade */}
+                          <span className="flex-shrink-0" style={{
+                            fontSize: "10px", fontWeight: 600, letterSpacing: "0.04em",
+                            color: rb.color, background: rb.bg, border: `1px solid ${rb.border}`,
+                            borderRadius: "6px", padding: "2px 7px",
+                          }}>
+                            {s.rarity}
+                          </span>
+                        </button>
+                      )
+                    })}
                     <button onClick={() => { closeSearch(); router.push(`/loja?busca=${encodeURIComponent(query)}`) }}
                       className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 rounded-xl text-left"
                       style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}
