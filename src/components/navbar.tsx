@@ -12,12 +12,12 @@ import { DISCORD_URL } from "@/lib/constants"
 
 type Suggestion = { name: string; slug: string; image: string; category: string; rarity: string }
 
-const RARITY_COLOR: Record<string, string> = {
-  Common:    "rgba(152,152,159,0.8)",
-  Uncommon:  "rgba(48,209,88,0.9)",
-  Rare:      "rgba(0,113,227,0.95)",
-  Epic:      "rgba(191,90,242,0.95)",
-  Legendary: "rgba(255,214,10,0.95)",
+const RARITY_BADGE: Record<string, { color: string; bg: string; border: string }> = {
+  Common:    { color: "rgba(152,152,159,1)",  bg: "rgba(152,152,159,0.12)", border: "rgba(152,152,159,0.3)"  },
+  Uncommon:  { color: "rgba(48,209,88,1)",    bg: "rgba(48,209,88,0.12)",   border: "rgba(48,209,88,0.35)"   },
+  Rare:      { color: "rgba(0,113,227,1)",    bg: "rgba(0,113,227,0.15)",   border: "rgba(0,113,227,0.4)"    },
+  Epic:      { color: "rgba(191,90,242,1)",   bg: "rgba(191,90,242,0.15)",  border: "rgba(191,90,242,0.4)"   },
+  Legendary: { color: "rgba(255,214,10,1)",   bg: "rgba(255,214,10,0.15)",  border: "rgba(255,214,10,0.4)"   },
 }
 
 export default function Navbar() {
@@ -165,10 +165,18 @@ export default function Navbar() {
                           </p>
                           <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{s.category}</p>
                         </div>
-                        <span className="text-xs font-medium flex-shrink-0"
-                          style={{ color: RARITY_COLOR[s.rarity] ?? "rgba(255,255,255,0.4)" }}>
-                          {s.rarity}
-                        </span>
+                        {(() => {
+                          const rb = RARITY_BADGE[s.rarity] ?? RARITY_BADGE.Common
+                          return (
+                            <span className="flex-shrink-0" style={{
+                              fontSize: "10px", fontWeight: 600, letterSpacing: "0.04em",
+                              color: rb.color, background: rb.bg, border: `1px solid ${rb.border}`,
+                              borderRadius: "6px", padding: "2px 7px",
+                            }}>
+                              {s.rarity}
+                            </span>
+                          )
+                        })()}
                       </button>
                     ))}
                     <button onClick={() => { closeSearch(); router.push(`/loja?busca=${encodeURIComponent(query)}`) }}
