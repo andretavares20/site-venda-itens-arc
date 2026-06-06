@@ -10,6 +10,16 @@ import CartDrawer from "./cart-drawer"
 import NotificationBell from "./notification-bell"
 import { DISCORD_URL } from "@/lib/constants"
 
+type Suggestion = { name: string; slug: string; image: string; category: string; rarity: string }
+
+const RARITY_COLOR: Record<string, string> = {
+  Common:    "rgba(152,152,159,0.8)",
+  Uncommon:  "rgba(48,209,88,0.9)",
+  Rare:      "rgba(0,113,227,0.95)",
+  Epic:      "rgba(191,90,242,0.95)",
+  Legendary: "rgba(255,214,10,0.95)",
+}
+
 export default function Navbar() {
   const { data: session } = useSession()
   const router = useRouter()
@@ -21,7 +31,11 @@ export default function Navbar() {
   const [servicesOpen, setServicesOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [categories, setCategories] = useState<string[]>([])
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [suggestLoading, setSuggestLoading] = useState(false)
+  const [selectedIdx, setSelectedIdx] = useState(-1)
   const searchRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (searchOpen) {
@@ -32,7 +46,26 @@ export default function Navbar() {
     }
   }, [searchOpen, categories.length])
 
-  const closeSearch = useCallback(() => { setSearchOpen(false); setQuery("") }, [])
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSelectedIdx(-1)
+    if (query.length < 2) { setSuggestions([]); setSuggestLoading(false); return }
+    setSuggestLoading(true)
+    debounceRef.current = setTimeout(async () => {
+      const res = await fetch(`/api/busca?q=${encodeURIComponent(query)}`)
+      const data = await res.json()
+      setSuggestions(data)
+      setSuggestLoading(false)
+    }, 280)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [query])
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false)
+    setQuery("")
+    setSuggestions([])
+    setSelectedIdx(-1)
+  }, [])
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === "Escape") closeSearch() }
@@ -40,11 +73,31 @@ export default function Navbar() {
     return () => window.removeEventListener("keydown", fn)
   }, [closeSearch])
 
+  function goSuggestion(s: Suggestion) {
+    closeSearch()
+    router.push(`/loja?busca=${encodeURIComponent(s.name)}`)
+  }
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (!query.trim()) return
+    if (selectedIdx >= 0 && suggestions[selectedIdx]) {
+      goSuggestion(suggestions[selectedIdx])
+      return
+    }
     closeSearch()
     router.push(`/loja?busca=${encodeURIComponent(query.trim())}`)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (suggestions.length === 0) return
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      setSelectedIdx(i => Math.min(i + 1, suggestions.length - 1))
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      setSelectedIdx(i => Math.max(i - 1, -1))
+    }
   }
 
   function goCategory(cat: string) {
@@ -63,12 +116,18 @@ export default function Navbar() {
             {/* Input */}
             <div className="max-w-3xl mx-auto px-6 flex items-center gap-3"
               style={{ height: "56px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-              <Search size={16} style={{ color: "rgba(255,255,255,0.4)", flexShrink: 0 }} />
+              <Search size={16} style={{ color: suggestLoading ? "var(--accent)" : "rgba(255,255,255,0.4)", flexShrink: 0, transition: "color 0.2s" }} />
               <form onSubmit={handleSearch} className="flex-1">
-                <input ref={searchRef} value={query} onChange={e => setQuery(e.target.value)}
+                <input
+                  ref={searchRef}
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Buscar itens de Arc Raiders..."
                   className="w-full bg-transparent outline-none"
-                  style={{ color: "rgba(255,255,255,0.9)", fontSize: "16px" }} />
+                  style={{ color: "rgba(255,255,255,0.9)", fontSize: "16px" }}
+                  autoComplete="off"
+                />
               </form>
               <button onClick={closeSearch}
                 style={{ color: "var(--accent)", fontSize: "14px", background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}>
@@ -76,29 +135,77 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Categorias */}
-            {categories.length > 0 && (
-              <div className="max-w-3xl mx-auto px-6 py-5">
-                <p className="text-xs font-semibold mb-3"
-                  style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em" }}>
-                  CATEGORIAS
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3">
-                  {categories.map(cat => (
-                    <button key={cat} onClick={() => goCategory(cat)}
-                      className="flex items-center gap-2 py-2.5 text-left transition-colors"
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.8)" }}
-                      onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
-                      onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        strokeWidth="1.5" strokeLinecap="round" style={{ opacity: 0.5, flexShrink: 0 }}>
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                      </svg>
-                      <span style={{ fontSize: "14px" }}>{cat}</span>
+            {/* Sugestões ou Categorias */}
+            {query.length >= 2 ? (
+              <div className="max-w-3xl mx-auto px-6 py-3">
+                {suggestLoading ? (
+                  <p className="py-4 text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>Buscando...</p>
+                ) : suggestions.length === 0 ? (
+                  <p className="py-4 text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    Nenhum item encontrado para &ldquo;{query}&rdquo;
+                  </p>
+                ) : (
+                  <>
+                    {suggestions.map((s, i) => (
+                      <button key={s.slug} onClick={() => goSuggestion(s)}
+                        onMouseEnter={() => setSelectedIdx(i)}
+                        onMouseLeave={() => setSelectedIdx(-1)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left"
+                        style={{
+                          background: selectedIdx === i ? "rgba(255,255,255,0.08)" : "transparent",
+                          border: "none", cursor: "pointer", transition: "background 0.12s",
+                        }}>
+                        <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0"
+                          style={{ background: "#1a1a1a" }}>
+                          <img src={s.image} alt={s.name} className="w-full h-full object-contain p-1" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate" style={{ color: "rgba(255,255,255,0.9)" }}>
+                            {s.name}
+                          </p>
+                          <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{s.category}</p>
+                        </div>
+                        <span className="text-xs font-medium flex-shrink-0"
+                          style={{ color: RARITY_COLOR[s.rarity] ?? "rgba(255,255,255,0.4)" }}>
+                          {s.rarity}
+                        </span>
+                      </button>
+                    ))}
+                    <button onClick={() => { closeSearch(); router.push(`/loja?busca=${encodeURIComponent(query)}`) }}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 rounded-xl text-left"
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}>
+                      <Search size={13} />
+                      Ver todos os resultados para &ldquo;{query}&rdquo;
                     </button>
-                  ))}
-                </div>
+                  </>
+                )}
               </div>
+            ) : (
+              categories.length > 0 && (
+                <div className="max-w-3xl mx-auto px-6 py-5">
+                  <p className="text-xs font-semibold mb-3"
+                    style={{ color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em" }}>
+                    CATEGORIAS
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3">
+                    {categories.map(cat => (
+                      <button key={cat} onClick={() => goCategory(cat)}
+                        className="flex items-center gap-2 py-2.5 text-left transition-colors"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.8)" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
+                        onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          strokeWidth="1.5" strokeLinecap="round" style={{ opacity: 0.5, flexShrink: 0 }}>
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                        <span style={{ fontSize: "14px" }}>{cat}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
             )}
           </div>
           <div style={{ background: "rgba(0,0,0,0.4)" }} className="h-full" />
