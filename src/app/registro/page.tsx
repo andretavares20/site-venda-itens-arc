@@ -11,7 +11,9 @@ export default function RegistroPage() {
   const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [isBrazil, setIsBrazil] = useState(true)
   const [cpf, setCpf] = useState("")
+  const [foreignDoc, setForeignDoc] = useState("")
   const [password, setPassword] = useState("")
   const [showPass, setShowPass] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
@@ -28,7 +30,7 @@ export default function RegistroPage() {
       setError("A senha deve ter pelo menos 6 caracteres.")
       return
     }
-    if (!validateCPF(cpf)) {
+    if (isBrazil && !validateCPF(cpf)) {
       setError("CPF inválido. Verifique e tente novamente.")
       return
     }
@@ -39,10 +41,12 @@ export default function RegistroPage() {
     setError("")
     setLoading(true)
 
+    const documento = isBrazil ? cpf.replace(/\D/g, "") : (foreignDoc.trim() || null)
+
     const res = await fetch("/api/registro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, cpf, password }),
+      body: JSON.stringify({ name, email, cpf: documento, password }),
     })
 
     if (!res.ok) {
@@ -93,21 +97,47 @@ export default function RegistroPage() {
               value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>CPF</label>
-            <input type="text" className="input-field" placeholder="000.000.000-00"
-              value={cpf} onChange={handleCpfChange} required maxLength={14}
-              inputMode="numeric"
-              style={{
-                borderColor: cpf.length === 14
-                  ? validateCPF(cpf) ? "var(--success)" : "var(--error)"
-                  : undefined,
-              }}
+          <label className="flex items-center gap-2.5 cursor-pointer -mb-1">
+            <input
+              type="checkbox"
+              checked={isBrazil}
+              onChange={(e) => setIsBrazil(e.target.checked)}
+              className="flex-shrink-0"
+              style={{ accentColor: "var(--accent)", width: 15, height: 15 }}
             />
-            {cpf.length === 14 && !validateCPF(cpf) && (
-              <p className="text-xs" style={{ color: "var(--error)" }}>CPF inválido</p>
-            )}
-          </div>
+            <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
+              Sou do Brasil
+            </span>
+          </label>
+
+          {isBrazil ? (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>CPF</label>
+              <input type="text" className="input-field" placeholder="000.000.000-00"
+                value={cpf} onChange={handleCpfChange} required maxLength={14}
+                inputMode="numeric"
+                style={{
+                  borderColor: cpf.length === 14
+                    ? validateCPF(cpf) ? "var(--success)" : "var(--error)"
+                    : undefined,
+                }}
+              />
+              {cpf.length === 14 && !validateCPF(cpf) && (
+                <p className="text-xs" style={{ color: "var(--error)" }}>CPF inválido</p>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                Documento (opcional)
+              </label>
+              <input type="text" className="input-field" placeholder="NIF, passaporte, ID fiscal..."
+                value={foreignDoc} onChange={(e) => setForeignDoc(e.target.value)} maxLength={30} />
+              <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                Não exigimos CPF de quem mora fora do Brasil.
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Senha</label>
