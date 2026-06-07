@@ -7,14 +7,16 @@ import { randomBytes } from "crypto"
 export async function POST(req: NextRequest) {
   const { name, email, cpf, password } = await req.json()
 
-  if (!name || !email || !cpf || !password) {
+  if (!name || !email || !password) {
     return NextResponse.json({ error: "Dados incompletos." }, { status: 400 })
   }
 
-  const cpfClean = cpf.replace(/\D/g, "")
-  const cpfExists = await prisma.user.findUnique({ where: { cpf: cpfClean } })
-  if (cpfExists) {
-    return NextResponse.json({ error: "CPF já cadastrado." }, { status: 409 })
+  const cpfClean: string | null = typeof cpf === "string" && cpf.trim() ? cpf.trim() : null
+  if (cpfClean) {
+    const cpfExists = await prisma.user.findUnique({ where: { cpf: cpfClean } })
+    if (cpfExists) {
+      return NextResponse.json({ error: "CPF já cadastrado." }, { status: 409 })
+    }
   }
 
   const existing = await prisma.user.findUnique({ where: { email } })
