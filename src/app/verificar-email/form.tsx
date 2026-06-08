@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { CheckCircle, MailCheck } from "lucide-react"
@@ -8,11 +8,20 @@ import { CheckCircle, MailCheck } from "lucide-react"
 export default function VerificarEmailForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const token = searchParams.get("token") ?? ""
 
+  const [token, setToken] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [done, setDone] = useState(false)
+
+  // Navegadores embutidos de apps (Discord, WhatsApp, Gmail) às vezes não repassam
+  // a query string pro useSearchParams a tempo — lemos a URL real como reforço.
+  useEffect(() => {
+    const fromHook = searchParams.get("token")
+    const fromUrl = new URLSearchParams(window.location.search).get("token")
+    const found = fromHook || fromUrl
+    if (found) setToken(found)
+  }, [searchParams])
 
   async function handleConfirm() {
     setError("")
