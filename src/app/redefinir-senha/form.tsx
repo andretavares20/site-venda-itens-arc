@@ -19,6 +19,7 @@ export default function RedefinirSenhaForm() {
 
   useEffect(() => {
     if (!token) setError("Link inválido. Solicite um novo link de redefinição.")
+    else setError("")
   }, [token])
 
   async function handleSubmit(e: React.FormEvent) {
