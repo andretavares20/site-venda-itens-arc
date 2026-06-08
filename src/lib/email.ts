@@ -115,7 +115,7 @@ export async function sendPasswordResetEmail(to: string, name: string, token: st
 }
 
 export async function sendVerificationEmail(to: string, name: string, token: string) {
-  const link = `${BASE_URL}/api/verificar-email?token=${token}`
+  const link = `${BASE_URL}/verificar-email?token=${token}`
 
   await resend.emails.send({
     from: FROM,
